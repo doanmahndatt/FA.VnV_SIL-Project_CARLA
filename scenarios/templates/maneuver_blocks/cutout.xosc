@@ -1,0 +1,63 @@
+<ManeuverGroup name="cutout_tv" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="tv"/>
+  </Actors>
+  <Maneuver name="cutout_maneuver">
+    <Event name="cutout_event" priority="overwrite">
+      <Action name="cutout_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneChangeAction>
+              <LaneChangeActionDynamics
+                  dynamicsShape="linear"
+                  value="${response_cutout_time}"
+                  dynamicsDimension="time"/>
+              <LaneChangeTarget>
+                <!-- direction: left = -1, right = +1 -->
+                <RelativeTargetLane value="${lane_change_direction}"/>
+              </LaneChangeTarget>
+            </LaneChangeAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="cutout_start"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="${trigger_cutout_time}"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+
+    <!-- Event 2: Maintain Speed (sau khi lane change hoàn thành) -->
+    <Event name="maintain_speed_event" priority="parallel">
+      <Action name="maintain_speed">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${tv_maintain_speed}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="speed_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="8" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

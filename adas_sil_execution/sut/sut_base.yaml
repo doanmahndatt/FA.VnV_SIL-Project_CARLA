@@ -1,0 +1,9 @@
+sut:
+  type: black_box
+  lifecycle:
+    start: external
+    stop: external
+  visibility:
+    perception: none
+    planning: none
+    control: output_only

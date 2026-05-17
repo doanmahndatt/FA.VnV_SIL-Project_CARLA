@@ -1,0 +1,32 @@
+scenario_id: acc_csc_013_004
+logic:
+  scenario_id: acc_csc_013
+  name: TV1 Cut out right + static TV2
+  pre_condition:
+    ev_mode: FL
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv1:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  - tv2:
+      type: car
+      lane: ego
+      position: front_tv1
+      state: static
+  maneuvers:
+  - type: cutout_event
+    actor: tv1
+    direction: right
+  - type: appear_event
+    actor: tv2
+parameters:
+  ev_speed: 60
+  tv_speed: 40
+  light: night
+  curve_radius: 1000

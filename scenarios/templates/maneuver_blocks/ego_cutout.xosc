@@ -1,0 +1,37 @@
+<ManeuverGroup name="ego_cutout" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="ego"/>
+  </Actors>
+  <Maneuver name="ego_cutout_maneuver">
+    <Event name="ego_cutout_event" priority="overwrite">
+      <Action name="ego_cutout_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneChangeAction>
+              <LaneChangeActionDynamics
+                  dynamicsShape="linear"
+                  value="${lane_change_time}"
+                  dynamicsDimension="time"/>
+              <LaneChangeTarget>
+                <RelativeTargetLane value="${lane_delta}"/>
+              </LaneChangeTarget>
+            </LaneChangeAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="ego_cutout_start"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="${ego_cutout_time}"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>    

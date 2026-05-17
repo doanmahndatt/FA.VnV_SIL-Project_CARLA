@@ -1,0 +1,42 @@
+<ManeuverGroup name="ego_curve" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="ego"/>
+  </Actors>
+  <Maneuver name="curve_maneuver">
+    <Event name="curve_event" priority="overwrite">
+      <Action name="curve_action">
+        <PrivateAction>
+          <RoutingAction>
+            <FollowTrajectoryAction>
+              <Trajectory name="curve_trajectory" closed="false">
+                <Shape>
+                  <Polyline>
+                    ${trajectory_points}
+                  </Polyline>
+                </Shape>
+              </Trajectory>
+              <TimeReference>
+                <Timing>
+                  <TimeOfDay offset="0"/>
+                </Timing>
+              </TimeReference>
+            </FollowTrajectoryAction>
+          </RoutingAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="curve_start"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="${curve_start_time}"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

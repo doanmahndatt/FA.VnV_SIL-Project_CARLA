@@ -1,0 +1,15 @@
+parameters:
+  # ==== Spawn Ev,TV ==== 
+  ev_lane_id: [-2]
+  tv_lane_id: [-2]
+
+  # ===== SPEED =====
+  ev_speed: [10, 150] #unit: m/s
+
+  # ===== timestamp =====
+  response_cruise_time: [20] #unit: s - thời gian từ khi TV bắt đầu giảm tốc đến khi TV đạt được tốc độ duy trì
+  #stopTrigger_time đang hardcode == 20s
+
+  # ===== ENVIRONMENT =====
+  light: [day, night]
+  weather: [clear, rain, fog]

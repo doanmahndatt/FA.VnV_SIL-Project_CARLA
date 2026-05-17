@@ -1,0 +1,37 @@
+<ManeuverGroup name="stop" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="stop_maneuver">
+    <Event name="stop_event" priority="overwrite">
+      <Action name="stop_action">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                  dynamicsShape="linear"
+                  value="${deceleration_time}"
+                  dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="0"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="stop_trigger"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="${trigger_stop_time}"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

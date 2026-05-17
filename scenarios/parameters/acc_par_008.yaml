@@ -1,0 +1,24 @@
+parameters:
+  # ==== SPAWN EV,TV =====
+  ev_lane_id: [-2]       # Lane của EV
+  tv_lane_id: [-2]       # Lane của TV
+
+  # ===== SPEED =====
+  ev_speed: [10, 20]
+  tv_speed: [5, 10]
+  tv_maintain_speed: [7, 15]
+
+# ==== Timestamp====
+  response_cutout_time: [3]
+  trigger_cutout_time: [5]
+
+# ==== TARGET LANE CHANGE ====
+  lane_change_direction: [-1]  #TV cutout sang trái
+
+# ==== environment ====
+  light: [day, night]
+  weather: [clear, rain, fog]
+
+constraints:
+  - ev_speed > tv_maintain_speed
+  - tv_maintain_speed > tv_speed

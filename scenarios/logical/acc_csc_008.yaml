@@ -1,0 +1,21 @@
+scenario_id: acc_csc_008
+name: Cut out left no TV
+
+pre_condition:
+  ev_mode: FL
+
+actors:
+  - ev: 
+      type: ego
+      lane: ego
+      state: moving
+  - tv: 
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+
+maneuvers:
+  - type: cutout_event
+    actor: tv
+    direction: left

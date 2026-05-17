@@ -1,0 +1,15 @@
+ego_signals:
+  speed:
+    source: ros2
+    topic: /localization/kinematic_state
+    field: twist.linear.x
+
+  accel_cmd:
+    source: ros2
+    topic: /control/command/control_cmd
+    field: longitudinal.acceleration
+
+environment:
+  lead_vehicle_distance:
+    source: carla
+    type: bounding_box

@@ -1,0 +1,5 @@
+parameters:
+  ev_speed: [60, 120]
+  tv_speed: [40, 100]
+  light: [day, night]
+  curve_radius: [250, 1000]

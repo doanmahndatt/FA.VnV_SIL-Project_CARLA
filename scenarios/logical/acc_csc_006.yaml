@@ -1,0 +1,25 @@
+scenario_id: acc_csc_006
+name: FL mode cut in right
+
+pre_condition:
+  ev_mode: FL
+
+actors:
+  - ev: 
+      type: ego
+      lane: ego
+      state: moving
+  - tv_old: 
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  - tv_new:
+      type: bus
+      lane: right
+      position: next_to_ego
+      state: moving
+
+maneuvers:
+  - type: cutin_event
+    actor: tv_new

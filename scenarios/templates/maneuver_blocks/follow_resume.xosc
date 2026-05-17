@@ -1,0 +1,42 @@
+<ManeuverGroup name="follow_resume" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="follow_resume_maneuver">
+    <Event name="follow_resume" priority="overwrite">
+      <Action name="resume_action">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                  dynamicsShape="linear"
+                  value="${response_time}"
+                  dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${ev_speed}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="safe_distance"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByEntityCondition>
+              <EntityCondition>
+                <RelativeDistanceCondition
+                    entityRef="${target}"
+                    relativeDistanceType="longitudinal"
+                    value="${resume_distance}"
+                    freespace="true"
+                    rule="greaterThan"/>
+              </EntityCondition>
+            </ByEntityCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

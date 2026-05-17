@@ -1,0 +1,31 @@
+scenario_id: acc_csc_004_009
+logic:
+  scenario_id: acc_csc_004
+  name: EV in CC mode, TV cut in from right
+  pre_condition:
+    ev_mode: CC
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv1:
+      type: truck
+      lane: right
+      position: next_to_ego
+      state: moving
+  maneuvers:
+  - type: cutin_event
+    actor: tv
+    direction: right_to_ego
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -1
+  ev_speed: 20
+  tv_speed: 5
+  tv_maintain_speed: 7
+  response_cutin_time: 3
+  trigger_cutin_time: 5
+  lane_change_direction: -1
+  light: day
+  weather: fog

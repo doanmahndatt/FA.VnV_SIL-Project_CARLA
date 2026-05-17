@@ -1,0 +1,26 @@
+scenario_id: acc_csc_017_015
+logic:
+  scenario_id: acc_csc_017
+  name: EV cut out to right + slow TV
+  pre_condition:
+    ev_mode: FL
+  actors:
+    ev:
+      type: ego
+      lane: ego
+      state: moving
+    tv1:
+      type: car
+      lane: right
+      state: moving
+  maneuvers:
+  - type: ego_cutout_event
+    actor: ev
+    direction: right
+  - type: appear_event
+    actor: tv1
+parameters:
+  ev_speed: 120
+  tv_speed: 100
+  light: night
+  curve_radius: 250

@@ -1,0 +1,20 @@
+scenario_id: acc_csc_014_013
+logic:
+  scenario_id: acc_csc_014
+  name: EV cut out to left, no TV
+  pre_condition:
+    ev_mode: FL
+  actors:
+    ev:
+      type: ego
+      lane: ego
+      state: moving
+  maneuvers:
+  - type: ego_cutout_event
+    actor: ev
+    direction: left
+parameters:
+  ev_speed: 120
+  tv_speed: 100
+  light: day
+  curve_radius: 250

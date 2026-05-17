@@ -1,0 +1,20 @@
+scenario_id: acc_csc_021
+name: EV in FL mode + turn signal indicator + overtaking
+
+pre_condition:
+  ev_mode: FL
+
+actors:
+  ev: 
+    type: ego
+    lane: ego
+    state: moving
+  tv1: 
+    type: car
+    lane: ego
+    position: front_ego
+    state: moving
+
+maneuvers:
+  - type: ego_cutout_signal_event
+    actor: ev

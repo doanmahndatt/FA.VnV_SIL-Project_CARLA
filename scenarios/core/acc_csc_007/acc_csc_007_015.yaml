@@ -1,0 +1,35 @@
+scenario_id: acc_csc_007_015
+logic:
+  scenario_id: acc_csc_007
+  name: EV in FL mode, TV cut in then stop
+  pre_condition:
+    ev_mode: FL
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: bus
+      lane: left
+      position: next_to_ego
+      state: moving
+  maneuvers:
+  - type: cutin_event
+    actor: tv
+  - type: stop_event
+    actor: tv
+    trigger: after_cutin_event
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -1
+  ev_speed: 20
+  tv_speed: 5
+  tv_maintain_speed: 15
+  response_cutin_time: 1
+  deceleration_time: 2
+  trigger_cutin_time: 5
+  trigger_stop_time: 6
+  lane_change_direction: 1
+  light: day
+  weather: fog

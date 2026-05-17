@@ -1,0 +1,31 @@
+scenario_id: acc_csc_002_006
+logic:
+  scenario_id: acc_csc_002
+  name: EV in CC mode, TV appears in ego lane
+  pre_condition:
+    ev_mode: CC
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: follow_slowdown
+    actor: tv
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -2
+  ev_speed: 20
+  tv_speed: 20
+  tv_slowdown_speed: 10
+  trigger_slowdown_time: 5
+  response_slowdonw_time: 5
+  trigger_maintain_time: 10
+  response_maintain_time: 10
+  light: night
+  weather: fog

@@ -1,0 +1,50 @@
+<ManeuverGroup name="ego_cutout_signal" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="ego"/>
+  </Actors>
+  <Maneuver name="ego_cutout_signal_maneuver">
+    <Event name="ego_cutout_signal_event" priority="overwrite">
+      <!-- Turn signal -->
+      <Action name="turn_signal_action">
+        <PrivateAction>
+          <ActivateControllerAction>
+            <ControllerAction>
+              <ActivateController
+                  lateral="false"
+                  longitudinal="false"/>
+            </ControllerAction>
+          </ActivateControllerAction>
+        </PrivateAction>
+      </Action>
+      <!-- Lane change -->
+      <Action name="ego_cutout_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneChangeAction>
+              <LaneChangeActionDynamics
+                  dynamicsShape="linear"
+                  value="${lane_change_time}"
+                  dynamicsDimension="time"/>
+              <LaneChangeTarget>
+                <RelativeTargetLane value="${lane_delta}"/>
+              </LaneChangeTarget>
+            </LaneChangeAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="ego_cutout_signal_start"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="${ego_cutout_time}"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

@@ -1,0 +1,13 @@
+sut_instance:
+  name: autoware_as_oem
+  base: sut_base.yaml
+
+  launch:
+    command: >
+      ros2 launch autoware_launch autoware.launch.xml
+
+  readiness:
+    topics_required:
+      - /localization/kinematic_state
+      - /planning/trajectory
+    timeout_sec: 30

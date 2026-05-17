@@ -1,0 +1,22 @@
+scenario_id: acc_csc_022
+name: EV in FL mode + TV stops + TV resumes movement
+
+pre_condition:
+  ev_mode: FL
+
+actors:
+  ev:
+    type: ego
+    lane: ego
+    state: moving
+  tv1:
+    type: car
+    lane: ego
+    position: front_ego
+    state: moving
+
+maneuvers:
+  - type: stop_event
+    actor: tv1
+  - type: resume_event
+    actor: tv1

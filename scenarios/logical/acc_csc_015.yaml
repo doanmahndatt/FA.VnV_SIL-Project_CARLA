@@ -1,0 +1,16 @@
+scenario_id: acc_csc_015
+name: EV cut out to right, no TV
+
+pre_condition:
+  ev_mode: FL
+
+actors:
+  ev:
+    type: ego
+    lane: ego
+    state: moving
+
+maneuvers:
+  - type: ego_cutout_event
+    actor: ev
+    direction: right

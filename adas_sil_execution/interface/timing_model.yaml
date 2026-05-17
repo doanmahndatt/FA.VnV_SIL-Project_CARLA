@@ -1,0 +1,5 @@
+timing:
+  measurement_type: external_e2e
+  start_event: ego_speed_change
+  stop_event: control_output_change
+  resolution_ms: 10

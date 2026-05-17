@@ -1,0 +1,34 @@
+# ============================================================================
+# Core Dependencies - Các thư viện cốt lõi cho validation agent
+# ============================================================================
+click>=8.0.0              # CLI framework cho command-line interface
+rich>=10.0.0              # Terminal formatting và pretty printing
+lxml>=4.9.0               # XML parsing và validation nâng cao
+pyyaml>=6.0               # YAML file processing
+jinja2>=3.0.0             # Template engine cho report generation
+pathlib>=1.0.1            # Path handling (built-in nhưng list để rõ ràng)
+
+# ============================================================================
+# Development Dependencies - Dành cho testing và development
+# ============================================================================
+pytest>=7.0.0             # Testing framework
+pytest-cov>=3.0.0         # Coverage reporting cho pytest
+pytest-mock>=3.10.0       # Mocking utilities
+black>=22.0.0             # Code formatter
+flake8>=4.0.0             # Linting tool
+mypy>=0.950               # Static type checker
+isort>=5.10.0             # Import sorting
+
+# ============================================================================
+# Optional Dependencies - Các tính năng mở rộng
+# ============================================================================
+matplotlib>=3.5.0         # Graphing cho reports (optional)
+pandas>=1.4.0             # Data analysis cho statistics (optional)
+colorama>=0.4.4           # Cross-platform colored terminal (Windows support)
+tabulate>=0.8.9           # Pretty-print tabular data
+
+# ============================================================================
+# Documentation Dependencies
+# ============================================================================
+sphinx>=4.5.0             # Documentation generation
+sphinx-rtd-theme>=1.0.0   # ReadTheDocs theme

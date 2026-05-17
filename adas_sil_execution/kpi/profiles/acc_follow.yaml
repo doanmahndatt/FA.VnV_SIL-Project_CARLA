@@ -1,0 +1,11 @@
+profile: acc_follow
+version: v1
+
+metrics:
+  min_distance_m: 2.0
+  min_ttc_s: 1.5
+  max_jerk_mps3: 3.0
+
+verdict:
+  collision: fail
+  ttc_violation: fail

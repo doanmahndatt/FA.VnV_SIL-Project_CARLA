@@ -1,0 +1,68 @@
+<ManeuverGroup name="follow_stable" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="follow_stable_maneuver">
+    <Event name="follow_stable" priority="overwrite">
+      <Action name="stable_action">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                  dynamicsShape="linear"
+                  value="${response_time}"
+                  dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${ev_speed}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="distance_safe_lower"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByEntityCondition>
+              <EntityCondition>
+                <RelativeDistanceCondition
+                    entityRef="${target}"
+                    relativeDistanceType="longitudinal"
+                    value="${follow_distance}"
+                    freespace="true"
+                    rule="greaterThan"/>
+              </EntityCondition>
+            </ByEntityCondition>
+          </Condition>
+          <Condition name="distance_safe_upper"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByEntityCondition>
+              <EntityCondition>
+                <RelativeDistanceCondition
+                    entityRef="${target}"
+                    relativeDistanceType="longitudinal"
+                    value="${resume_distance}"
+                    freespace="true"
+                    rule="lessThan"/>
+              </EntityCondition>
+            </ByEntityCondition>
+          </Condition>
+          <Condition name="relative_speed_stable"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByEntityCondition>
+              <EntityCondition>
+                <RelativeSpeedCondition
+                    entityRef="${target}"
+                    value="${relative_speed_threshold}"
+                    rule="lessThan"/>
+              </EntityCondition>
+            </ByEntityCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

@@ -1,0 +1,165 @@
+# ============================================================================
+# Python
+# ============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ============================================================================
+# Virtual Environments
+# ============================================================================
+.env
+.env.*
+!.env.example
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# ============================================================================
+# IDE / Editors
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# ============================================================================
+# Testing
+# ============================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.cache
+
+# ============================================================================
+# Reports & Outputs
+# ============================================================================
+validation_agent/reports/output/
+*.html
+*.json
+!validation_agent/reports/*.py
+logs/
+*.log
+
+# ============================================================================
+# Build & Distribution
+# ============================================================================
+*.manifest
+*.spec
+*.pyc
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# ============================================================================
+# Project Specific
+# ============================================================================
+test_output/
+*.tmp
+*.bak
+*.orig
+
+# ============================================================================
+# Large / Generated Assets
+# ============================================================================
+# Do not commit the old nested LFS rules. This repo is being re-initialized
+# without Git LFS objects, so tracking this file can re-enable LFS filters.
+scenario_runner/openpilot/.gitattributes
+scenario_runner/openpilot/.lfsconfig
+
+# ML models and checkpoint formats
+*.onnx
+*.pt
+*.pth
+*.h5
+*.pb
+*.tflite
+*.ckpt
+
+# Binary libraries and firmware/build artifacts
+*.a
+*.lib
+*.dll
+*.dylib
+*.so.*
+*.bin
+*.elf
+*.exe
+
+# Heavy media/assets that are not source code
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.bag
+*.db
+*.sqlite
+*.sqlite3
+
+# Fonts and archives
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Known large OpenPilot runtime assets
+scenario_runner/openpilot/selfdrive/modeld/models/
+scenario_runner/openpilot/selfdrive/assets/
+scenario_runner/openpilot/third_party/**/lib/
+scenario_runner/openpilot/third_party/**/bin/
+scenario_runner/openpilot/selfdrive/car/tests/test_models_segs.txt
+scenario_runner/openpilot/system/hardware/tici/updater_magic
+scenario_runner/openpilot/system/hardware/tici/updater_weston
+scenario_runner/openpilot/third_party/acados/*/t_renderer
+scenario_runner/openpilot/third_party/catch2/include/catch2/catch.hpp
+
+# ============================================================================
+# OS Specific
+# ============================================================================
+Thumbs.db
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
