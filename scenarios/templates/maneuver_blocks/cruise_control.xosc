@@ -1,6 +1,6 @@
 <ManeuverGroup name="cruise_control" maximumExecutionCount="1">
   <Actors selectTriggeringEntities="false">
-    <EntityRef entityRef="ego"/>
+    <EntityRef entityRef="ev"/>
   </Actors>
   <Maneuver name="cruise_control_maneuver">
     <Event name="cruise_event" priority="overwrite">

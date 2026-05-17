@@ -84,7 +84,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="40" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -95,7 +95,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="${tv_speed}"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -107,7 +107,7 @@
       <Act name="act_1">
         <ManeuverGroup name="cruise_control" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
-            <EntityRef entityRef="ego"/>
+            <EntityRef entityRef="ev"/>
           </Actors>
           <Maneuver name="cruise_control_maneuver">
             <Event name="cruise_event" priority="overwrite">

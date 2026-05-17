@@ -1,182 +1,362 @@
-# 🔍 OpenSCENARIO Validation Agent
+# FA VnV SIL Test Assets for CARLA
 
-**Tool validation chuyên nghiệp cho OpenSCENARIO files (.xosc) tích hợp với CARLA Simulator**
+Repo này chứa bộ test asset dùng để generate, chạy và review các file OpenSCENARIO `.xosc` trên CARLA Simulator bằng ScenarioRunner. Flow hiện tại tập trung vào các case ACC. File `.xosc` đã generate nằm theo cấu trúc:
 
-Validation Agent giúp bạn kiểm tra tính hợp lệ của scenario files trước khi chạy simulation, phát hiện lỗi sớm và tiết kiệm thời gian debug.
-
----
-
-## ✨ Tính Năng Chính
-
-- ✅ **Schema Validation** - Kiểm tra cú pháp XML và tuân thủ OpenSCENARIO standard
-- 🚗 **CARLA Compatibility** - Validate khả năng tương thích với CARLA Simulator
-- 🧠 **Semantic Validation** - Phát hiện lỗi logic và tình huống không hợp lý
-- 📊 **Detailed Reports** - Báo cáo chi tiết với errors, warnings và suggestions
-- ⚡ **Batch Processing** - Validate nhiều files cùng lúc
-- 🎯 **Easy to Use** - Không cần config phức tạp, chạy ngay được
-
----
-
-## 🚀 Quick Start
-
-### 1. Cài Đặt Dependencies
-
-```bash
-pip install lxml pyyaml
+```text
+scenarios/generated/carla/<nhóm_case>/<case_id>.xosc
 ```
 
-### 2. Validate Một File
+Ví dụ:
 
-```bash
-python validate_xosc.py scenarios/generated/carla/acc_csc_003/acc_csc_003_001.xosc
+```text
+scenarios/generated/carla/acc_csc_001/acc_csc_001_001.xosc
 ```
 
-### 3. Validate Cả Thư Mục
+## 1. Yêu Cầu Môi Trường
 
-```bash
-python validate_xosc.py scenarios/generated/carla/
+Môi trường hiện tại đang dùng:
+
+- Windows 10/11
+- Python 3.10.14
+- CARLA Simulator 0.9.15
+- ScenarioRunner source đã có sẵn trong thư mục `scenario_runner/`
+- Python packages cho tool nội bộ: `pandas`, `pyyaml`, `pygame`, `openpyxl`
+- CARLA Python API phải import được module `carla`
+
+Kiểm tra nhanh:
+
+```powershell
+python --version
+python -c "import carla; print('carla api ok')"
 ```
 
-### 4. Xem Kết Quả
+Nếu lệnh import `carla` bị lỗi, cần cài CARLA Python API hoặc set lại `PYTHONPATH` theo bước 3.
 
-```
-================================================================================
-Validating: scenarios/generated/carla/acc_csc_003/acc_csc_003_001.xosc
-================================================================================
+## 2. Cấu Trúc Thư Mục Quan Trọng
 
-Running SchemaValidator...
-  ✓ SchemaValidator: PASSED
-
-Running CarlaValidator...
-  ✓ CarlaValidator: PASSED
-
-Running SemanticValidator...
-  ✗ SemanticValidator: FAILED
-
-  Warnings (2):
-    • Vehicle speed 150 km/h vượt quá giới hạn CARLA (130 km/h)
-      Location: //Init/Actions/Private[@entityRef='ego_vehicle']
-
-================================================================================
-✓ VALIDATION PASSED: scenarios/generated/carla/acc_csc_003/acc_csc_003_001.xosc
-================================================================================
-```
-
----
-
-## 📖 Common Use Cases
-
-### ✅ Validate File Trước Khi Commit
-
-```bash
-# Kiểm tra file vừa tạo/sửa
-python validate_xosc.py scenarios/generated/carla/my_scenario/my_scenario_001.xosc
-```
-
-### ✅ Validate Toàn Bộ Generated Scenarios
-
-```bash
-# Kiểm tra tất cả scenarios đã generate
-python validate_xosc.py scenarios/generated/
-```
-
-### ✅ CI/CD Integration
-
-```bash
-# Thêm vào CI pipeline
-python validate_xosc.py scenarios/generated/carla/
-if [ $? -eq 0 ]; then
-    echo "All scenarios valid ✓"
-else
-    echo "Validation failed ✗"
-    exit 1
-fi
-```
-
-### ✅ Pre-Simulation Check
-
-```bash
-# Validate trước khi chạy CARLA simulation
-python validate_xosc.py my_test_scenario.xosc && carla_runner.py my_test_scenario.xosc
-```
-
----
-
-## 📚 Documentation
-
-- **[Architecture Overview](docs/architecture.md)** - Hiểu cấu trúc và design của tool
-- **[Validation Rules](docs/validation_rules.md)** - Chi tiết các rules được kiểm tra
-- **[User Guide](docs/user_guide.md)** - Hướng dẫn sử dụng đầy đủ
-- **[Developer Guide](docs/developer_guide.md)** - Hướng dẫn mở rộng và customize
-
----
-
-## 🔧 Requirements
-
-- **Python**: 3.8+
-- **Dependencies**:
-  - `lxml` - XML parsing và validation
-  - `pyyaml` - YAML configuration files
-- **OpenSCENARIO**: Version 1.0+
-- **CARLA Simulator**: 0.9.13+ (optional, for integration testing)
-
----
-
-## 📁 Project Structure
-
-```
+```text
 Test_assets_v1.1/
-├── validate_xosc.py              # 🎯 Main entry point - BẮT ĐẦU TỪ ĐÂY
-├── validation_agent/              # Core validation logic
-│   ├── core/
-│   │   ├── schema_validator.py   # XML schema validation
-│   │   ├── carla_validator.py    # CARLA compatibility checks
-│   │   ├── semantic_validator.py # Logic validation
-│   │   └── validation_result.py  # Result data models
-│   └── rules/
-│       └── carla_rules.yaml      # CARLA validation rules
-├── scenarios/                     # Test scenarios
-│   ├── generated/                # Generated scenarios
-│   ├── templates/                # Scenario templates
-│   └── parameters/               # Parameter files
-└── docs/                         # Documentation
-    ├── architecture.md
-    ├── validation_rules.md
-    ├── user_guide.md
-    └── developer_guide.md
+|-- scenarios/
+|   |-- logical/                 # YAML logic test scenario
+|   |-- parameters/              # YAML parameter set
+|   |-- core/                    # YAML đã merge từ logical + parameters
+|   |-- templates/               # OpenSCENARIO template và maneuver block
+|   |-- generated/carla/         # File .xosc để chạy trên CARLA
+|-- scenario_runner/             # CARLA ScenarioRunner
+|-- tools/
+|   |-- run_batch.py             # GUI batch runner
+|   |-- GUI/
+|   |   |-- gui_runner.py        # Tkinter GUI
+|   |   |-- batch_runner.py      # Điều phối chạy scenario và KPI
+|   |   |-- process_manager.py   # Quản lý camera.py, hud.py, scenario_runner.py
+|   |   |-- report_writer.py     # Xuất report theo case và theo batch
+|   |-- config/
+|   |   |-- camera.py            # Bird-view spectator camera
+|   |   |-- hud.py               # HUD Pygame hiển thị speed, distance, TTC
+|   |   |-- KPI.py               # KPI monitor runtime
+|   |-- acc_controller.py        # Controller/debug tool nếu cần
+|-- report/                      # Output Excel report
+|-- requirements.txt
 ```
 
----
+## 3. Cài Đặt Từ Đầu
 
-## 💡 Tips & Tricks
+### Bước 1: Tải Và Giải Nén CARLA
 
-- 💾 **Lưu Output**: `python validate_xosc.py file.xosc > validation_report.txt`
-- 🎯 **Focus on Errors**: Sửa errors trước, warnings sau
-- 🔄 **Iterative Workflow**: Validate → Fix → Validate lại
-- 📊 **Batch Reports**: Validate cả folder để có overview
+Tải CARLA 0.9.15 cho Windows từ trang release của CARLA, sau đó giải nén vào một thư mục cố định, ví dụ:
 
----
+```text
+C:\CARLA_0.9.15
+```
 
-## 🤝 Support & Contribution
+Trong thư mục CARLA cần có file chạy server:
 
-- **Issues**: Báo lỗi hoặc đề xuất tính năng mới
-- **Documentation**: Góp ý cải thiện docs
-- **Code**: Mở rộng validators hoặc thêm rules mới
+```text
+C:\CARLA_0.9.15\CarlaUE4.exe
+```
 
----
+### Bước 2: Tạo Virtual Environment
 
-## 📝 License
+Từ thư mục repo:
 
-Internal tool for SIL-HIL Testing Framework  
-© 2026 - For project use only
+```powershell
+cd C:\Self_Improvement\FA_VnV\Test_assets_v1.1
+python -m venv .venv
+.\.venv\Scripts\activate
+python -m pip install --upgrade pip
+```
 
----
+### Bước 3: Cài Dependencies
 
-## 🎯 Next Steps
+```powershell
+pip install -r requirements.txt
+pip install pygame openpyxl
+```
 
-1. ✅ Chạy `python validate_xosc.py --help` để xem usage
-2. ✅ Test với một file mẫu: `python validate_xosc.py scenarios/generated/carla/acc_csc_003/acc_csc_003_001.xosc`
-3. ✅ Đọc [User Guide](docs/user_guide.md) để hiểu sâu hơn
-4. ✅ Tích hợp vào workflow của bạn
+Với Python 3.10.14 và CARLA 0.9.15 trên Windows, ưu tiên cài CARLA Python API bằng file `.whl` trong thư mục CARLA:
 
-**Happy Validating! 🚀**
+```powershell
+pip install C:\CARLA_0.9.15\PythonAPI\carla\dist\carla-0.9.15-cp310-cp310-win_amd64.whl
+```
+
+Nếu tên file `.whl` khác một chút, kiểm tra bằng:
+
+```powershell
+dir C:\CARLA_0.9.15\PythonAPI\carla\dist\*.whl
+```
+
+Nếu không cài bằng `.whl`, có thể set `PYTHONPATH` tạm thời trong terminal hiện tại:
+
+```powershell
+$env:CARLA_ROOT="C:\CARLA_0.9.15"
+$env:PYTHONPATH="$env:PYTHONPATH;$env:CARLA_ROOT\PythonAPI\carla;$env:CARLA_ROOT\PythonAPI\carla\agents;$env:CARLA_ROOT\PythonAPI\carla\dist\carla-0.9.15-py3.10-win-amd64.egg"
+```
+
+Kiểm tra:
+
+```powershell
+python -c "import carla; print('carla api ok')"
+```
+
+## 4. Khởi Chạy CARLA Server
+
+Mở terminal mới và chạy:
+
+```powershell
+cd C:\CARLA_0.9.15
+.\CarlaUE4.exe -quality-level=Low -windowed -ResX=1280 -ResY=720
+```
+
+Đợi đến khi CARLA map load xong. Tool mặc định kết nối vào:
+
+```text
+host = localhost
+port = 2000
+```
+
+## 5. Chạy Thử Một File .xosc Bằng ScenarioRunner
+
+Mở terminal mới tại repo, active `.venv`, sau đó chạy:
+
+```powershell
+cd C:\Self_Improvement\FA_VnV\Test_assets_v1.1
+.\.venv\Scripts\activate
+python scenario_runner\scenario_runner.py --openscenario scenarios\generated\carla\acc_csc_001\acc_csc_001_001.xosc --reloadWorld
+```
+
+Nếu scenario hợp lệ, CARLA sẽ spawn ego vehicle `ev` và target vehicle `tv` theo file `.xosc`.
+
+## 6. Mở Camera Và HUD Để Debug
+
+Chạy mỗi tool trong một terminal riêng:
+
+```powershell
+python tools\config\camera.py
+```
+
+```powershell
+python tools\config\hud.py
+```
+
+`camera.py` điều khiển spectator theo ego vehicle có `role_name="ev"`.
+
+`hud.py` hiển thị các giá trị runtime:
+
+- simulation time
+- EV speed
+- TV speed
+- longitudinal distance
+- TTC
+
+Nếu HUD hiển thị toàn 0, thường là scenario chưa spawn đủ `ev` và `tv`, hoặc role name trong `.xosc` khác với tool.
+
+## 7. Chạy Batch Bằng GUI
+
+Script chính:
+
+```text
+tools/run_batch.py
+```
+
+Chạy:
+
+```powershell
+cd C:\Self_Improvement\FA_VnV\Test_assets_v1.1
+python tools\run_batch.py
+```
+
+GUI sẽ tự scan các file `.xosc` trong:
+
+```text
+scenarios/generated/carla/
+```
+
+Các chế độ chạy:
+
+- `Single case`: chọn một file `.xosc` cụ thể.
+- `Single folder`: chọn một sub-folder, ví dụ `acc_csc_003`.
+- `Multi folder`: chọn hai hoặc nhiều sub-folder.
+- `All folders`: chạy toàn bộ sub-folder trong `scenarios/generated/carla/`.
+
+Phản ứng chọn trong GUI:
+
+- Với `Single case`, sau khi chọn một case, các case còn lại sẽ bị làm mờ và không thể chọn nhầm. Bấm `Bỏ chọn` nếu muốn đổi case.
+- Với `Single folder`, sau khi chọn một folder, các folder còn lại sẽ bị làm mờ. Bấm `Bỏ chọn` nếu muốn đổi folder.
+- Với `Multi folder`, tick `☑` ở cột `Chọn` để chọn nhiều folder; danh sách case bên phải chỉ hiển thị case thuộc các folder đã tick.
+- Với `All folders`, toàn bộ folder được tick sẵn và bị khóa để thể hiện tool sẽ chạy tất cả.
+
+Khi bấm `Start`, tool sẽ:
+
+1. Tự mở `camera.py`.
+2. Tự mở `hud.py`.
+3. Chạy từng `.xosc` bằng ScenarioRunner.
+4. Monitor KPI runtime.
+5. Xuất report theo từng `case_id`.
+6. Reload CARLA world giữa các case.
+
+Khi bấm `Stop/End`, tool sẽ:
+
+1. Dừng scenario hiện tại.
+2. Dừng batch queue.
+3. Ghi lại report đã có.
+4. Dừng camera/HUD nếu chúng được mở bởi batch runner.
+
+## 8. Output Report
+
+Mỗi case sẽ có folder riêng:
+
+```text
+report/<case_id>/report.xlsx
+```
+
+Ví dụ:
+
+```text
+report/acc_csc_003_001/report.xlsx
+```
+
+Khi chạy multi/all folder, tool tạo thêm batch summary:
+
+```text
+report/batch_<timestamp>/summary.xlsx
+```
+
+File Excel có các sheet:
+
+- `Summary`: tổng số case, số case pass/fail/stopped, pass rate.
+- `All Cases`: toàn bộ case đã chạy.
+- `Failed Cases`: các case fail hoặc stopped.
+
+Một case có thể fail nếu:
+
+- collision detected
+- longitudinal distance nhỏ hơn ngưỡng 6m
+- ScenarioRunner timeout hoặc bị stop
+- KPI monitor không đọc được actor runtime
+
+## 9. Workflow Chạy Một Nhóm Test
+
+Ví dụ chạy nhóm `acc_csc_003`:
+
+1. Kiểm tra file `.xosc`:
+
+```powershell
+dir scenarios\generated\carla\acc_csc_003\*.xosc
+```
+
+2. Khởi động CARLA server.
+
+3. Chạy GUI:
+
+```powershell
+python tools\run_batch.py
+```
+
+4. Chọn mode `Single folder`.
+
+5. Chọn folder `acc_csc_003`.
+
+6. Bấm `Start`.
+
+7. Theo dõi CARLA viewport, HUD, log GUI và report trong `report/`.
+
+## 10. Kiến Trúc Batch Runner
+
+Batch runner được tách thành các phần nhỏ:
+
+```text
+tools/
+|-- run_batch.py             # GUI entrypoint
+|-- GUI/
+|   |-- gui_runner.py        # Tkinter GUI
+|   |-- batch_runner.py      # BatchRunner, ScenarioJob, report orchestration
+|   |-- process_manager.py   # start/stop camera.py, hud.py, scenario_runner.py
+|   `-- report_writer.py     # Excel writer theo case_id và summary
+|-- config/
+|   |-- camera.py            # Bird-view spectator camera
+|   |-- hud.py               # Runtime HUD
+|   `-- KPI.py               # KPI monitor
+```
+
+Luồng chạy:
+
+1. GUI scan recursive `scenarios/generated/carla/*/*.xosc`.
+2. Người dùng chọn mode và case/folder.
+3. Bấm `Start`.
+4. `ProcessManager` start `camera.py` và `hud.py`.
+5. `BatchRunner` chạy từng `.xosc` từ queue.
+6. Mỗi case:
+   - tạo output folder `report/<case_id>/`
+   - start ScenarioRunner
+   - monitor KPI
+   - ghi `report/<case_id>/report.xlsx`
+   - reload world
+7. Nếu multi/all:
+   - ghi thêm `report/batch_<timestamp>/summary.xlsx`
+8. Bấm `Stop/End`:
+   - terminate scenario process hiện tại
+   - stop KPI loop
+   - export report đang có
+   - reload world nếu CARLA còn kết nối
+   - giữ GUI không bị treo
+
+## 11. Troubleshooting
+
+### `ModuleNotFoundError: No module named 'carla'`
+
+CARLA Python API chưa nằm trong Python path. Cài `.whl` hoặc set `PYTHONPATH` theo bước 3.
+
+### `Connection refused` Hoặc Timeout Port 2000
+
+CARLA server chưa chạy, chưa load xong map, hoặc port khác 2000.
+
+### Scenario Không Spawn Xe
+
+Kiểm tra `.xosc` có `ScenarioObject` với `role_name="ev"` và `role_name="tv"` hay không. `camera.py`, `hud.py` và `KPI.py` đang phụ thuộc vào hai role name này.
+
+### GUI Không Hiện Case
+
+Kiểm tra file `.xosc` có nằm đúng dưới:
+
+```text
+scenarios/generated/carla/<sub-folder>/
+```
+
+### Excel Report Không Save Được
+
+Đóng file Excel đang mở. Tool sẽ thử ghi backup nếu gặp `PermissionError`.
+
+### Stop/End Không Dừng Ngay
+
+Một số process con của CARLA/ScenarioRunner có thể cần vài giây để terminate. Nếu vẫn còn process treo, đóng terminal hoặc kill process Python tương ứng trong Task Manager.
+
+## 12. Git Note
+
+Repo này đã ignore các file model, asset lớn và LFS pointer cũ. Trước khi commit nên kiểm tra:
+
+```powershell
+git status --ignored
+git lfs ls-files
+```
+
+`git lfs ls-files` nên không in ra gì.

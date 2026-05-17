@@ -49,13 +49,13 @@
         <GlobalAction>
           <EnvironmentAction>
             <Environment name="env">
-              <TimeOfDay animation="false" dateTime="2026-01-01T12:00:00"/>
-              <Weather cloudState="free">
-                <Sun intensity="1.0" azimuth="0" elevation="70"/>
-                <Fog visualRange="100000"/>
-                <Precipitation precipitationType="dry" intensity="0"/>
+              <TimeOfDay animation="false" dateTime="2026-01-01T00:00:00"/>
+              <Weather cloudState="overcast">
+                <Sun intensity="0.05" azimuth="0" elevation="-10"/>
+                <Fog visualRange="30000"/>
+                <Precipitation precipitationType="rain" intensity="0.7"/>
               </Weather>
-              <RoadCondition frictionScaleFactor="1.0"/>
+              <RoadCondition frictionScaleFactor="0.7"/>
             </Environment>
           </EnvironmentAction>
         </GlobalAction>
@@ -74,7 +74,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="10"/>
+                  <AbsoluteTargetSpeed value="20"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -117,7 +117,7 @@
                     <SpeedAction>
                       <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="10"/>
+                        <AbsoluteTargetSpeed value="20"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>

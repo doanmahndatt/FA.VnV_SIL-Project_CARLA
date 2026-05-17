@@ -68,6 +68,7 @@ coverage.xml
 # Reports & Outputs
 # ============================================================================
 validation_agent/reports/output/
+report/
 *.html
 *.json
 !validation_agent/reports/*.py
@@ -96,6 +97,10 @@ test_output/
 # ============================================================================
 # Large / Generated Assets
 # ============================================================================
+# CARLA packaged map assets are large binary files and should come from the
+# local CARLA installation/package, not from this Git repository.
+tools/config/maps_CARLA/
+
 # Do not commit the old nested LFS rules. This repo is being re-initialized
 # without Git LFS objects, so tracking this file can re-enable LFS filters.
 scenario_runner/openpilot/.gitattributes

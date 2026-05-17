@@ -1,4 +1,4 @@
-scenario_id: acc_csc_001_008
+scenario_id: acc_csc_001_024
 logic:
   scenario_id: acc_csc_001
   name: EV in ACC CC mode
@@ -15,8 +15,8 @@ logic:
 parameters:
   ev_lane_id: -2
   tv_lane_id: -1
-  ev_speed: 10
+  ev_speed: 20
   tv_speed: 15
   response_cruise_time: 20
-  light: day
-  weather: rain
+  light: night
+  weather: fog

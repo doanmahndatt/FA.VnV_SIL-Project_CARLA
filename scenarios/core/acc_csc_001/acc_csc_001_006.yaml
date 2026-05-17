@@ -14,8 +14,9 @@ logic:
     actor: ev
 parameters:
   ev_lane_id: -2
-  tv_lane_id: -2
+  tv_lane_id: -1
   ev_speed: 10
+  tv_speed: 5
   response_cruise_time: 20
   light: night
   weather: fog

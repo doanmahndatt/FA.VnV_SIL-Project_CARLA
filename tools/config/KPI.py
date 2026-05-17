@@ -19,6 +19,8 @@ class KPIMonitor:
 
     def reset(self):
 
+        self.destroy_collision_sensor()
+
         self.ev_max_speed = 0
         self.ev_min_speed = 999
 
@@ -27,6 +29,17 @@ class KPIMonitor:
         self.fail = False
         self.fail_reason = ""
         self.fail_time = None
+
+    def destroy_collision_sensor(self):
+
+        if self.collision_sensor is not None:
+            try:
+                self.collision_sensor.stop()
+                self.collision_sensor.destroy()
+            except Exception:
+                pass
+            finally:
+                self.collision_sensor = None
 
     # ================= BASIC =================
 
@@ -130,8 +143,12 @@ class KPIMonitor:
             try:
                 self.step()
                 time.sleep(0.05)   # ~20Hz
-            except:
-                pass
+            except Exception as exc:
+                print(f"[KPI][WARN] {exc}")
+
+        return self.get_result()
+
+    def get_result(self):
 
         result = "FAIL" if self.fail else "PASS"
 

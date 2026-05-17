@@ -4,21 +4,21 @@ echo ================================
 echo Starting CARLA tools
 echo ================================
 
-set BASE=C:\OpenScenario\Test_assets_v1.0\tools
+set BASE=%~dp0
 
 cd /d %BASE%
 
 
 echo Starting camera...
-start cmd /k py -3.7 camera.py
+start cmd /k python config\camera.py
 
 
 echo Starting HUD...
-start cmd /k py -3.7 hud.py
+start cmd /k python config\hud.py
 
 
 echo Starting ACC controller...
-start cmd /k py -3.7 acc_controller.py
+start cmd /k python acc_controller.py
 
 
 echo ================================

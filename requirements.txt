@@ -1,34 +1,53 @@
 # ============================================================================
-# Core Dependencies - Các thư viện cốt lõi cho validation agent
+# FA VnV SIL / CARLA .xosc runner dependencies
+# Target environment:
+#   - Windows 10/11
+#   - Python 3.10.14
+#   - CARLA Simulator 0.9.15
+#
+# Install:
+#   python -m pip install --upgrade pip
+#   pip install -r requirements.txt
+#
+# Note:
+#   If `carla==0.9.15` cannot be resolved from pip in a fresh environment,
+#   install the CARLA wheel shipped with your CARLA package instead:
+#   pip install C:\CARLA_0.9.15\PythonAPI\carla\dist\carla-0.9.15-cp310-cp310-win_amd64.whl
 # ============================================================================
-click>=8.0.0              # CLI framework cho command-line interface
-rich>=10.0.0              # Terminal formatting và pretty printing
-lxml>=4.9.0               # XML parsing và validation nâng cao
-pyyaml>=6.0               # YAML file processing
-jinja2>=3.0.0             # Template engine cho report generation
-pathlib>=1.0.1            # Path handling (built-in nhưng list để rõ ràng)
 
-# ============================================================================
-# Development Dependencies - Dành cho testing và development
-# ============================================================================
-pytest>=7.0.0             # Testing framework
-pytest-cov>=3.0.0         # Coverage reporting cho pytest
-pytest-mock>=3.10.0       # Mocking utilities
-black>=22.0.0             # Code formatter
-flake8>=4.0.0             # Linting tool
-mypy>=0.950               # Static type checker
-isort>=5.10.0             # Import sorting
+# CARLA Python API
+carla==0.9.15
 
-# ============================================================================
-# Optional Dependencies - Các tính năng mở rộng
-# ============================================================================
-matplotlib>=3.5.0         # Graphing cho reports (optional)
-pandas>=1.4.0             # Data analysis cho statistics (optional)
-colorama>=0.4.4           # Cross-platform colored terminal (Windows support)
-tabulate>=0.8.9           # Pretty-print tabular data
+# Project runtime: GUI, batch runner, KPI, report writer
+pygame==2.6.1
+pandas==2.3.3
+openpyxl==3.1.5
+PyYAML==6.0.3
+lxml==6.1.0
 
-# ============================================================================
-# Documentation Dependencies
-# ============================================================================
-sphinx>=4.5.0             # Documentation generation
-sphinx-rtd-theme>=1.0.0   # ReadTheDocs theme
+# CARLA ScenarioRunner runtime
+py-trees==0.8.3
+networkx==3.4.2
+Shapely==2.1.2
+xmlschema==4.3.1
+opencv-python==4.13.0.92
+antlr4-python3-runtime==4.10
+psutil==7.2.2
+ephem==4.2.1
+tabulate==0.10.0
+matplotlib==3.10.9
+six==1.17.0
+simple-watchdog-timer==0.1.1
+graphviz==0.21
+numpy==2.2.6
+
+# Test/development utilities used by the repo test suite
+pytest==9.0.3
+pytest-cov==7.0.0
+pytest-mock==3.15.1
+
+# Code quality tools, optional but useful for local maintenance
+black==25.12.0
+flake8==7.3.0
+isort==7.0.0
+mypy==1.19.0
