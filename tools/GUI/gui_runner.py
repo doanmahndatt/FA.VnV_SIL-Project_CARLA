@@ -16,8 +16,7 @@ class BatchRunnerGUI:
 
         self.root = tk.Tk()
         self.root.title("CARLA XOSC Batch Runner")
-        self.root.geometry("1120x720")
-        self.root.minsize(980, 620)
+        self.root.resizable(True, True)
 
         self.mode = tk.StringVar(value="single_case")
         self.status = tk.StringVar(value="Sẵn sàng")
@@ -31,6 +30,7 @@ class BatchRunnerGUI:
         self.selected_case = None
 
         self._build_layout()
+        self._fit_initial_window()
         self.refresh_data()
         self.root.after(100, self._poll_messages)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -67,8 +67,7 @@ class BatchRunnerGUI:
                 command=self._on_mode_change,
             ).pack(side=tk.LEFT, padx=(0, 18))
 
-        ttk.Button(mode_frame, text="Bỏ chọn", command=self.clear_selection).pack(side=tk.RIGHT)
-        ttk.Button(mode_frame, text="Refresh", command=self.refresh_data).pack(side=tk.RIGHT, padx=(0, 8))
+        ttk.Button(mode_frame, text="Refresh", command=self.refresh_data).pack(side=tk.RIGHT)
 
         ttk.Label(main, textvariable=self.selection_hint, style="Hint.TLabel").pack(fill=tk.X, pady=(0, 6))
 
@@ -83,14 +82,14 @@ class BatchRunnerGUI:
             columns=("folder", "count", "check"),
             show="headings",
             selectmode="browse",
-            height=16,
+            height=10,
         )
         self.folder_tree.heading("folder", text="Folder")
         self.folder_tree.heading("count", text="Cases")
         self.folder_tree.heading("check", text="Chọn")
-        self.folder_tree.column("folder", width=210, minwidth=160, stretch=True)
-        self.folder_tree.column("count", width=58, anchor=tk.CENTER, stretch=False)
-        self.folder_tree.column("check", width=58, anchor=tk.CENTER, stretch=False)
+        self.folder_tree.column("folder", width=180, minwidth=130, stretch=True)
+        self.folder_tree.column("count", width=52, anchor=tk.CENTER, stretch=False)
+        self.folder_tree.column("check", width=52, anchor=tk.CENTER, stretch=False)
         self.folder_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.folder_tree.bind("<Button-1>", self._on_folder_click)
 
@@ -106,12 +105,12 @@ class BatchRunnerGUI:
             columns=("case", "folder"),
             show="headings",
             selectmode="browse",
-            height=16,
+            height=10,
         )
         self.case_tree.heading("case", text="Case ID")
         self.case_tree.heading("folder", text="Folder")
-        self.case_tree.column("case", width=360, minwidth=240, stretch=True)
-        self.case_tree.column("folder", width=160, minwidth=120, stretch=False)
+        self.case_tree.column("case", width=300, minwidth=220, stretch=True)
+        self.case_tree.column("folder", width=130, minwidth=100, stretch=False)
         self.case_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.case_tree.bind("<Button-1>", self._on_case_click)
 
@@ -134,7 +133,7 @@ class BatchRunnerGUI:
         log_frame = ttk.LabelFrame(main, text="Log", padding=8)
         log_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.log_text = tk.Text(log_frame, height=9, wrap=tk.WORD, relief=tk.FLAT)
+        self.log_text = tk.Text(log_frame, height=5, wrap=tk.WORD, relief=tk.FLAT)
         self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         log_scroll = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
@@ -148,6 +147,24 @@ class BatchRunnerGUI:
         style.configure("Hint.TLabel", foreground="#555555")
         style.configure("Accent.TButton", padding=(14, 6))
 
+    def _fit_initial_window(self):
+        self.root.update_idletasks()
+
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        max_width = int(screen_width * 0.92)
+        max_height = int(screen_height * 0.88)
+        min_width = min(760, max_width)
+        min_height = min(500, max_height)
+
+        width = min(max(900, min_width), max_width)
+        height = min(max(560, min_height), max_height)
+        x = max(0, (screen_width - width) // 2)
+        y = max(0, (screen_height - height) // 2)
+
+        self.root.minsize(min_width, min_height)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
     def refresh_data(self):
         self.groups = self.runner.discover_groups()
         self.jobs = self.runner.discover_jobs()
@@ -155,14 +172,12 @@ class BatchRunnerGUI:
         self.checked_groups = {group for group in self.checked_groups if group in self.groups}
         self.selected_folder = self.selected_folder if self.selected_folder in self.groups else None
         self.selected_case = self.selected_case if self.selected_case in self.jobs_by_case else None
+        self._reset_progress()
         self._render_all()
         self._log(f"Đã scan {len(self.groups)} folder, {len(self.jobs)} case.")
 
-    def clear_selection(self):
-        self.checked_groups.clear()
-        self.selected_folder = None
-        self.selected_case = None
-        self._render_all()
+    def _reset_progress(self):
+        self.progress.config(maximum=100, value=0)
 
     def _on_mode_change(self):
         mode = self.mode.get()
@@ -247,7 +262,12 @@ class BatchRunnerGUI:
             return "break"
 
         if mode == "single_folder":
-            if self.selected_folder and row != self.selected_folder:
+            if self.selected_folder == row:
+                self.selected_folder = None
+                self.selected_case = None
+                self._render_all()
+                return "break"
+            if self.selected_folder:
                 return "break"
             self.selected_folder = row
             self.selected_case = None
@@ -255,9 +275,10 @@ class BatchRunnerGUI:
             return "break"
 
         if mode == "single_case":
-            if self.selected_case:
+            if self.selected_folder == row:
                 return "break"
             self.selected_folder = row
+            self.selected_case = None
             self._render_all()
             return "break"
 
@@ -271,6 +292,10 @@ class BatchRunnerGUI:
             return "break"
 
         if mode == "single_case":
+            if self.selected_case == row:
+                self.selected_case = None
+                self._render_all()
+                return "break"
             if self.selected_case and row != self.selected_case:
                 return "break"
             self.selected_case = row
@@ -367,7 +392,7 @@ class BatchRunnerGUI:
             return [job for job in self.jobs if job.group_name == self.selected_folder]
         if mode == "multi_folder" and self.checked_groups:
             return [job for job in self.jobs if job.group_name in self.checked_groups]
-        if mode == "single_case" and self.selected_folder and not self.selected_case:
+        if mode == "single_case" and self.selected_folder:
             return [job for job in self.jobs if job.group_name == self.selected_folder]
         return self.jobs
 
@@ -381,12 +406,12 @@ class BatchRunnerGUI:
         mode = self.mode.get()
         if mode == "single_case":
             if self.selected_case:
-                self.selection_hint.set(f"Đã khóa case {self.selected_case}. Bấm 'Bỏ chọn' để đổi case.")
+                self.selection_hint.set(f"Đã khóa case {self.selected_case}. Click lần nữa vào case đó để bỏ chọn.")
             else:
                 self.selection_hint.set("Chọn một case .xosc. Sau khi chọn, các case còn lại sẽ bị làm mờ.")
         elif mode == "single_folder":
             if self.selected_folder:
-                self.selection_hint.set(f"Đã khóa folder {self.selected_folder}. Bấm 'Bỏ chọn' để đổi folder.")
+                self.selection_hint.set(f"Đã khóa folder {self.selected_folder}. Click lần nữa vào folder đó để bỏ chọn.")
             else:
                 self.selection_hint.set("Chọn một folder. Sau khi chọn, các folder còn lại sẽ bị làm mờ.")
         elif mode == "multi_folder":

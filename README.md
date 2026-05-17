@@ -200,8 +200,8 @@ Các chế độ chạy:
 
 Phản ứng chọn trong GUI:
 
-- Với `Single case`, sau khi chọn một case, các case còn lại sẽ bị làm mờ và không thể chọn nhầm. Bấm `Bỏ chọn` nếu muốn đổi case.
-- Với `Single folder`, sau khi chọn một folder, các folder còn lại sẽ bị làm mờ. Bấm `Bỏ chọn` nếu muốn đổi folder.
+- Với `Single case`, click folder để lọc danh sách case, click case để chọn, click lần nữa vào chính case đó để bỏ chọn nhưng vẫn giữ filter folder hiện tại.
+- Với `Single folder`, click lần đầu để chọn folder, click lần nữa vào chính folder đó để bỏ chọn. Các folder còn lại sẽ bị làm mờ khi đang có một folder được chọn.
 - Với `Multi folder`, tick `☑` ở cột `Chọn` để chọn nhiều folder; danh sách case bên phải chỉ hiển thị case thuộc các folder đã tick.
 - Với `All folders`, toàn bộ folder được tick sẵn và bị khóa để thể hiện tool sẽ chạy tất cả.
 
