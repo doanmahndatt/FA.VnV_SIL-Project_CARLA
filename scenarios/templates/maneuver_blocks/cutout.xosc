@@ -3,18 +3,18 @@
     <EntityRef entityRef="tv"/>
   </Actors>
   <Maneuver name="cutout_maneuver">
+    <!-- Event 1: Lane Change -->
     <Event name="cutout_event" priority="overwrite">
       <Action name="cutout_action">
         <PrivateAction>
           <LateralAction>
             <LaneChangeAction>
-              <LaneChangeActionDynamics
-                  dynamicsShape="linear"
-                  value="${response_cutout_time}"
-                  dynamicsDimension="time"/>
+              <LaneChangeActionDynamics 
+                dynamicsShape="linear" 
+                value="${lane_change_distance}" 
+                dynamicsDimension="distance"/>
               <LaneChangeTarget>
-                <!-- direction: left = -1, right = +1 -->
-                <RelativeTargetLane value="${lane_change_direction}"/>
+                <RelativeTargetLane value="${lane_change_direction}" entityRef="tv"/>
               </LaneChangeTarget>
             </LaneChangeAction>
           </LateralAction>
@@ -22,28 +22,24 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="cutout_start"
-                     delay="0"
-                     conditionEdge="rising">
+          <Condition name="cutin_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
-              <SimulationTimeCondition
-                  value="${trigger_cutout_time}"
-                  rule="greaterThan"/>
+              <SimulationTimeCondition value="${trigger_cutout_time}" rule="greaterThan"/>
             </ByValueCondition>
           </Condition>
         </ConditionGroup>
       </StartTrigger>
     </Event>
-
+    
     <!-- Event 2: Maintain Speed (sau khi lane change hoàn thành) -->
     <Event name="maintain_speed_event" priority="parallel">
       <Action name="maintain_speed">
         <PrivateAction>
           <LongitudinalAction>
             <SpeedAction>
-              <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+              <SpeedActionDynamics dynamicsShape="linear" value="${maintain_duration}" dynamicsDimension="time"/>
               <SpeedActionTarget>
-                <AbsoluteTargetSpeed value="${tv_maintain_speed}"/>
+                <AbsoluteTargetSpeed value="${tv_speed}"/>
               </SpeedActionTarget>
             </SpeedAction>
           </LongitudinalAction>
@@ -53,7 +49,7 @@
         <ConditionGroup>
           <Condition name="speed_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
-              <SimulationTimeCondition value="8" rule="greaterThan"/>
+              <SimulationTimeCondition value="${trigger_maintain_time}" rule="greaterThan"/>
             </ByValueCondition>
           </Condition>
         </ConditionGroup>

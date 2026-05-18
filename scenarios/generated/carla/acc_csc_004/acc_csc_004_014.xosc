@@ -63,28 +63,16 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="0" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="0" offset="0"/>
               </Position>
             </TeleportAction>
-          </PrivateAction>
-        </Private>
-        <Private entityRef="ev">
-          <PrivateAction>
-            <LongitudinalAction>
-              <SpeedAction>
-                <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
-                <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="20"/>
-                </SpeedActionTarget>
-              </SpeedAction>
-            </LongitudinalAction>
           </PrivateAction>
         </Private>
         <Private entityRef="tv">
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-1" s="40" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -115,9 +103,9 @@
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
-                      <LaneChangeActionDynamics dynamicsShape="sinusoidal" value="3" dynamicsDimension="time"/>
+                      <LaneChangeActionDynamics dynamicsShape="linear" value="5" dynamicsDimension="distance"/>
                       <LaneChangeTarget>
-                        <RelativeTargetLane value="-1" entityRef="tv"/>
+                        <RelativeTargetLane value="1" entityRef="tv"/>
                       </LaneChangeTarget>
                     </LaneChangeAction>
                   </LateralAction>
@@ -138,9 +126,9 @@
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                      <SpeedActionDynamics dynamicsShape="linear" value="12" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="15"/>
+                        <AbsoluteTargetSpeed value="5"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -150,7 +138,7 @@
                 <ConditionGroup>
                   <Condition name="speed_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="8" rule="greaterThan"/>
+                      <SimulationTimeCondition value="0.1" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

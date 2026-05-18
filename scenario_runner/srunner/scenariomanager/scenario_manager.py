@@ -16,6 +16,8 @@ import time
 
 import py_trees
 
+import carla
+
 from srunner.autoagents.agent_wrapper import AgentWrapper
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from srunner.scenariomanager.result_writer import ResultOutputProvider
@@ -135,7 +137,13 @@ class ScenarioManager(object):
             if timestamp:
                 self._tick_scenario(timestamp)
 
-        self.cleanup()
+        #self.cleanup()
+
+        if self._watchdog is not None:
+            self._watchdog.stop()
+            self._watchdog = None
+
+        print("[INFO] Skip cleanup → batch will handle actors")
 
         self.end_system_time = time.time()
         end_game_time = GameTime.get_time()
@@ -148,43 +156,98 @@ class ScenarioManager(object):
             print("ScenarioManager: Terminated due to failure")
 
     def _tick_scenario(self, timestamp):
-        """
-        Run next tick of scenario and the agent.
-        If running synchornously, it also handles the ticking of the world.
-        """
 
         if self._timestamp_last_run < timestamp.elapsed_seconds and self._running:
             self._timestamp_last_run = timestamp.elapsed_seconds
 
             self._watchdog.update()
 
-            if self._debug_mode:
-                print("\n--------- Tick ---------\n")
-
-            # Update game time and actor information
+            # ========================
+            # ✅ TIME + PROVIDER
+            # ========================
             GameTime.on_carla_tick(timestamp)
             CarlaDataProvider.on_carla_tick()
 
-            if self._agent is not None:
-                ego_action = self._agent()  # pylint: disable=not-callable
+            world = CarlaDataProvider.get_world()
 
-            if self._agent is not None:
-                self.ego_vehicles[0].apply_control(ego_action)
+            settings = world.get_settings()
+            print("[DEBUG] fixed_delta_seconds =", settings.fixed_delta_seconds)
 
-            # Tick scenario
+
+            # ========================
+            # ✅ GET ACTORS
+            # ========================
+            ev = None
+            tv = None
+
+            for actor in world.get_actors().filter("vehicle.*"):
+                role = actor.attributes.get("role_name")
+
+                if role == "ev":
+                    ev = actor
+                elif role == "tv":
+                    tv = actor
+
+            # ========================
+            # ✅ DEBUG ACTORS
+            # ========================
+            if ev is None:
+                print("[DEBUG] EV NOT FOUND")
+            if tv is None:
+                print("[DEBUG] TV NOT FOUND")
+
+            # ========================
+            # ✅ STEP 1: WAKE-UP PHASE (QUAN TRỌNG NHẤT)
+            # ========================
+            if ev is not None and ev.is_alive:
+
+                if GameTime.get_time() < 0.5:
+
+                    physics = ev.get_physics_control()
+                    ev.apply_physics_control(physics)
+
+                    ev.set_simulate_physics(True)
+                    ev.set_autopilot(False)
+
+                    ev.set_target_velocity(carla.Vector3D(0, 0, 0))
+                    ev.set_target_angular_velocity(carla.Vector3D(0, 0, 0))
+
+                    ev.set_transform(ev.get_transform())
+
+                    print("[FIX] EV WAKE-UP APPLIED")
+
+            # ========================
+            # ✅ STEP 2: TICK SCENARIO (ONLY ONCE)
+            # ========================
             self.scenario_tree.tick_once()
 
-            if self._debug_mode:
-                print("\n")
-                py_trees.display.print_ascii_tree(self.scenario_tree, show_status=True)
-                sys.stdout.flush()
+            # ========================
+            # ✅ STEP 3: DEBUG RESULT (after physics updated)
+            # ========================
+            if ev is not None:
+                print(f"[EV] speed={ev.get_velocity().length():.2f}")
 
+            if tv is not None and tv.is_alive:
+                vel = tv.get_velocity()
+                ctrl = tv.get_control()
+
+                print(f"[TV] speed={vel.length():.2f} throttle={ctrl.throttle:.2f} brake={ctrl.brake:.2f}")
+
+            print(f"[TREE] {self.scenario_tree.status}")
+            print(f"[TIME] {GameTime.get_time():.2f}")
+
+            # ========================
+            # ✅ STOP CONDITION
+            # ========================
             if self.scenario_tree.status != py_trees.common.Status.RUNNING:
+                print(f"[INFO] Scenario finished at t={GameTime.get_time():.2f}")
                 self._running = False
 
+        # ========================
+        # ✅ TICK WORLD (SYNC MODE)
+        # ========================
         if self._sync_mode and self._running and self._watchdog.get_status():
             CarlaDataProvider.get_world().tick()
-
     def get_running_status(self):
         """
         returns:

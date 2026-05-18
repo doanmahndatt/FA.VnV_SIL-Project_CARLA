@@ -194,8 +194,8 @@ def parse_wheels_control(info):
         max_brake_torque=float(info[11]),
         max_handbrake_torque=float(info[13]),
         position=carla.Vector3D(
-            x=float(info[17][1:-1]) / 100,
-            y=float(info[17][:-1]) / 100,
+            x=float(info[15][1:-1]) / 100,
+            y=float(info[16][:-1]) / 100,
             z=float(info[17][:-1]) / 100)
     )
     return wheels_control
@@ -507,7 +507,7 @@ class MetricsParser(object):
 
                             elif name == "use_gear_auto_box":
                                 name = "use_gear_autobox"
-                                value = True if elements[1] == "true" else False
+                                value = elements[1] == "true"
                                 setattr(physics_control, name, value)
 
                             elif "forward_gears" in name or "wheels" in name:

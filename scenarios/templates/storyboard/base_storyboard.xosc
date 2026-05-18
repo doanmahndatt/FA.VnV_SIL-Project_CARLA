@@ -95,15 +95,15 @@
             </TeleportAction>
           </PrivateAction>
         </Private>
-        <!-- ===== EV INITIAL SPEED ===== -->
+        <!-- ===== EV INITIAL SPEED  ===== -->
         <Private entityRef="ev">
           <PrivateAction>
             <LongitudinalAction>
               <SpeedAction>
                 <SpeedActionDynamics
-                    dynamicsShape="step"
-                    value="0"
-                    dynamicsDimension="time"/>
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
                 <SpeedActionTarget>
                   <AbsoluteTargetSpeed value="${ev_speed}"/>
                 </SpeedActionTarget>
@@ -122,7 +122,7 @@
             </TeleportAction>
           </PrivateAction>
         </Private>
-        <!-- ===== TV INITIAL SPEED (STATIONARY) ===== -->
+        <!-- ===== TV INITIAL SPEED  ===== -->
         <Private entityRef="tv">
           <PrivateAction>
             <LongitudinalAction>

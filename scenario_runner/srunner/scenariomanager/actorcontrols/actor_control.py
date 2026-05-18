@@ -25,6 +25,28 @@ from srunner.scenariomanager.actorcontrols.npc_vehicle_control import NpcVehicle
 from srunner.scenariomanager.actorcontrols.pedestrian_control import PedestrianControl
 
 
+def _resolve_controller_path(control_py_module, scenario_file_path):
+    if not control_py_module or os.path.isabs(control_py_module) or ".py" not in control_py_module:
+        return control_py_module
+
+    candidates = [
+        control_py_module,
+        os.path.abspath(control_py_module),
+    ]
+
+    if scenario_file_path:
+        scenario_abs = os.path.abspath(scenario_file_path)
+        candidates.append(os.path.abspath(os.path.join(scenario_abs, control_py_module)))
+        candidates.append(os.path.abspath(os.path.join(scenario_abs, "..", "..", control_py_module)))
+        candidates.append(os.path.abspath(os.path.join(scenario_abs, "..", "..", "..", control_py_module)))
+
+    for candidate in candidates:
+        if os.path.isfile(candidate):
+            return candidate
+
+    return control_py_module
+
+
 class ActorControl(object):
 
     """
@@ -74,6 +96,8 @@ class ActorControl(object):
                 # use ExternalControl for all misc objects to handle all actors the same way
                 self.control_instance = ExternalControl(actor)
         else:
+            control_py_module = _resolve_controller_path(control_py_module, scenario_file_path)
+
             if scenario_file_path:
                 sys.path.append(scenario_file_path)
             if ".py" in control_py_module:
@@ -106,7 +130,7 @@ class ActorControl(object):
         if start_time:
             self._last_longitudinal_command = start_time
 
-    def update_waypoints(self, waypoints, start_time=None):
+    def update_waypoints(self, waypoints, times=None, start_time=None):
         """
         Update the actor's waypoints
 
@@ -114,7 +138,7 @@ class ActorControl(object):
             waypoints (List of carla.Transform): List of new waypoints.
             start_time (float): Start time of the new "maneuver" [s].
         """
-        self.control_instance.update_waypoints(waypoints)
+        self.control_instance.update_waypoints(waypoints, times)
         if start_time:
             self._last_waypoint_command = start_time
 

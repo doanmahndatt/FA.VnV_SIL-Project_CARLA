@@ -1,5 +1,10 @@
 scenario_id: acc_csc_003
 name: EV in CC mode, TV cut in from left
+functional: ACC
+feature_domain: Longitudinal  #Longitudinal -> longitudinal_feature
+                              #Lateral      -> lateral_feature
+                              #Parking      -> parking_feature
+                              #Brake        -> brake_feature
 
 pre_condition:
   ev_mode: CC

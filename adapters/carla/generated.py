@@ -13,6 +13,13 @@ from xml.dom import minidom
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "scenarios"))
 
+FEATURE_DOMAIN_DIRS = {
+    "Longitudinal": "longitudinal_feature",
+    "Lateral": "lateral_feature",
+    "Parking": "parking_feature",
+    "Brake": "brake_feature",
+}
+
 # =========================================================
 # IO
 # =========================================================
@@ -32,40 +39,21 @@ def load_text(path):
 # =========================================================
 
 def prettify_xml(elem, indent="  "):
-    """
-    Return a pretty-printed XML string for the Element.
-    
-    Args:
-        elem: ElementTree Element to format
-        indent: Indentation string (default: 2 spaces)
-        
-    Returns:
-        Formatted XML string
-    """
     rough_string = ET.tostring(elem, encoding="unicode")
     reparsed = minidom.parseString(rough_string)
     pretty_xml = reparsed.toprettyxml(indent=indent)
-    
-    # Remove extra blank lines and XML declaration (will be added separately)
+
     lines = [line for line in pretty_xml.split('\n') if line.strip()]
-    
-    # Remove the XML declaration from minidom (we'll add it manually)
+
     if lines and lines[0].startswith('<?xml'):
         lines = lines[1:]
-    
+
     return '\n'.join(lines)
 
 def write_xosc_file(tree, output_path):
-    """
-    Write XOSC file with proper XML declaration and formatting.
-    
-    Args:
-        tree: ElementTree object
-        output_path: Path to output file
-    """
     root = tree.getroot()
     pretty_xml = prettify_xml(root, indent="  ")
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("<?xml version='1.0' encoding='utf-8'?>\n")
         f.write(pretty_xml)
@@ -82,7 +70,6 @@ def map_environment(params):
 
     env = {}
 
-    # --- LIGHT ---
     if light == "day":
         env.update({
             "time_of_day": "2026-01-01T12:00:00",
@@ -96,7 +83,6 @@ def map_environment(params):
             "sun_elevation": "-10",
         })
 
-    # --- WEATHER ---
     if weather == "clear":
         env.update({
             "cloud_state": "free",
@@ -143,34 +129,20 @@ MANEUVER_MAP = {
 }
 
 # =========================================================
-# MANEUVER GROUP INSERTION (FIXED)
+# MANEUVER GROUP INSERTION
 # =========================================================
 
 def insert_maneuver_group(act, maneuver_group):
-    
-    """
-    Insert ManeuverGroup before StartTrigger, after all existing ManeuverGroups.
-    
-    This ensures proper XML structure:
-    <Act>
-      <ManeuverGroup>...</ManeuverGroup>
-      <ManeuverGroup>...</ManeuverGroup>
-      <StartTrigger>...</StartTrigger>
-    </Act>
-    """
     start_trigger = act.find("StartTrigger")
     if start_trigger is None:
         raise RuntimeError("StartTrigger must exist in Act")
 
-    # Find all existing ManeuverGroups
     maneuver_groups = act.findall("ManeuverGroup")
-    
+
     if maneuver_groups:
-        # Insert after the last ManeuverGroup
         last_group = maneuver_groups[-1]
         index = list(act).index(last_group) + 1
     else:
-        # No ManeuverGroups yet, insert before StartTrigger
         index = list(act).index(start_trigger)
 
     act.insert(index, maneuver_group)
@@ -180,41 +152,22 @@ def insert_maneuver_group(act, maneuver_group):
 # =========================================================
 
 def render_maneuver_group(block_file, params, actor):
-    """
-    Render a ManeuverGroup from template file with parameter substitution.
-    
-    Args:
-        block_file: Template filename (e.g., "appear.xosc")
-        params: Dictionary of parameters to substitute
-        actor: Actor name for the maneuver
-        
-    Returns:
-        ElementTree Element representing the ManeuverGroup
-        
-    Raises:
-        RuntimeError: If template not found or XML parsing fails
-    """
     path = os.path.join(BASE, "templates", "maneuver_blocks", block_file)
-    
+
     if not os.path.exists(path):
         raise RuntimeError(f"Template file not found: {path}")
-    
-    text = load_text(path)
 
-    # Replace actor placeholder
+    text = load_text(path)
     text = text.replace("${actor}", escape(str(actor)))
 
-    # Replace parameter placeholders
     for k, v in params.items():
         text = text.replace(f"${{{k}}}", escape(str(v)))
 
-    # Parse XML
     try:
         group = ET.fromstring(text)
     except ET.ParseError as e:
         raise RuntimeError(f"XML parse error in block {block_file}: {e}")
 
-    # Validate root element
     if group.tag != "ManeuverGroup":
         raise RuntimeError(
             f"Block {block_file} root is <{group.tag}>, expected <ManeuverGroup>"
@@ -223,42 +176,85 @@ def render_maneuver_group(block_file, params, actor):
     return group
 
 # =========================================================
+# STORYBOARD TEMPLATE RESOLUTION
+# =========================================================
+
+def resolve_storyboard_path(core):
+    """
+    Resolve storyboard template from core YAML only.
+
+    Expected metadata:
+      functional: ACC
+      feature_domain: Longitudinal
+
+    Supported placement:
+      1. core["functional"], core["feature_domain"]
+      2. core["logic"]["functional"], core["logic"]["feature_domain"]
+
+    If metadata is missing, fall back to base_storyboard.xosc.
+    """
+    logic = core.get("logic", {}) or {}
+
+    functional = core.get("functional") or logic.get("functional")
+    feature_domain = core.get("feature_domain") or logic.get("feature_domain")
+
+    if not functional and not feature_domain:
+        return os.path.join(BASE, "templates", "storyboard", "base_storyboard.xosc")
+
+    if not functional or not feature_domain:
+        raise RuntimeError(
+            "Storyboard template resolution requires both 'functional' and "
+            "'feature_domain' in core YAML"
+        )
+
+    functional = str(functional).strip()
+    feature_domain = str(feature_domain).strip()
+
+    feature_dir = FEATURE_DOMAIN_DIRS.get(feature_domain)
+    if feature_dir is None:
+        valid_domains = ", ".join(FEATURE_DOMAIN_DIRS.keys())
+        raise RuntimeError(
+            f"Unknown feature_domain '{feature_domain}'. "
+            f"Supported values: {valid_domains}"
+        )
+
+    storyboard_path = os.path.join(
+        BASE,
+        "templates",
+        "storyboard",
+        feature_dir,
+        f"{functional}_storyboard.xosc",
+    )
+
+    if not os.path.exists(storyboard_path):
+        raise RuntimeError(
+            "Storyboard template not found for "
+            f"functional='{functional}', feature_domain='{feature_domain}'. "
+            f"Expected: {storyboard_path}"
+        )
+
+    return storyboard_path
+
+# =========================================================
 # CORE GENERATOR
 # =========================================================
 
 def generate_xosc(core):
-    """
-    Generate XOSC file from core scenario definition.
-    
-    Args:
-        core: Dictionary containing 'parameters' and 'logic' keys
-        
-    Returns:
-        ElementTree object with generated scenario
-        
-    Raises:
-        RuntimeError: If storyboard template not found or maneuver type unknown
-    """
     params = core.get("parameters", {})
     logic = core.get("logic", {})
 
-    # Load base storyboard template
-    storyboard_path = os.path.join(
-        BASE, "templates", "storyboard", "base_storyboard.xosc"
-    )
-    
+    storyboard_path = resolve_storyboard_path(core)
+
     if not os.path.exists(storyboard_path):
         raise RuntimeError(f"Storyboard template not found: {storyboard_path}")
 
     tree = ET.parse(storyboard_path)
     root = tree.getroot()
 
-    # Find Act element
     act = root.find(".//Act")
     if act is None:
         raise RuntimeError("Act node not found in storyboard template")
 
-    # --- INSERT MANEUVERS IN ORDER ---
     for m in logic.get("maneuvers", []):
         m_type = m.get("type")
         actor = m.get("actor")
@@ -270,7 +266,7 @@ def generate_xosc(core):
             raise RuntimeError(f"Unknown maneuver type: {m_type}")
 
         block_file = MANEUVER_MAP[m_type]
-        
+
         try:
             maneuver_group = render_maneuver_group(
                 block_file=block_file,
@@ -281,15 +277,11 @@ def generate_xosc(core):
         except RuntimeError as e:
             raise RuntimeError(f"Failed to insert maneuver {m_type} for {actor}: {e}")
 
-    # --- PARAMETER & ENVIRONMENT SUBSTITUTION ---
-    # Convert to string for global parameter replacement
     xml_str = ET.tostring(root, encoding="unicode")
-    
-    # Replace scenario parameters (e.g., ${ev_speed}, ${tv_speed})
+
     for k, v in params.items():
         xml_str = xml_str.replace(f"${{{k}}}", escape(str(v)))
-    
-    # Replace environment variables (e.g., ${time_of_day}, ${sun_intensity})
+
     env = map_environment(params)
     for k, v in env.items():
         xml_str = xml_str.replace(f"${{{k}}}", str(v))
@@ -298,6 +290,7 @@ def generate_xosc(core):
     tree._setroot(root)
 
     return tree
+
 # =========================================================
 # DIRECTORY MANAGEMENT
 # =========================================================
@@ -306,7 +299,7 @@ def clean_dir(path):
     """Remove all files from directory."""
     if not os.path.exists(path):
         return
-    
+
     for f in os.listdir(path):
         fp = os.path.join(path, f)
         if os.path.isfile(fp):
@@ -320,7 +313,6 @@ def clean_dir(path):
 # =========================================================
 
 def main():
-    """Main entry point for scenario generation."""
     parser = argparse.ArgumentParser(
         description="Generate XOSC scenario files from YAML definitions"
     )
@@ -342,12 +334,11 @@ def main():
     args = parser.parse_args()
 
     core_root = os.path.join(BASE, "core")
-    
+
     if not os.path.exists(core_root):
         print(f"[ERROR] Core directory not found: {core_root}")
         return
 
-    # Determine which scenarios to process
     scenario_ids = args.scenarios or os.listdir(core_root)
 
     for sid in scenario_ids:
@@ -358,39 +349,36 @@ def main():
             continue
 
         os.makedirs(out_dir, exist_ok=True)
-        
+
         if args.clean:
             clean_dir(out_dir)
 
         generated = 0
         skipped = 0
 
-        # Process all YAML files in scenario directory
         yaml_files = [f for f in os.listdir(in_dir) if f.endswith(".yaml")]
-        
+
         if not yaml_files:
             print(f"[WARN] No YAML files found in {sid}")
             continue
 
         for fname in yaml_files:
             yaml_path = os.path.join(in_dir, fname)
-            
+
             try:
                 core = load_yaml(yaml_path)
-                
+
                 if not core:
                     raise ValueError("YAML file is empty")
-                
-                tree = generate_xosc(core)
 
+                tree = generate_xosc(core)
                 out_path = os.path.join(out_dir, fname.replace(".yaml", ".xosc"))
-                
-                # Use custom write function for proper formatting
+
                 write_xosc_file(tree, out_path)
 
                 generated += 1
                 print(f"[OK] {sid}/{fname}")
-                
+
             except Exception as e:
                 skipped += 1
                 print(f"[SKIP] {sid}/{fname}: {e}")

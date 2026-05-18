@@ -16,7 +16,6 @@ from srunner.osc2.osc2_parser.OpenSCENARIO2Parser import OpenSCENARIO2Parser
 from srunner.osc2.ast_manager.ast_builder import ASTBuilder
 
 
- 
 def main(input_stream):
     quiet = False
     OscErrorListeners = OscErrorListener(input_stream)
@@ -43,9 +42,8 @@ def main(input_stream):
 
 if __name__ == '__main__':
     error_file_list = []
-    # 如果测试的为文件夹
     if not os.path.exists(sys.argv[1]):
-        print("文件路径错误！")
+        print("File path error")
     if os.path.isdir(sys.argv[1]):
         filepath = sys.argv[1]
         files = os.listdir(filepath)
@@ -60,11 +58,9 @@ if __name__ == '__main__':
             import_msg.clear_msg()
         LOG_INFO("======================== "+"error file result"+" ========================")
         for error_file in error_file_list:
-             LOG_INFO(error_file)
+            LOG_INFO(error_file)
 
-    # 如果测试的为单个文件
     elif os.path.isfile(sys.argv[1]):
-        # 预处理，展开import,返回file类型对象和存储预处理信息的对象
         new_file, import_msg = Preprocess(sys.argv[1]).import_process()
         input_stream = FileStream(sys.argv[1], encoding='utf-8')
         if main(input_stream)>0:

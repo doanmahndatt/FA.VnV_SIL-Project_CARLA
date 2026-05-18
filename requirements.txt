@@ -16,7 +16,7 @@
 # ============================================================================
 
 # CARLA Python API
-carla==0.9.15
+carla==0.9.16
 
 # Project runtime: GUI, batch runner, KPI, report writer
 pygame==2.6.1

@@ -23,13 +23,13 @@ logic:
 parameters:
   ev_lane_id: -2
   tv_lane_id: -1
-  ev_speed: 20
-  tv_speed: 10
-  tv_maintain_speed: 15
-  response_cutin_time: 1
-  deceleration_time: 2
+  tv_speed: 5
   trigger_cutin_time: 5
-  trigger_stop_time: 6
-  lane_change_direction: 1
+  maintain_duration: 5
+  trigger_deceleration_time: 1
+  trigger_stop_time: 10
+  maintain_stop_duration: 5
+  lane_change_distance: 10
+  lane_change_direction: -1
   light: night
   weather: clear

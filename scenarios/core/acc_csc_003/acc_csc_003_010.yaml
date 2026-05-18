@@ -2,6 +2,8 @@ scenario_id: acc_csc_003_010
 logic:
   scenario_id: acc_csc_003
   name: EV in CC mode, TV cut in from left
+  functional: ACC
+  feature_domain: Longitudinal
   pre_condition:
     ev_mode: CC
   actors:
@@ -21,11 +23,11 @@ logic:
 parameters:
   ev_lane_id: -2
   tv_lane_id: -1
-  ev_speed: 20
+  ev_speed: 10
   tv_speed: 5
-  tv_maintain_speed: 7
-  response_cutin_time: 3
-  trigger_cutin_time: 5
-  lane_change_direction: 1
+  trigger_cutin_time: 3
+  maintain_duration: 20
+  lane_change_distance: 10
+  lane_change_direction: -1
   light: night
   weather: clear

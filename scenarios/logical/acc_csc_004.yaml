@@ -9,7 +9,7 @@ actors:
       type: ego
       lane: ego
       state: moving
-  - tv1:
+  - tv:
       type: truck
       lane: right
       position: next_to_ego
