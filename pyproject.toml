@@ -1,71 +1,28 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools-scm[toml]>=6.2"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "openscenario-validation-agent"
-version = "1.0.0"
-description = "OpenSCENARIO Validation Agent cho CARLA Simulator"
-authors = [
-    {name = "Test Team", email = "test@example.com"}
-]
-readme = "README_VALIDATION.md"
-requires-python = ">=3.8"
+name = "fa-vnv-sil-test-assets"
+version = "1.3.0"
+description = "FA VnV SIL test assets and CARLA batch runner utilities"
+readme = "README.md"
+requires-python = ">=3.10"
 license = {text = "MIT"}
-keywords = ["openscenario", "validation", "carla", "autonomous-driving", "testing"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Testing",
-    "Topic :: Scientific/Engineering",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-]
-
-dependencies = [
-    "click>=8.0.0",
-    "rich>=10.0.0",
-    "lxml>=4.9.0",
-    "pyyaml>=6.0",
-    "jinja2>=3.0.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=3.0.0",
-    "pytest-mock>=3.10.0",
-    "black>=22.0.0",
-    "flake8>=4.0.0",
-    "mypy>=0.950",
-]
-
-[project.scripts]
-validate-xosc = "validation_agent.cli:cli"
-
-[project.urls]
-Homepage = "https://github.com/your-org/openscenario-validation"
-Documentation = "https://openscenario-validation.readthedocs.io"
-Repository = "https://github.com/your-org/openscenario-validation.git"
-"Bug Tracker" = "https://github.com/your-org/openscenario-validation/issues"
+keywords = ["carla", "openscenario", "sil", "adas", "testing"]
 
 [tool.setuptools]
-packages = ["validation_agent", "validation_agent.core", "validation_agent.config", "validation_agent.reports"]
+packages = []
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["scenario_runner/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=validation_agent --cov-report=html --cov-report=term-missing"
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ["py310", "py311", "py312"]
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -73,11 +30,12 @@ exclude = '''
   | \.venv
   | build
   | dist
+  | scenario_runner/openpilot
 )/
 '''
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false

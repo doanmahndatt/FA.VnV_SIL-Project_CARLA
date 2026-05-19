@@ -1,0 +1,35 @@
+scenario_id: acc_csc_010_015
+logic:
+  scenario_id: acc_csc_010
+  name: TV1 Cut out left + new slow TV2
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv1:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  - tv2:
+      type: car
+      lane: ego
+      position: front_tv1
+      state: moving
+  maneuvers:
+  - type: cutout_event
+    actor: tv1
+    direction: left
+  - type: appear_event
+    actor: tv2
+    position: front_ego
+parameters:
+  ev_speed: 120
+  tv_speed: 100
+  light: night
+  curve_radius: 250

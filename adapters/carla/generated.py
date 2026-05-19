@@ -42,6 +42,121 @@ def load_text(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
+
+def to_feature_domain_dir(feature_domain):
+    feature_domain = str(feature_domain).strip()
+    if feature_domain in FEATURE_DOMAIN_DIRS:
+        return FEATURE_DOMAIN_DIRS[feature_domain]
+    return f"{feature_domain.lower().replace(' ', '_')}_feature"
+
+
+def to_functional_dir(functional):
+    return str(functional).strip()
+
+
+def normalize_selector_part(value):
+    value = value.strip().replace("\\", "/").strip("/")
+    value = value.lower().replace("-", "_")
+    if value and not value.endswith("_feature"):
+        value = f"{value}_feature"
+    return value
+
+
+def normalize_functional_part(value):
+    return value.strip().replace("\\", "/").strip("/").upper()
+
+
+def split_selector(selector):
+    return [part for part in selector.replace("\\", "/").strip("/").split("/") if part]
+
+
+def scenario_prefix_from_case_id(case_id):
+    return "_".join(str(case_id).split("_")[:3])
+
+
+def metadata_from_core(core):
+    logic = core.get("logic", {}) or {}
+    functional = core.get("functional") or logic.get("functional")
+    feature_domain = core.get("feature_domain") or logic.get("feature_domain")
+
+    if not functional or not feature_domain:
+        raise RuntimeError("Core YAML must define 'functional' and 'feature_domain'")
+
+    return str(feature_domain).strip(), str(functional).strip()
+
+
+def core_dir_from_selector(selector):
+    parts = split_selector(selector)
+    core_root = BASE / "core"
+
+    if len(parts) == 1:
+        matches = sorted(path for path in core_root.rglob(parts[0]) if path.is_dir())
+        if len(matches) == 1:
+            return matches[0]
+        if not matches:
+            raise FileNotFoundError(f"Core scenario folder not found: {selector}")
+        raise RuntimeError(f"Ambiguous scenario selector '{selector}': {matches}")
+
+    if len(parts) == 3:
+        return (
+            core_root
+            / normalize_selector_part(parts[0])
+            / normalize_functional_part(parts[1])
+            / parts[2]
+        )
+
+    raise ValueError(
+        "Selector must be '<scenario_id>' or '<feature_domain>/<functional>/<scenario_id>'"
+    )
+
+
+def core_parent_from_selector(selector):
+    parts = split_selector(selector)
+    if len(parts) != 2:
+        raise ValueError("Folder selector must be '<feature_domain>/<functional>'")
+    return (
+        BASE
+        / "core"
+        / normalize_selector_part(parts[0])
+        / normalize_functional_part(parts[1])
+    )
+
+
+def output_dir_for_core(core):
+    case_id = core.get("scenario_id")
+    if not case_id:
+        raise RuntimeError("Core YAML must define 'scenario_id'")
+
+    feature_domain, functional = metadata_from_core(core)
+    return (
+        BASE
+        / "generated"
+        / "carla"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+        / scenario_prefix_from_case_id(case_id)
+    )
+
+
+def resolve_controller_module(core):
+    feature_domain, functional = metadata_from_core(core)
+    controller_path = (
+        Path("config")
+        / "controllers"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+        / f"{to_functional_dir(functional)}_controller.py"
+    )
+
+    if not (PROJECT_PATHS.repo_root / controller_path).exists():
+        raise RuntimeError(
+            "Controller module not found for "
+            f"functional='{functional}', feature_domain='{feature_domain}'. "
+            f"Expected: {PROJECT_PATHS.repo_root / controller_path}"
+        )
+
+    return controller_path.as_posix()
+
 # =========================================================
 # XML FORMATTING
 # =========================================================
@@ -133,7 +248,9 @@ MANEUVER_MAP = {
     "cutin_event": "cutin.xosc",
     "cutout_event": "cutout.xosc",
     "ev_cutout_event": "ego_cutout.xosc",
+    "ego_cutout_event": "ego_cutout.xosc",
     "ego_cutout_signal_event": "ego_cutout_signal.xosc",
+    "curve_event": "curve.xosc",
 }
 
 # =========================================================
@@ -159,8 +276,16 @@ def insert_maneuver_group(act, maneuver_group):
 # MANEUVER GROUP RENDERING
 # =========================================================
 
-def render_maneuver_group(block_file, params, actor):
-    path = BASE / "templates" / "maneuver_blocks" / block_file
+def render_maneuver_group(block_file, params, actor, core):
+    feature_domain, functional = metadata_from_core(core)
+    path = (
+        BASE
+        / "templates"
+        / "maneuver_blocks"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+        / block_file
+    )
 
     if not os.path.exists(path):
         raise RuntimeError(f"Template file not found: {path}")
@@ -273,13 +398,17 @@ def generate_xosc(core):
             maneuver_group = render_maneuver_group(
                 block_file=block_file,
                 params=params,
-                actor=actor
+                actor=actor,
+                core=core
             )
             insert_maneuver_group(act, maneuver_group)
         except RuntimeError as e:
             raise RuntimeError(f"Failed to insert maneuver {m_type} for {actor}: {e}")
 
     xml_str = ET.tostring(root, encoding="unicode")
+
+    controller_module = resolve_controller_module(core)
+    xml_str = xml_str.replace("${controller_module}", escape(controller_module))
 
     for k, v in params.items():
         xml_str = xml_str.replace(f"${{{k}}}", escape(str(v)))
@@ -310,6 +439,74 @@ def clean_dir(path):
             except OSError as e:
                 print(f"[WARN] Failed to remove {fp}: {e}")
 
+
+def generate_core_dir(in_dir, clean=False):
+    if not os.path.isdir(in_dir):
+        raise FileNotFoundError(f"Core scenario folder not found: {in_dir}")
+
+    yaml_files = sorted(f for f in os.listdir(in_dir) if f.endswith(".yaml"))
+    if not yaml_files:
+        print(f"[WARN] No YAML files found in {in_dir}")
+        return
+
+    generated = 0
+    skipped = 0
+    output_dir = None
+
+    for fname in yaml_files:
+        yaml_path = Path(in_dir) / fname
+
+        try:
+            core = load_yaml(yaml_path)
+
+            if not core:
+                raise ValueError("YAML file is empty")
+
+            out_dir = output_dir_for_core(core)
+            if output_dir is None:
+                output_dir = out_dir
+                os.makedirs(output_dir, exist_ok=True)
+                if clean:
+                    clean_dir(output_dir)
+
+            tree = generate_xosc(core)
+            out_path = out_dir / fname.replace(".yaml", ".xosc")
+
+            write_xosc_file(tree, out_path)
+
+            generated += 1
+            print(f"[OK] {Path(in_dir).name}/{fname}")
+
+        except Exception as e:
+            skipped += 1
+            print(f"[SKIP] {Path(in_dir).name}/{fname}: {e}")
+
+    print(f"[DONE] {Path(in_dir).name}: generated={generated}, skipped={skipped}\n")
+
+
+def generate_folder(selector, clean=False):
+    core_parent = core_parent_from_selector(selector)
+    if not core_parent.exists():
+        raise FileNotFoundError(f"Core folder not found: {core_parent}")
+
+    for in_dir in sorted(path for path in core_parent.iterdir() if path.is_dir()):
+        generate_core_dir(in_dir, clean=clean)
+
+
+def generate_all(clean=False):
+    core_root = BASE / "core"
+    for in_dir in sorted(path for path in core_root.rglob("*") if path.is_dir() and list(path.glob("*.yaml"))):
+        generate_core_dir(in_dir, clean=clean)
+
+
+def generate_range(selector_prefix, start, end, clean=False):
+    for i in range(start, end + 1):
+        selector = f"{selector_prefix}_{i:03d}"
+        try:
+            generate_core_dir(core_dir_from_selector(selector), clean=clean)
+        except FileNotFoundError as e:
+            print(f"[SKIP] {e}")
+
 # =========================================================
 # MAIN
 # =========================================================
@@ -319,15 +516,20 @@ def main():
         description="Generate XOSC scenario files from YAML definitions"
     )
     parser.add_argument(
-        "scenarios",
+        "selectors",
         nargs="*",
-        help="Scenario IDs to generate (default: all)"
+        help=(
+            "Scenario or folder selector, e.g. "
+            "longitudinal/acc/acc_csc_001 or longitudinal/acc"
+        ),
     )
     parser.add_argument(
         "--all",
         action="store_true",
         help="Generate all scenarios"
     )
+    parser.add_argument("--from", dest="start", type=int)
+    parser.add_argument("--to", dest="end", type=int)
     parser.add_argument(
         "--clean",
         action="store_true",
@@ -335,57 +537,32 @@ def main():
     )
     args = parser.parse_args()
 
-    core_root = BASE / "core"
-
-    if not os.path.exists(core_root):
-        print(f"[ERROR] Core directory not found: {core_root}")
+    if args.all:
+        generate_all(clean=args.clean)
         return
 
-    scenario_ids = args.scenarios or os.listdir(core_root)
+    if args.start is not None and args.end is not None:
+        if len(args.selectors) != 1:
+            parser.error("--from/--to requires exactly one selector prefix")
+        generate_range(args.selectors[0], args.start, args.end, clean=args.clean)
+        return
 
-    for sid in scenario_ids:
-        in_dir = core_root / sid
-        out_dir = BASE / "generated" / "carla" / sid
+    if args.start is not None or args.end is not None:
+        parser.error("--from and --to must be used together")
 
-        if not os.path.isdir(in_dir):
-            continue
+    if not args.selectors:
+        parser.print_help()
+        return
 
-        os.makedirs(out_dir, exist_ok=True)
-
-        if args.clean:
-            clean_dir(out_dir)
-
-        generated = 0
-        skipped = 0
-
-        yaml_files = [f for f in os.listdir(in_dir) if f.endswith(".yaml")]
-
-        if not yaml_files:
-            print(f"[WARN] No YAML files found in {sid}")
-            continue
-
-        for fname in yaml_files:
-            yaml_path = os.path.join(in_dir, fname)
-
-            try:
-                core = load_yaml(yaml_path)
-
-                if not core:
-                    raise ValueError("YAML file is empty")
-
-                tree = generate_xosc(core)
-                out_path = os.path.join(out_dir, fname.replace(".yaml", ".xosc"))
-
-                write_xosc_file(tree, out_path)
-
-                generated += 1
-                print(f"[OK] {sid}/{fname}")
-
-            except Exception as e:
-                skipped += 1
-                print(f"[SKIP] {sid}/{fname}: {e}")
-
-        print(f"[DONE] {sid}: generated={generated}, skipped={skipped}\n")
+    for selector in args.selectors:
+        parts = split_selector(selector)
+        try:
+            if len(parts) == 2:
+                generate_folder(selector, clean=args.clean)
+            else:
+                generate_core_dir(core_dir_from_selector(selector), clean=args.clean)
+        except FileNotFoundError as e:
+            print(f"[SKIP] {e}")
 
 if __name__ == "__main__":
     main()

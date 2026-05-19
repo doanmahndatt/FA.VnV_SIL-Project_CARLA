@@ -1,0 +1,33 @@
+<ManeuverGroup name="${actor}_appear" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="${actor}_appear_maneuver">
+    <Event name="${actor}_appear_event" priority="parallel">
+      <Action name="${actor}_maintain_speed">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                dynamicsShape="step"
+                value="0"
+                dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${tv_speed}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_appear_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="0.1" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

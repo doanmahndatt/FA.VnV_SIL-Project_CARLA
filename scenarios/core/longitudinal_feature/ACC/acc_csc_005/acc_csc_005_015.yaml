@@ -1,0 +1,36 @@
+scenario_id: acc_csc_005_015
+logic:
+  scenario_id: acc_csc_005
+  name: FL mode cut in left
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv_old:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  - tv:
+      type: bus
+      lane: left
+      position: next_to_ego
+      state: moving
+  maneuvers:
+  - type: cutin_event
+    actor: tv
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -1
+  tv_speed: 5
+  trigger_cutin_time: 5
+  maintain_duration: 12
+  lane_change_distance: 5
+  lane_change_direction: -1
+  light: day
+  weather: fog

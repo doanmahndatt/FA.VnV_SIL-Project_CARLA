@@ -25,9 +25,11 @@ PORT = 2000
 
 @dataclass(frozen=True)
 class ScenarioJob:
+    job_key: str
     case_id: str
     group_name: str
     xosc_path: Path
+    core_path: Path
 
 
 class BatchRunner:
@@ -46,12 +48,19 @@ class BatchRunner:
     def discover_groups(self) -> List[str]:
         if not self.xosc_root.exists():
             return []
-        return sorted(p.name for p in self.xosc_root.iterdir() if p.is_dir())
+        return sorted({job.group_name for job in self.discover_jobs()})
 
     def discover_jobs(self) -> List[ScenarioJob]:
         jobs = []
-        for path in sorted(self.xosc_root.glob("*/*.xosc")):
-            jobs.append(ScenarioJob(path.stem, path.parent.name, path))
+        if not self.xosc_root.exists():
+            return jobs
+
+        for path in sorted(self.xosc_root.rglob("*.xosc")):
+            relative_parent = path.parent.relative_to(self.xosc_root)
+            group_name = relative_parent.as_posix()
+            core_path = self.core_root / relative_parent / f"{path.stem}.yaml"
+            job_key = f"{group_name}/{path.stem}"
+            jobs.append(ScenarioJob(job_key, path.stem, group_name, path, core_path))
         return jobs
 
     def jobs_for_groups(self, groups: List[str]) -> List[ScenarioJob]:
@@ -121,7 +130,7 @@ class BatchRunner:
 
     def run_one(self, job: ScenarioJob, on_log=None) -> Dict:
         started_at = datetime.now()
-        params = self._load_core_params(job.case_id)
+        params = self._load_core_params(job)
         process = None
         timeout = False
         stopped = False
@@ -206,19 +215,17 @@ class BatchRunner:
 
     def _create_kpi_monitor(self):
         try:
-            from config.KPI import KPIMonitor
+            from tools.config.KPI import KPIMonitor
 
             return KPIMonitor(host=HOST, port=PORT)
         except Exception:
             return None
 
-    def _load_core_params(self, case_id: str) -> Dict:
-        scenario_prefix = "_".join(case_id.split("_")[:3])
-        core_path = self.core_root / scenario_prefix / f"{case_id}.yaml"
-        if not core_path.exists():
+    def _load_core_params(self, job: ScenarioJob) -> Dict:
+        if not job.core_path.exists():
             return {}
 
-        with core_path.open("r", encoding="utf-8") as file:
+        with job.core_path.open("r", encoding="utf-8") as file:
             core = yaml.safe_load(file) or {}
 
         return core.get("parameters", {}) or {}

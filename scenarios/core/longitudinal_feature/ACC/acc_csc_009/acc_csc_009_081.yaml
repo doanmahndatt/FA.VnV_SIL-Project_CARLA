@@ -1,0 +1,33 @@
+scenario_id: acc_csc_009_081
+logic:
+  scenario_id: acc_csc_009
+  name: Cut out right no TV
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: cutout_event
+    actor: tv
+    direction: right
+parameters:
+  ev_lane_id: -1
+  tv_lane_id: -1
+  ev_speed: 20
+  tv_speed: 10
+  trigger_cutout_time: 3
+  maintain_duration: 20
+  lane_change_distance: 10
+  lane_change_direction: -1
+  light: day
+  weather: fog

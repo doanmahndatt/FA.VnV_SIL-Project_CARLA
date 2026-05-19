@@ -1,0 +1,27 @@
+scenario_id: acc_csc_018_001
+logic:
+  scenario_id: acc_csc_018
+  name: EV cut out to left + static TV
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+    ev:
+      type: ego
+      lane: ego
+      state: moving
+    tv1:
+      type: car
+      lane: left
+      state: static
+  maneuvers:
+  - type: ego_cutout_event
+    actor: ev
+    direction: left
+  - type: appear_event
+    actor: tv1
+parameters:
+  ev_speed: 40
+  light: day
+  curve_radius: 250

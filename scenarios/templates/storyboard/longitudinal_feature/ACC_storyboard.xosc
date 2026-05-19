@@ -121,7 +121,7 @@
               <AssignControllerAction>
                 <Controller name="ACC_controller">
                   <Properties>
-                    <Property name="module" value="config/controllers/ACC_controller.py"/>
+                    <Property name="module" value="${controller_module}"/>
                     <Property name="desired_speed" value="${ev_speed}"/>
                     <Property name="target_role" value="tv"/>
                   </Properties>

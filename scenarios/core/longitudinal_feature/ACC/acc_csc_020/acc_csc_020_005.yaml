@@ -1,0 +1,21 @@
+scenario_id: acc_csc_020_005
+logic:
+  scenario_id: acc_csc_020
+  name: EV in ACC mode + Enter the bend
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: ACC
+  actors:
+    ev:
+      type: ego
+      lane: ego
+      state: moving
+  maneuvers:
+  - type: curve_event
+    actor: ev
+parameters:
+  ev_speed: 50
+  tv_speed: 20
+  light: day
+  curve_radius: 250

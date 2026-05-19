@@ -26,6 +26,13 @@ LOGICAL_DIR = BASE_SCENARIO_DIR / "logical"
 PARAMETER_DIR = BASE_SCENARIO_DIR / "parameters"
 CORE_DIR = BASE_SCENARIO_DIR / "core"
 
+FEATURE_DOMAIN_DIRS = {
+    "Longitudinal": "longitudinal_feature",
+    "Lateral": "lateral_feature",
+    "Parking": "parking_feature",
+    "Brake": "brake_feature",
+}
+
 
 # ==================================================
 # YAML Utilities
@@ -42,6 +49,89 @@ def save_yaml(data: Dict, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         yaml.dump(data, f, sort_keys=False)
+
+
+def to_feature_domain_dir(feature_domain: str) -> str:
+    feature_domain = str(feature_domain).strip()
+    if feature_domain in FEATURE_DOMAIN_DIRS:
+        return FEATURE_DOMAIN_DIRS[feature_domain]
+    return f"{feature_domain.lower().replace(' ', '_')}_feature"
+
+
+def to_functional_dir(functional: str) -> str:
+    return str(functional).strip()
+
+
+def normalize_selector_part(value: str) -> str:
+    value = value.strip().replace("\\", "/").strip("/")
+    value = value.lower().replace("-", "_")
+    if value and not value.endswith("_feature"):
+        value = f"{value}_feature"
+    return value
+
+
+def normalize_functional_part(value: str) -> str:
+    return value.strip().replace("\\", "/").strip("/").upper()
+
+
+def split_selector(selector: str) -> List[str]:
+    return [part for part in selector.replace("\\", "/").strip("/").split("/") if part]
+
+
+def logical_path_from_selector(selector: str) -> Path:
+    parts = split_selector(selector)
+    if len(parts) == 1:
+        matches = sorted(LOGICAL_DIR.rglob(f"{parts[0]}.yaml"))
+        if len(matches) == 1:
+            return matches[0]
+        if not matches:
+            raise FileNotFoundError(f"Logical scenario not found: {selector}")
+        raise RuntimeError(f"Ambiguous scenario selector '{selector}': {matches}")
+
+    if len(parts) == 3:
+        domain_dir = normalize_selector_part(parts[0])
+        functional_dir = normalize_functional_part(parts[1])
+        scenario_id = parts[2]
+        return LOGICAL_DIR / domain_dir / functional_dir / f"{scenario_id}.yaml"
+
+    raise ValueError(
+        "Selector must be '<scenario_id>' or '<feature_domain>/<functional>/<scenario_id>'"
+    )
+
+
+def logical_dir_from_selector(selector: str) -> Path:
+    parts = split_selector(selector)
+    if len(parts) != 2:
+        raise ValueError("Folder selector must be '<feature_domain>/<functional>'")
+    return LOGICAL_DIR / normalize_selector_part(parts[0]) / normalize_functional_part(parts[1])
+
+
+def scenario_id_from_logical_path(logical_path: Path) -> str:
+    return logical_path.stem
+
+
+def parameter_path_for_logical(logical_path: Path, logical: Dict) -> Path:
+    scenario_id = str(logical.get("scenario_id") or logical_path.stem)
+    parameter_id = scenario_id.replace("csc", "par")
+    relative_parent = logical_path.parent.relative_to(LOGICAL_DIR)
+    return PARAMETER_DIR / relative_parent / f"{parameter_id}.yaml"
+
+
+def output_dir_for_logical(logical: Dict, scenario_id: str) -> Path:
+    functional = logical.get("functional")
+    feature_domain = logical.get("feature_domain")
+
+    if not functional or not feature_domain:
+        raise RuntimeError(
+            f"Logical YAML for {scenario_id} must define 'functional' and 'feature_domain'"
+        )
+
+    return (
+        CORE_DIR
+        / to_feature_domain_dir(str(feature_domain))
+        / to_functional_dir(str(functional))
+        / scenario_id
+    )
 
 
 # ==================================================
@@ -131,16 +221,19 @@ def build_core_scenario(
 # Expansion Logic
 # ==================================================
 
-def expand_single_scenario(scenario_id: str, clean: bool = False) -> None:
-    logical_path = LOGICAL_DIR / f"{scenario_id}.yaml"
-    parameter_path = PARAMETER_DIR / f"{scenario_id.replace('csc', 'par')}.yaml"
-    output_dir = CORE_DIR / scenario_id
+def expand_single_logical(logical_path: Path, clean: bool = False) -> None:
+    logical = load_yaml(logical_path)
+    scenario_id = str(logical.get("scenario_id") or scenario_id_from_logical_path(logical_path))
+    parameter_path = parameter_path_for_logical(logical_path, logical)
+    output_dir = output_dir_for_logical(logical, scenario_id)
 
     print(f"\n[INFO] Expanding scenario: {scenario_id}")
+    print(f"[INFO] Logical: {logical_path}")
+    print(f"[INFO] Parameters: {parameter_path}")
+    print(f"[INFO] Output: {output_dir}")
 
     prepare_output_dir(output_dir, clean)
 
-    logical = load_yaml(logical_path)
     param_cfg = load_yaml(parameter_path)
 
     parameters = param_cfg.get("parameters", {})
@@ -170,11 +263,35 @@ def expand_single_scenario(scenario_id: str, clean: bool = False) -> None:
     )
 
 
-def expand_range(prefix: str, start: int, end: int, clean: bool) -> None:
-    for i in range(start, end + 1):
-        scenario_id = f"{prefix}_{i:03d}"
+def expand_single_scenario(selector: str, clean: bool = False) -> None:
+    expand_single_logical(logical_path_from_selector(selector), clean=clean)
+
+
+def expand_folder(selector: str, clean: bool = False) -> None:
+    logical_dir = logical_dir_from_selector(selector)
+    if not logical_dir.exists():
+        raise FileNotFoundError(f"Logical folder not found: {logical_dir}")
+
+    for logical_path in sorted(logical_dir.glob("*.yaml")):
         try:
-            expand_single_scenario(scenario_id, clean=clean)
+            expand_single_logical(logical_path, clean=clean)
+        except FileNotFoundError as e:
+            print(f"[SKIP] {e}")
+
+
+def expand_all(clean: bool = False) -> None:
+    for logical_path in sorted(LOGICAL_DIR.rglob("*.yaml")):
+        try:
+            expand_single_logical(logical_path, clean=clean)
+        except FileNotFoundError as e:
+            print(f"[SKIP] {e}")
+
+
+def expand_range(selector_prefix: str, start: int, end: int, clean: bool) -> None:
+    for i in range(start, end + 1):
+        selector = f"{selector_prefix}_{i:03d}"
+        try:
+            expand_single_scenario(selector, clean=clean)
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
 
@@ -186,26 +303,47 @@ def expand_range(prefix: str, start: int, end: int, clean: bool) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Scenario Expander")
 
-    parser.add_argument("prefix", help="Scenario prefix (e.g. acc_csc)")
-    parser.add_argument("suffix", nargs="?", help="Scenario suffix (e.g. 003)")
+    parser.add_argument(
+        "selectors",
+        nargs="*",
+        help=(
+            "Scenario or folder selector, e.g. "
+            "longitudinal/acc/acc_csc_001 or longitudinal/acc"
+        ),
+    )
     parser.add_argument("--from", dest="start", type=int)
     parser.add_argument("--to", dest="end", type=int)
+    parser.add_argument("--all", action="store_true")
     parser.add_argument("--clean", action="store_true")
 
     args = parser.parse_args()
 
-    if args.suffix:
-        expand_single_scenario(
-            f"{args.prefix}_{int(args.suffix):03d}",
-            clean=args.clean
-        )
+    if args.all:
+        expand_all(clean=args.clean)
         return
 
     if args.start is not None and args.end is not None:
-        expand_range(args.prefix, args.start, args.end, clean=args.clean)
+        if len(args.selectors) != 1:
+            parser.error("--from/--to requires exactly one selector prefix")
+        expand_range(args.selectors[0], args.start, args.end, clean=args.clean)
         return
 
-    parser.print_help()
+    if args.start is not None or args.end is not None:
+        parser.error("--from and --to must be used together")
+
+    if not args.selectors:
+        parser.print_help()
+        return
+
+    for selector in args.selectors:
+        parts = split_selector(selector)
+        try:
+            if len(parts) == 2:
+                expand_folder(selector, clean=args.clean)
+            else:
+                expand_single_scenario(selector, clean=args.clean)
+        except FileNotFoundError as e:
+            print(f"[SKIP] {e}")
 
 
 if __name__ == "__main__":

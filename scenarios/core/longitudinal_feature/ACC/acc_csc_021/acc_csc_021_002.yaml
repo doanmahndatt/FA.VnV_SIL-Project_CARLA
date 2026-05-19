@@ -1,0 +1,26 @@
+scenario_id: acc_csc_021_002
+logic:
+  scenario_id: acc_csc_021
+  name: EV in FL mode + turn signal indicator + overtaking
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+    ev:
+      type: ego
+      lane: ego
+      state: moving
+    tv1:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: ego_cutout_signal_event
+    actor: ev
+parameters:
+  ev_speed: 30
+  tv_speed: 20
+  light: day
+  curve_radius: 1000

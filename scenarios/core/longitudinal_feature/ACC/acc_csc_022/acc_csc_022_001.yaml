@@ -1,0 +1,28 @@
+scenario_id: acc_csc_022_001
+logic:
+  scenario_id: acc_csc_022
+  name: EV in FL mode + TV stops + TV resumes movement
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+    ev:
+      type: ego
+      lane: ego
+      state: moving
+    tv1:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: stop_event
+    actor: tv1
+  - type: resume_event
+    actor: tv1
+parameters:
+  ev_speed: 30
+  tv_speed: 20
+  light: day
+  curve_radius: 250
