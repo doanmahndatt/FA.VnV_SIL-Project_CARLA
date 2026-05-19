@@ -1,5 +1,23 @@
 parameters:
-  ev_speed: [60, 120]
-  tv_speed: [40, 100]
+  # ==== SPAWN EV,TV =====
+  ev_lane_id: [-1]       # Lane của EV
+  tv_lane_id: [-2]       # Lane của TV
+
+  # ===== SPEED =====
+  ev_speed: [15, 20, 25]
+  tv_speed: [5, 10, 15]
+
+# ==== Timestamp====
+  trigger_cutout_time: [1, 3]
+  maintain_duration: [20]
+
+# ==== TARGET LANE CHANGE ====
+  lane_change_distance: [3, 5]  
+  lane_change_direction: [-1]  #EV cutout sang bên phải
+
+# ==== environment ====
   light: [day, night]
-  curve_radius: [250, 1000]
+  weather: [clear, rain, fog]
+
+constraints:
+  - ev_speed > tv_speed

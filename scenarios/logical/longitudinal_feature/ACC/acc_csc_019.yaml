@@ -17,8 +17,6 @@ actors:
     state: static
 
 maneuvers:
-  - type: ego_cutout_event
+  - type: ev_cutout_event
     actor: ev
     direction: right
-  - type: appear_event
-    actor: tv1

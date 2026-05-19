@@ -11,7 +11,7 @@ actors:
     type: ego
     lane: ego
     state: moving
-  tv1:
+  tv:
     type: car
     lane: ego
     position: front_ego
@@ -19,6 +19,4 @@ actors:
 
 maneuvers:
   - type: stop_event
-    actor: tv1
-  - type: resume_event
-    actor: tv1
+    actor: tv

@@ -239,17 +239,11 @@ def map_environment(params):
 
 MANEUVER_MAP = {
     "appear_event": "appear.xosc",
-    "follow_slowdown": "follow_slowdown.xosc",
-    "follow_stable": "follow_stable.xosc",
-    "follow_resume": "follow_resume.xosc",
     "cruise_event": "cruise_control.xosc",
     "stop_event": "stop.xosc",
-    "resume_event": "resume.xosc",
     "cutin_event": "cutin.xosc",
     "cutout_event": "cutout.xosc",
     "ev_cutout_event": "ego_cutout.xosc",
-    "ego_cutout_event": "ego_cutout.xosc",
-    "ego_cutout_signal_event": "ego_cutout_signal.xosc",
     "curve_event": "curve.xosc",
 }
 

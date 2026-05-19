@@ -11,12 +11,12 @@ actors:
     type: ego
     lane: ego
     state: moving
-  tv1: 
+  tv: 
     type: car
     lane: ego
     position: front_ego
     state: moving
 
 maneuvers:
-  - type: ego_cutout_signal_event
+  - type: ev_cutout_event
     actor: ev

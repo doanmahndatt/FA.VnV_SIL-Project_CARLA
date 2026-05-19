@@ -1,21 +1,19 @@
 parameters:
-  # ==== SPAWN EV,TV =====
-  ev_lane_id: [-2]       # Lane của EV
-  tv_lane_id: [-2]       # Lane của TV
-  
-  # ===== SPEED =====
-  ev_speed: [20]          # m/s – Cruise Control speed của EV
-  tv_speed: [20]        # m/s – Cruise Control speed của TV
-  tv_slowdown_speed: [10] #m/s   - TV giảm tốc khi xuất hiện StartTrigger
-  #dùng tv_slowdown_speed để làm tham số maintain_speed
+  # ==== Spawn Ev,TV ==== 
+  ev_lane_id: [-2]
+  tv_lane_id: [-2]
 
-  # ===== LOGIC =====
-  trigger_slowdown_time : [5]   # s - 1.Thời điểm trigger slowdown (at 5s)
-  response_slowdonw_time: [5]  # s – 2.Tổng thời gian trigger (5->10s)
-  trigger_maintain_time : [10]  # s - 3.Thời điểm trigger maintain (at 10s)
-  response_maintain_time: [10]  # s – 4.Tổng thời gian maintain (10->20s)
-  #tổng 1,2,4 phải = SimulationTimeCondition value ở storyboard
+  # ===== SPEED =====
+  ev_speed: [10, 20, 30] #unit: m/s
+  tv_speed: [5, 15, 25] #unit: m/s
+
+  # ===== timestamp =====
+  response_cruise_time: [20] #unit: s - thời gian từ khi TV bắt đầu giảm tốc đến khi TV đạt được tốc độ duy trì
+  #stopTrigger_time đang hardcode == 20s
 
   # ===== ENVIRONMENT =====
   light: [day, night]
   weather: [clear, rain, fog]
+
+constraints:
+  - ev_speed > tv_speed

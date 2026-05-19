@@ -74,7 +74,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="20"/>
+                  <AbsoluteTargetSpeed value="10"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -87,7 +87,7 @@
                 <Controller name="ACC_controller">
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
-                    <Property name="desired_speed" value="20"/>
+                    <Property name="desired_speed" value="10"/>
                     <Property name="target_role" value="tv"/>
                   </Properties>
                 </Controller>
@@ -118,7 +118,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="20"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -128,17 +128,17 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="tv_follow_slowdown" maximumExecutionCount="1">
+        <ManeuverGroup name="cruise_control" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
-            <EntityRef entityRef="tv"/>
+            <EntityRef entityRef="ev"/>
           </Actors>
-          <Maneuver name="tv_follow_slowdown_maneuver">
-            <Event name="follow_slowdown" priority="parallel">
-              <Action name="tv_slowdown_action">
+          <Maneuver name="cruise_control_maneuver">
+            <Event name="cruise_event" priority="overwrite">
+              <Action name="cruise_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="linear" value="5" dynamicsDimension="time"/>
+                      <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
                       <SpeedActionTarget>
                         <AbsoluteTargetSpeed value="10"/>
                       </SpeedActionTarget>
@@ -148,32 +148,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="tv_slowdown_trigger" delay="0" conditionEdge="rising">
+                  <Condition name="cruise_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="5" rule="greaterThan"/>
-                    </ByValueCondition>
-                  </Condition>
-                </ConditionGroup>
-              </StartTrigger>
-            </Event>
-            <Event name="maintain_speed" priority="parallel">
-              <Action name="tv_maintain_speed">
-                <PrivateAction>
-                  <LongitudinalAction>
-                    <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="linear" value="10" dynamicsDimension="time"/>
-                      <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="10"/>
-                      </SpeedActionTarget>
-                    </SpeedAction>
-                  </LongitudinalAction>
-                </PrivateAction>
-              </Action>
-              <StartTrigger>
-                <ConditionGroup>
-                  <Condition name="tv_maintain_Speed_trigger" delay="0" conditionEdge="rising">
-                    <ByValueCondition>
-                      <SimulationTimeCondition value="10" rule="greaterThan"/>
+                      <SimulationTimeCondition value="0" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

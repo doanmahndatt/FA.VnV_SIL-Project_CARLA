@@ -8,8 +8,12 @@ logic:
     ev_mode: ACC
   actors:
     ev:
-      type: ego
+      type: car
       lane: ego
+      state: moving
+    tv:
+      type: car
+      lane: next_to_ego
       state: moving
   maneuvers:
   - type: cruise_event

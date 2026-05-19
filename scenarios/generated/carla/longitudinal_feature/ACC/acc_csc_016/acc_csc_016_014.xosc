@@ -50,12 +50,12 @@
           <EnvironmentAction>
             <Environment name="env">
               <TimeOfDay animation="false" dateTime="2026-01-01T12:00:00"/>
-              <Weather cloudState="free">
+              <Weather cloudState="overcast">
                 <Sun intensity="1.0" azimuth="0" elevation="70"/>
-                <Fog visualRange="100000"/>
-                <Precipitation precipitationType="dry" intensity="0"/>
+                <Fog visualRange="30000"/>
+                <Precipitation precipitationType="rain" intensity="0.7"/>
               </Weather>
-              <RoadCondition frictionScaleFactor="1.0"/>
+              <RoadCondition frictionScaleFactor="0.7"/>
             </Environment>
           </EnvironmentAction>
         </GlobalAction>
@@ -63,7 +63,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="${ev_lane_id}" s="0" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="0" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -74,7 +74,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="120"/>
+                  <AbsoluteTargetSpeed value="15"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -87,7 +87,7 @@
                 <Controller name="ACC_controller">
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
-                    <Property name="desired_speed" value="120"/>
+                    <Property name="desired_speed" value="15"/>
                     <Property name="target_role" value="tv"/>
                   </Properties>
                 </Controller>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="${tv_lane_id}" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="20" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -118,7 +118,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="100"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -138,9 +138,9 @@
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
-                      <LaneChangeActionDynamics dynamicsShape="linear" value="${lane_change_distance}" dynamicsDimension="distance"/>
+                      <LaneChangeActionDynamics dynamicsShape="linear" value="3" dynamicsDimension="distance"/>
                       <LaneChangeTarget>
-                        <RelativeTargetLane value="${lane_change_direction}" entityRef="ev"/>
+                        <RelativeTargetLane value="1" entityRef="ev"/>
                       </LaneChangeTarget>
                     </LaneChangeAction>
                   </LateralAction>
@@ -150,7 +150,7 @@
                 <ConditionGroup>
                   <Condition name="cutin_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="${trigger_cutout_time}" rule="greaterThan"/>
+                      <SimulationTimeCondition value="3" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
@@ -161,9 +161,9 @@
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="linear" value="${maintain_duration}" dynamicsDimension="time"/>
+                      <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="120"/>
+                        <AbsoluteTargetSpeed value="15"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -171,39 +171,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="speed_start" delay="0" conditionEdge="rising">
+                  <Condition name="maintain_speed_condition" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="0.1" rule="greaterThan"/>
-                    </ByValueCondition>
-                  </Condition>
-                </ConditionGroup>
-              </StartTrigger>
-            </Event>
-          </Maneuver>
-        </ManeuverGroup>
-        <ManeuverGroup name="tv1_appear" maximumExecutionCount="1">
-          <Actors selectTriggeringEntities="false">
-            <EntityRef entityRef="tv1"/>
-          </Actors>
-          <Maneuver name="tv1_appear_maneuver">
-            <Event name="tv1_appear_event" priority="parallel">
-              <Action name="tv1_maintain_speed">
-                <PrivateAction>
-                  <LongitudinalAction>
-                    <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
-                      <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="100"/>
-                      </SpeedActionTarget>
-                    </SpeedAction>
-                  </LongitudinalAction>
-                </PrivateAction>
-              </Action>
-              <StartTrigger>
-                <ConditionGroup>
-                  <Condition name="tv1_appear_start" delay="0" conditionEdge="rising">
-                    <ByValueCondition>
-                      <SimulationTimeCondition value="0.1" rule="greaterThan"/>
+                      <StoryboardElementStateCondition storyboardElementRef="cutout_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

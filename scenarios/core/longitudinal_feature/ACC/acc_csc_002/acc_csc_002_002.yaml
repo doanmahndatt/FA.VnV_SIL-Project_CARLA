@@ -17,17 +17,13 @@ logic:
       position: front_ego
       state: moving
   maneuvers:
-  - type: follow_slowdown
+  - type: cruise_event
     actor: tv
 parameters:
   ev_lane_id: -2
   tv_lane_id: -2
-  ev_speed: 20
-  tv_speed: 20
-  tv_slowdown_speed: 10
-  trigger_slowdown_time: 5
-  response_slowdonw_time: 5
-  trigger_maintain_time: 10
-  response_maintain_time: 10
+  ev_speed: 10
+  tv_speed: 5
+  response_cruise_time: 20
   light: day
   weather: rain

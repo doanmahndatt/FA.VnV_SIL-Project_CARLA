@@ -18,5 +18,5 @@ actors:
       state: moving
 
 maneuvers:
-  - type: follow_slowdown
+  - type: cruise_event
     actor: tv

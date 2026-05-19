@@ -49,13 +49,13 @@
         <GlobalAction>
           <EnvironmentAction>
             <Environment name="env">
-              <TimeOfDay animation="false" dateTime="2026-01-01T12:00:00"/>
-              <Weather cloudState="free">
-                <Sun intensity="1.0" azimuth="0" elevation="70"/>
-                <Fog visualRange="100000"/>
+              <TimeOfDay animation="false" dateTime="2026-01-01T00:00:00"/>
+              <Weather cloudState="cloudy">
+                <Sun intensity="0.05" azimuth="0" elevation="-10"/>
+                <Fog visualRange="80"/>
                 <Precipitation precipitationType="dry" intensity="0"/>
               </Weather>
-              <RoadCondition frictionScaleFactor="1.0"/>
+              <RoadCondition frictionScaleFactor="0.9"/>
             </Environment>
           </EnvironmentAction>
         </GlobalAction>
@@ -63,7 +63,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="${ev_lane_id}" s="0" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="0" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -74,7 +74,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="50"/>
+                  <AbsoluteTargetSpeed value="15"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -87,7 +87,7 @@
                 <Controller name="ACC_controller">
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
-                    <Property name="desired_speed" value="50"/>
+                    <Property name="desired_speed" value="15"/>
                     <Property name="target_role" value="tv"/>
                   </Properties>
                 </Controller>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="${tv_lane_id}" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="20" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -118,7 +118,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="20"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -128,28 +128,19 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="ego_cutout_signal" maximumExecutionCount="1">
+        <ManeuverGroup name="cutout_ev" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
-            <EntityRef entityRef="ego"/>
+            <EntityRef entityRef="ev"/>
           </Actors>
-          <Maneuver name="ego_cutout_signal_maneuver">
-            <Event name="ego_cutout_signal_event" priority="overwrite">
-              <Action name="turn_signal_action">
-                <PrivateAction>
-                  <ActivateControllerAction>
-                    <ControllerAction>
-                      <ActivateController lateral="false" longitudinal="false"/>
-                    </ControllerAction>
-                  </ActivateControllerAction>
-                </PrivateAction>
-              </Action>
-              <Action name="ego_cutout_action">
+          <Maneuver name="cutout_maneuver">
+            <Event name="ev_cutout_event" priority="overwrite">
+              <Action name="cutout_action">
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
-                      <LaneChangeActionDynamics dynamicsShape="linear" value="${lane_change_time}" dynamicsDimension="time"/>
+                      <LaneChangeActionDynamics dynamicsShape="linear" value="3" dynamicsDimension="distance"/>
                       <LaneChangeTarget>
-                        <RelativeTargetLane value="${lane_delta}"/>
+                        <RelativeTargetLane value="1" entityRef="ev"/>
                       </LaneChangeTarget>
                     </LaneChangeAction>
                   </LateralAction>
@@ -157,9 +148,32 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="ego_cutout_signal_start" delay="0" conditionEdge="rising">
+                  <Condition name="cutin_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="${ego_cutout_time}" rule="greaterThan"/>
+                      <SimulationTimeCondition value="1" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="maintain_speed_event" priority="parallel">
+              <Action name="maintain_speed">
+                <PrivateAction>
+                  <LongitudinalAction>
+                    <SpeedAction>
+                      <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
+                      <SpeedActionTarget>
+                        <AbsoluteTargetSpeed value="15"/>
+                      </SpeedActionTarget>
+                    </SpeedAction>
+                  </LongitudinalAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="maintain_speed_condition" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <StoryboardElementStateCondition storyboardElementRef="cutout_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

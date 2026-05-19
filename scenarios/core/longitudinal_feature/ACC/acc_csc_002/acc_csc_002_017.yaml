@@ -1,0 +1,29 @@
+scenario_id: acc_csc_002_017
+logic:
+  scenario_id: acc_csc_002
+  name: EV in CC mode, TV appears in ego lane
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: CC
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: cruise_event
+    actor: tv
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -2
+  ev_speed: 20
+  tv_speed: 15
+  response_cruise_time: 20
+  light: night
+  weather: rain

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSCENARIO>
+  <!-- ================= FILE HEADER ================= -->
+  <FileHeader
+      revMajor="1"
+      revMinor="0"
+      date="2026-01-01T00:00:00"
+      description="ACC Longitudinal Storyboard"
+      author="AutoGen"/>
+  <!-- ================= PARAMETERS ================= -->
+  <ParameterDeclarations/>
+  <CatalogLocations/>
+  <!-- ================= ROAD ================= -->
+  <RoadNetwork>
+    <LogicFile filepath="Town03"/>
+  </RoadNetwork>
+  <!-- ================= ENTITIES ================= -->
+  <Entities>
+    <!-- ===== EGO VEHICLE ===== -->
+    <ScenarioObject name="ev">
+      <Vehicle name="vehicle.tesla.model3" vehicleCategory="car">
+        <Properties>
+          <Property name="model" value="vehicle.tesla.model3"/>
+          <Property name="attach_camera" value="true"/>
+          <Property name="role_name" value="ev"/>
+        </Properties>
+        <Performance maxSpeed="50" maxAcceleration="3" maxDeceleration="8"/>
+        <BoundingBox>
+          <Center x="1.5" y="0" z="0.9"/>
+          <Dimensions width="2.0" length="4.5" height="1.5"/>
+        </BoundingBox>
+        <Axles>
+          <FrontAxle maxSteering="0.5" wheelDiameter="0.6"
+                     trackWidth="1.6" positionX="3.1" positionZ="0.3"/>
+          <RearAxle maxSteering="0.0" wheelDiameter="0.6"
+                    trackWidth="1.6" positionX="0.0" positionZ="0.3"/>
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+    <!-- ===== TARGET VEHICLE 1 ===== -->
+    <ScenarioObject name="tv1">
+      <Vehicle name="vehicle.audi.tt" vehicleCategory="car">
+        <Properties>
+          <Property name="model" value="vehicle.audi.tt"/>
+          <Property name="role_name" value="tv1"/>
+        </Properties>
+        <Performance maxSpeed="50" maxAcceleration="3" maxDeceleration="8"/>
+        <BoundingBox>
+          <Center x="1.5" y="0" z="0.9"/>
+          <Dimensions width="2.0" length="4.5" height="1.5"/>
+        </BoundingBox>
+        <Axles>
+          <FrontAxle maxSteering="0.5" wheelDiameter="0.6"
+                     trackWidth="1.6" positionX="3.1" positionZ="0.3"/>
+          <RearAxle maxSteering="0.0" wheelDiameter="0.6"
+                    trackWidth="1.6" positionX="0.0" positionZ="0.3"/>
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+
+        <!-- ===== TARGET VEHICLE 2 ===== -->
+    <ScenarioObject name="tv2">
+      <Vehicle name="vehicle.audi.tt" vehicleCategory="car">
+        <Properties>
+          <Property name="model" value="vehicle.audi.tt"/>
+          <Property name="role_name" value="tv2"/>
+        </Properties>
+        <Performance maxSpeed="50" maxAcceleration="3" maxDeceleration="8"/>
+        <BoundingBox>
+          <Center x="1.5" y="0" z="0.9"/>
+          <Dimensions width="2.0" length="4.5" height="1.5"/>
+        </BoundingBox>
+        <Axles>
+          <FrontAxle maxSteering="0.5" wheelDiameter="0.6"
+                     trackWidth="1.6" positionX="3.1" positionZ="0.3"/>
+          <RearAxle maxSteering="0.0" wheelDiameter="0.6"
+                    trackWidth="1.6" positionX="0.0" positionZ="0.3"/>
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+  </Entities>
+
+  <!-- ================= STORYBOARD ================= -->
+  <Storyboard>
+    <!-- ===== INIT ===== -->
+    <Init>
+      <Actions>
+        <!-- ===== ENVIRONMENT ===== -->
+        <GlobalAction>
+          <EnvironmentAction>
+            <Environment name="env">
+              <TimeOfDay
+                  animation="false"
+                  dateTime="${time_of_day}"/>
+              <Weather cloudState="${cloud_state}">
+                <Sun
+                    intensity="${sun_intensity}"
+                    azimuth="0"
+                    elevation="${sun_elevation}"/>
+                <Fog visualRange="${fog_range}"/>
+                <Precipitation
+                    precipitationType="${precip_type}"
+                    intensity="${precip_intensity}"/>
+              </Weather>
+              <RoadCondition frictionScaleFactor="${friction}"/>
+            </Environment>
+          </EnvironmentAction>
+        </GlobalAction>
+        
+        <!-- ===== EV SPAWN ===== -->
+        <Private entityRef="ev">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="${ev_lane_id}" s="0" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== EV INITIAL SPEED ===== -->
+        <Private entityRef="ev">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="${ev_speed}"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== EV ACC CONTROLLER ===== -->
+        <Private entityRef="ev">
+          <PrivateAction>
+            <ControllerAction>
+              <AssignControllerAction>
+                <Controller name="ACC_controller">
+                  <Properties>
+                    <Property name="module" value="${controller_module}"/>
+                    <Property name="desired_speed" value="${ev_speed}"/>
+                    <Property name="target_role" value="tv"/>
+                  </Properties>
+                </Controller>
+              </AssignControllerAction>
+              <OverrideControllerValueAction>
+                <Throttle active="false" value="0"/>
+                <Brake active="false" value="0"/>
+                <Clutch active="false" value="0"/>
+                <ParkingBrake active="false" value="0"/>
+                <SteeringWheel active="false" value="0"/>
+                <Gear active="false" number="0"/>
+              </OverrideControllerValueAction>
+            </ControllerAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== TV1 SPAWN ===== -->
+        <Private entityRef="tv1">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="${ev_lane_id}" s="20" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== TV1 INITIAL SPEED ===== -->
+        <Private entityRef="tv1">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="${tv1_speed}"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+
+         <!-- ===== TV2 SPAWN ===== -->
+        <Private entityRef="tv2">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="${tv2_lane_id}" s="40" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== TV2 INITIAL SPEED ===== -->
+        <Private entityRef="tv2">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="${tv2_speed}"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+
+      </Actions>
+    </Init>
+
+    <!-- ===== STORY ===== -->
+    <Story name="main_story">
+      <Act name="act_1">
+      
+        <StartTrigger>
+          <ConditionGroup>
+            <Condition name="start"
+                       delay="0"
+                       conditionEdge="rising">
+              <ByValueCondition>
+                <SimulationTimeCondition
+                    value="0"
+                    rule="greaterThan"/>
+              </ByValueCondition>
+            </Condition>
+          </ConditionGroup>
+        </StartTrigger>
+      </Act>
+    </Story>
+
+    <!-- ===== STOP ===== -->
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end"
+                   delay="0"
+                   conditionEdge="rising">
+          <ByValueCondition>
+            <SimulationTimeCondition
+                value="20"
+                rule="greaterThan"/>
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>

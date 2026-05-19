@@ -15,13 +15,9 @@ Trong phần logical này, ta sẽ định nghĩa behavior của xe
         { Các event_name hiện tại:
             + cutin_event
             + cutout_event
-            + follow_slowdown
-            + follow_stable
-            + follow_resume
             + appear_event
             + curve_event
             + ego_cutout_event
-            + ego_cutout_signal_event
             + stop_event
             + resume_event
             + cruise_event
