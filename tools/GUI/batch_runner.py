@@ -1,12 +1,19 @@
 import threading
 import time
 import xml.etree.ElementTree as ET
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import yaml
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.project_paths import get_project_paths
 
 from .process_manager import ProcessManager
 from .report_writer import ReportWriter
@@ -25,10 +32,12 @@ class ScenarioJob:
 
 class BatchRunner:
     def __init__(self, repo_root: Path, case_timeout_seconds: int = 120):
-        self.repo_root = Path(repo_root).resolve()
-        self.xosc_root = self.repo_root / "scenarios" / "generated" / "carla"
-        self.core_root = self.repo_root / "scenarios" / "core"
-        self.report_writer = ReportWriter(self.repo_root / "report")
+        self.paths = get_project_paths(repo_root)
+        self.paths.ensure_carla_python_imports()
+        self.repo_root = self.paths.repo_root
+        self.xosc_root = self.paths.generated_xosc_root
+        self.core_root = self.paths.core_scenarios_root
+        self.report_writer = ReportWriter(self.paths.report_root)
         self.process_manager = ProcessManager(self.repo_root)
         self.case_timeout_seconds = case_timeout_seconds
         self.stop_event = threading.Event()

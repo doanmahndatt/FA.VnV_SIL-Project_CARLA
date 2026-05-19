@@ -1,17 +1,25 @@
-import os
 import yaml
 import argparse
 import re
+import os
+import sys
+from pathlib import Path
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 from xml.dom import minidom
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.project_paths import get_project_paths
 
 # =========================================================
 # PATH
 # =========================================================
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "scenarios"))
+PROJECT_PATHS = get_project_paths(Path(__file__))
+BASE = PROJECT_PATHS.scenarios_root
 
 FEATURE_DOMAIN_DIRS = {
     "Longitudinal": "longitudinal_feature",
@@ -124,7 +132,7 @@ MANEUVER_MAP = {
     "resume_event": "resume.xosc",
     "cutin_event": "cutin.xosc",
     "cutout_event": "cutout.xosc",
-    "ego_cutout_event": "ego_cutout.xosc",
+    "ev_cutout_event": "ego_cutout.xosc",
     "ego_cutout_signal_event": "ego_cutout_signal.xosc",
 }
 
@@ -152,7 +160,7 @@ def insert_maneuver_group(act, maneuver_group):
 # =========================================================
 
 def render_maneuver_group(block_file, params, actor):
-    path = os.path.join(BASE, "templates", "maneuver_blocks", block_file)
+    path = BASE / "templates" / "maneuver_blocks" / block_file
 
     if not os.path.exists(path):
         raise RuntimeError(f"Template file not found: {path}")
@@ -199,7 +207,7 @@ def resolve_storyboard_path(core):
     feature_domain = core.get("feature_domain") or logic.get("feature_domain")
 
     if not functional and not feature_domain:
-        return os.path.join(BASE, "templates", "storyboard", "base_storyboard.xosc")
+        return BASE / "templates" / "storyboard" / "base_storyboard.xosc"
 
     if not functional or not feature_domain:
         raise RuntimeError(
@@ -218,13 +226,7 @@ def resolve_storyboard_path(core):
             f"Supported values: {valid_domains}"
         )
 
-    storyboard_path = os.path.join(
-        BASE,
-        "templates",
-        "storyboard",
-        feature_dir,
-        f"{functional}_storyboard.xosc",
-    )
+    storyboard_path = BASE / "templates" / "storyboard" / feature_dir / f"{functional}_storyboard.xosc"
 
     if not os.path.exists(storyboard_path):
         raise RuntimeError(
@@ -333,7 +335,7 @@ def main():
     )
     args = parser.parse_args()
 
-    core_root = os.path.join(BASE, "core")
+    core_root = BASE / "core"
 
     if not os.path.exists(core_root):
         print(f"[ERROR] Core directory not found: {core_root}")
@@ -342,8 +344,8 @@ def main():
     scenario_ids = args.scenarios or os.listdir(core_root)
 
     for sid in scenario_ids:
-        in_dir = os.path.join(core_root, sid)
-        out_dir = os.path.join(BASE, "generated", "carla", sid)
+        in_dir = core_root / sid
+        out_dir = BASE / "generated" / "carla" / sid
 
         if not os.path.isdir(in_dir):
             continue

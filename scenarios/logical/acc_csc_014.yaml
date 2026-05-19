@@ -1,5 +1,7 @@
 scenario_id: acc_csc_014
 name: EV cut out to left, no TV
+functional: ACC
+feature_domain: Longitudinal
 
 pre_condition:
   ev_mode: FL
@@ -9,8 +11,12 @@ actors:
     type: ego
     lane: ego
     state: moving
+  tv:
+    type: car
+    lane: ego
+    state: moving
 
 maneuvers:
-  - type: ego_cutout_event
+  - type: ev_cutout_event
     actor: ev
     direction: left

@@ -1,5 +1,7 @@
 scenario_id: acc_csc_007
 name: EV in FL mode, TV cut in then stop
+functional: ACC
+feature_domain: Longitudinal
 
 pre_condition:
   ev_mode: FL

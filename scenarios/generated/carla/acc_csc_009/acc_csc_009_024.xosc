@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="ACC Base Storyboard (TV appear via ManeuverBlock)" author="AutoGen"/>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="ACC Longitudinal Storyboard" author="AutoGen"/>
   <ParameterDeclarations/>
   <CatalogLocations/>
   <RoadNetwork>
@@ -63,7 +63,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="0" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="0" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -74,17 +74,40 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="20"/>
+                  <AbsoluteTargetSpeed value="15"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <ControllerAction>
+              <AssignControllerAction>
+                <Controller name="ACC_controller">
+                  <Properties>
+                    <Property name="module" value="config/controllers/ACC_controller.py"/>
+                    <Property name="desired_speed" value="15"/>
+                    <Property name="target_role" value="tv"/>
+                  </Properties>
+                </Controller>
+              </AssignControllerAction>
+              <OverrideControllerValueAction>
+                <Throttle active="false" value="0"/>
+                <Brake active="false" value="0"/>
+                <Clutch active="false" value="0"/>
+                <ParkingBrake active="false" value="0"/>
+                <SteeringWheel active="false" value="0"/>
+                <Gear active="false" number="0"/>
+              </OverrideControllerValueAction>
+            </ControllerAction>
           </PrivateAction>
         </Private>
         <Private entityRef="tv">
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="40" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="20" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -95,7 +118,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="10"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -115,9 +138,9 @@
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
-                      <LaneChangeActionDynamics dynamicsShape="linear" value="3" dynamicsDimension="time"/>
+                      <LaneChangeActionDynamics dynamicsShape="linear" value="10" dynamicsDimension="distance"/>
                       <LaneChangeTarget>
-                        <RelativeTargetLane value="1"/>
+                        <RelativeTargetLane value="-1" entityRef="tv"/>
                       </LaneChangeTarget>
                     </LaneChangeAction>
                   </LateralAction>
@@ -125,7 +148,7 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="cutout_start" delay="0" conditionEdge="rising">
+                  <Condition name="cutin_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
                       <SimulationTimeCondition value="5" rule="greaterThan"/>
                     </ByValueCondition>
@@ -138,9 +161,9 @@
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                      <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="15"/>
+                        <AbsoluteTargetSpeed value="5"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -150,7 +173,7 @@
                 <ConditionGroup>
                   <Condition name="speed_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="8" rule="greaterThan"/>
+                      <SimulationTimeCondition value="0.1" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

@@ -1,0 +1,5 @@
+simulator:
+  name: CARLA
+  version: 0.9.16
+  sync: true
+  fixed_delta_seconds: 0.05

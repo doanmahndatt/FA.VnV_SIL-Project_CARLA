@@ -1,5 +1,7 @@
 scenario_id: acc_csc_015
 name: EV cut out to right, no TV
+functional: ACC
+feature_domain: Longitudinal
 
 pre_condition:
   ev_mode: FL
@@ -11,6 +13,6 @@ actors:
     state: moving
 
 maneuvers:
-  - type: ego_cutout_event
+  - type: ev_cutout_event
     actor: ev
     direction: right

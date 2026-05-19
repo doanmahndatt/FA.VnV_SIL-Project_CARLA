@@ -1,19 +1,20 @@
-<ManeuverGroup name="ego_cutout" maximumExecutionCount="1">
+<ManeuverGroup name="cutout_ev" maximumExecutionCount="1">
   <Actors selectTriggeringEntities="false">
-    <EntityRef entityRef="ego"/>
+    <EntityRef entityRef="ev"/>
   </Actors>
-  <Maneuver name="ego_cutout_maneuver">
-    <Event name="ego_cutout_event" priority="overwrite">
-      <Action name="ego_cutout_action">
+  <Maneuver name="cutout_maneuver">
+    <!-- Event 1: Lane Change -->
+    <Event name="ev_cutout_event" priority="overwrite">
+      <Action name="cutout_action">
         <PrivateAction>
           <LateralAction>
             <LaneChangeAction>
-              <LaneChangeActionDynamics
-                  dynamicsShape="linear"
-                  value="${lane_change_time}"
-                  dynamicsDimension="time"/>
+              <LaneChangeActionDynamics 
+                dynamicsShape="linear" 
+                value="${lane_change_distance}" 
+                dynamicsDimension="distance"/>
               <LaneChangeTarget>
-                <RelativeTargetLane value="${lane_delta}"/>
+                <RelativeTargetLane value="${lane_change_direction}" entityRef="ev"/>
               </LaneChangeTarget>
             </LaneChangeAction>
           </LateralAction>
@@ -21,17 +22,38 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="ego_cutout_start"
-                     delay="0"
-                     conditionEdge="rising">
+          <Condition name="cutin_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
-              <SimulationTimeCondition
-                  value="${ego_cutout_time}"
-                  rule="greaterThan"/>
+              <SimulationTimeCondition value="${trigger_cutout_time}" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    
+    <!-- Event 2: Maintain Speed (sau khi lane change hoàn thành) -->
+    <Event name="maintain_speed_event" priority="parallel">
+      <Action name="maintain_speed">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics dynamicsShape="linear" value="${maintain_duration}" dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${ev_speed}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="speed_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="0.1" rule="greaterThan"/>
             </ByValueCondition>
           </Condition>
         </ConditionGroup>
       </StartTrigger>
     </Event>
   </Maneuver>
-</ManeuverGroup>    
+</ManeuverGroup>

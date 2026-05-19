@@ -4,13 +4,20 @@ import sys
 import time
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.project_paths import get_project_paths
+
 
 class ProcessManager:
     def __init__(self, repo_root: Path):
         self.repo_root = Path(repo_root).resolve()
+        self.paths = get_project_paths(self.repo_root)
         self.tools_dir = self.repo_root / "tools"
         self.config_dir = self.tools_dir / "config"
-        self.scenario_runner = self.repo_root / "scenario_runner" / "scenario_runner.py"
+        self.scenario_runner = self.paths.scenario_runner_script
         self.camera_process = None
         self.hud_process = None
         self.current_scenario_process = None
@@ -55,6 +62,7 @@ class ProcessManager:
         return subprocess.Popen(
             [sys.executable, str(script), *args],
             cwd=str(self.repo_root),
+            env=self.paths.build_subprocess_env(),
             creationflags=creationflags,
         )
 

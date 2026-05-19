@@ -6,14 +6,22 @@ import yaml
 import os
 import stat
 import time
+import sys
 from typing import Dict, List, Iterable
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.project_paths import get_project_paths
 
 
 # ==================================================
 # Configuration
 # ==================================================
 
-BASE_SCENARIO_DIR = Path("../scenarios")
+PROJECT_PATHS = get_project_paths(Path(__file__))
+BASE_SCENARIO_DIR = PROJECT_PATHS.scenarios_root
 LOGICAL_DIR = BASE_SCENARIO_DIR / "logical"
 PARAMETER_DIR = BASE_SCENARIO_DIR / "parameters"
 CORE_DIR = BASE_SCENARIO_DIR / "core"

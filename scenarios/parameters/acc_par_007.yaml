@@ -3,15 +3,18 @@ parameters:
   ev_lane_id: [-2]       # Lane của EV
   tv_lane_id: [-1]       # Lane của TV
 
+  # ==== actor_stop =====
+  actor: [tv]
+
   # ===== SPEED =====
+  ev_speed: [10, 15, 20]
   tv_speed: [5, 10, 15]
 
   # ==== Timestamp====
   trigger_cutin_time: [3, 5]
   maintain_duration: [5]
   trigger_deceleration_time: [1]
-  trigger_stop_time: [10]
-  maintain_stop_duration: [5]
+  stop_after_cutin_delay: [0.5]
 
 
   # ==== TARGET LANE CHANGE ====

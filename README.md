@@ -17,8 +17,8 @@ scenarios/generated/carla/acc_csc_001/acc_csc_001_001.xosc
 Môi trường hiện tại đang dùng:
 
 - Windows 10/11
-- Python 3.10.14
-- CARLA Simulator 0.9.15
+- Python version matching the CARLA Python API wheel tag, hoặc Python environment đã cài được `carla==0.9.16`
+- CARLA Simulator 0.9.16
 - ScenarioRunner source đã có sẵn trong thư mục `scenario_runner/`
 - Python packages cho tool nội bộ: `pandas`, `pyyaml`, `pygame`, `openpyxl`
 - CARLA Python API phải import được module `carla`
@@ -63,16 +63,16 @@ Test_assets_v1.1/
 
 ### Bước 1: Tải Và Giải Nén CARLA
 
-Tải CARLA 0.9.15 cho Windows từ trang release của CARLA, sau đó giải nén vào một thư mục cố định, ví dụ:
+Tải CARLA 0.9.16 cho Windows từ trang release của CARLA, sau đó giải nén vào một thư mục cố định, ví dụ:
 
 ```text
-C:\CARLA_0.9.15
+C:\CARLA_0.9.16
 ```
 
 Trong thư mục CARLA cần có file chạy server:
 
 ```text
-C:\CARLA_0.9.15\CarlaUE4.exe
+C:\CARLA_0.9.16\CarlaUE4.exe
 ```
 
 ### Bước 2: Tạo Virtual Environment
@@ -93,23 +93,23 @@ pip install -r requirements.txt
 pip install pygame openpyxl
 ```
 
-Với Python 3.10.14 và CARLA 0.9.15 trên Windows, ưu tiên cài CARLA Python API bằng file `.whl` trong thư mục CARLA:
+Với CARLA 0.9.16 trên Windows, ưu tiên cài CARLA Python API bằng package `carla==0.9.16` hoặc file `.whl` trong thư mục CARLA. Python version phải khớp tag của wheel, ví dụ `cp312` cần Python 3.12:
 
 ```powershell
-pip install C:\CARLA_0.9.15\PythonAPI\carla\dist\carla-0.9.15-cp310-cp310-win_amd64.whl
+pip install C:\CARLA_0.9.16\PythonAPI\carla\dist\<matching-cp-tag>.whl
 ```
 
-Nếu tên file `.whl` khác một chút, kiểm tra bằng:
+Kiểm tra wheel hiện có bằng:
 
 ```powershell
-dir C:\CARLA_0.9.15\PythonAPI\carla\dist\*.whl
+dir C:\CARLA_0.9.16\PythonAPI\carla\dist\*.whl
 ```
 
-Nếu không cài bằng `.whl`, có thể set `PYTHONPATH` tạm thời trong terminal hiện tại:
+Không đưa file `.whl` trực tiếp vào `PYTHONPATH`, vì native module `carla.libcarla` sẽ không load đúng. Nếu cần set `PYTHONPATH` tạm thời, chỉ trỏ tới thư mục API/source:
 
 ```powershell
-$env:CARLA_ROOT="C:\CARLA_0.9.15"
-$env:PYTHONPATH="$env:PYTHONPATH;$env:CARLA_ROOT\PythonAPI\carla;$env:CARLA_ROOT\PythonAPI\carla\agents;$env:CARLA_ROOT\PythonAPI\carla\dist\carla-0.9.15-py3.10-win-amd64.egg"
+$env:CARLA_ROOT="C:\CARLA_0.9.16"
+$env:PYTHONPATH="$env:PYTHONPATH;$env:CARLA_ROOT\PythonAPI\carla;$env:CARLA_ROOT\PythonAPI\carla\agents"
 ```
 
 Kiểm tra:
@@ -123,7 +123,7 @@ python -c "import carla; print('carla api ok')"
 Mở terminal mới và chạy:
 
 ```powershell
-cd C:\CARLA_0.9.15
+cd C:\CARLA_0.9.16
 .\CarlaUE4.exe -quality-level=Low -windowed -ResX=1280 -ResY=720
 ```
 

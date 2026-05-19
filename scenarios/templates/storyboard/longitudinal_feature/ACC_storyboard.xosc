@@ -144,7 +144,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="${tv_lane_id}" s="40" offset="0"/>
+                <LanePosition roadId="3" laneId="${tv_lane_id}" s="20" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>

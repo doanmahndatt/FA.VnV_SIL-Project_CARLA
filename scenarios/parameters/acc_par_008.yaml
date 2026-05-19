@@ -4,21 +4,20 @@ parameters:
   tv_lane_id: [-2]       # Lane của TV
 
   # ===== SPEED =====
-  ev_speed: [10, 20]
-  tv_speed: [5, 10]
-  tv_maintain_speed: [7, 15]
+  ev_speed: [15, 20, 25]
+  tv_speed: [5, 10, 15]
 
 # ==== Timestamp====
-  response_cutout_time: [3]
-  trigger_cutout_time: [5]
+  trigger_cutout_time: [3, 5]
+  maintain_duration: [20]
 
 # ==== TARGET LANE CHANGE ====
-  lane_change_direction: [-1]  #TV cutout sang trái
+  lane_change_distance: [5, 10]  
+  lane_change_direction: [1]  #TV cutout sang bên trái
 
 # ==== environment ====
   light: [day, night]
   weather: [clear, rain, fog]
 
 constraints:
-  - ev_speed > tv_maintain_speed
-  - tv_maintain_speed > tv_speed
+  - ev_speed > tv_speed

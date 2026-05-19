@@ -49,7 +49,7 @@
         <ConditionGroup>
           <Condition name="speed_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
-              <SimulationTimeCondition value="${trigger_maintain_time}" rule="greaterThan"/>
+              <SimulationTimeCondition value="0.1" rule="greaterThan"/>
             </ByValueCondition>
           </Condition>
         </ConditionGroup>

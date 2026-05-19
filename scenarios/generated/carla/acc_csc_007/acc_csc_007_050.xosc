@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="ACC Base Storyboard (TV appear via ManeuverBlock)" author="AutoGen"/>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="ACC Longitudinal Storyboard" author="AutoGen"/>
   <ParameterDeclarations/>
   <CatalogLocations/>
   <RoadNetwork>
@@ -68,11 +68,46 @@
             </TeleportAction>
           </PrivateAction>
         </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="10"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <ControllerAction>
+              <AssignControllerAction>
+                <Controller name="ACC_controller">
+                  <Properties>
+                    <Property name="module" value="config/controllers/ACC_controller.py"/>
+                    <Property name="desired_speed" value="10"/>
+                    <Property name="target_role" value="tv"/>
+                  </Properties>
+                </Controller>
+              </AssignControllerAction>
+              <OverrideControllerValueAction>
+                <Throttle active="false" value="0"/>
+                <Brake active="false" value="0"/>
+                <Clutch active="false" value="0"/>
+                <ParkingBrake active="false" value="0"/>
+                <SteeringWheel active="false" value="0"/>
+                <Gear active="false" number="0"/>
+              </OverrideControllerValueAction>
+            </ControllerAction>
+          </PrivateAction>
+        </Private>
         <Private entityRef="tv">
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-1" s="40" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="20" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -146,7 +181,7 @@
             </Event>
           </Maneuver>
         </ManeuverGroup>
-        <ManeuverGroup name="stop" maximumExecutionCount="1">
+        <ManeuverGroup name="stop_tv" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="tv"/>
           </Actors>
@@ -166,16 +201,16 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="stop_trigger" delay="0" conditionEdge="rising">
+                  <Condition name="stop_after_cutin" delay="0.5" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="10" rule="greaterThan"/>
+                      <StoryboardElementStateCondition storyboardElementRef="cutin_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="maintain_stop" priority="parallel">
-              <Action name="maintain_stop_action">
+            <Event name="hold_stop_event" priority="parallel">
+              <Action name="hold_stop_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
@@ -189,9 +224,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="stop_trigger" delay="0" conditionEdge="rising">
+                  <Condition name="hold_after_stop" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="0.1" rule="greaterThan"/>
+                      <StoryboardElementStateCondition storyboardElementRef="stop_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

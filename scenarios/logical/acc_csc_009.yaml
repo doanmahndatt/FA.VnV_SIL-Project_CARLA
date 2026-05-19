@@ -1,5 +1,7 @@
 scenario_id: acc_csc_009
 name: Cut out right no TV
+feature_domain: Longitudinal
+functional: ACC
 
 pre_condition:
   ev_mode: FL
@@ -9,7 +11,7 @@ actors:
       type: ego
       lane: ego
       state: moving
-  - tv1: 
+  - tv: 
       type: car
       lane: ego
       position: front_ego
@@ -17,5 +19,5 @@ actors:
 
 maneuvers:
   - type: cutout_event
-    actor: tv1
+    actor: tv
     direction: right

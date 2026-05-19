@@ -24,8 +24,11 @@ class AccController(BasicControl):
         self.min_distance = float(args.get("min_distance", 10.0))
         self.time_headway = float(args.get("time_headway", 1.8))
         self.kp_speed = float(args.get("kp_speed", 0.35))
+        self.kp_steer = float(args.get("kp_steer", 1.2))
         self.max_throttle = float(args.get("max_throttle", 0.75))
         self.max_brake = float(args.get("max_brake", 0.65))
+        self.max_steer = float(args.get("max_steer", 0.6))
+        self.waypoint_reached_threshold = float(args.get("waypoint_reached_threshold", 2.0))
 
     def update_target_speed(self, speed):
         super().update_target_speed(speed)
@@ -42,19 +45,32 @@ class AccController(BasicControl):
         ev_speed = self._get_speed(self._actor)
 
         if target_actor is not None:
-            distance = self._longitudinal_distance(self._actor, target_actor)
-            target_speed = self._compute_acc_target_speed(ev_speed, distance)
+            ev_lane_id, tv_lane_id = self._get_lane_ids(self._actor, target_actor)
+            same_lane = ev_lane_id is not None and ev_lane_id == tv_lane_id
+
+            if same_lane:
+                distance = self._longitudinal_distance(self._actor, target_actor)
+                target_speed = self._compute_acc_target_speed(ev_speed, distance)
+            else:
+                distance = None
+                target_speed = self.desired_speed
         else:
+            ev_lane_id = None
+            tv_lane_id = None
             distance = None
             target_speed = self.desired_speed
 
         control = self._speed_control(ev_speed, target_speed)
+        control.steer = self._waypoint_steer_control()
         self._actor.apply_control(control)
 
         print(
             "[ACC_CTRL] "
             f"ev={ev_speed:.2f}m/s "
             f"target={target_speed:.2f}m/s "
+            f"ev_lane={ev_lane_id if ev_lane_id is not None else 'None'} "
+            f"tv_lane={tv_lane_id if tv_lane_id is not None else 'None'} "
+            f"waypoints={len(self._waypoints)} "
             f"dist={distance if distance is not None else 'None'}"
         )
 
@@ -93,6 +109,36 @@ class AccController(BasicControl):
 
         return max(projected, 0.0)
 
+    @staticmethod
+    def _get_lane_ids(ev, tv):
+        world = CarlaDataProvider.get_world()
+        if world is None:
+            return None, None
+
+        world_map = world.get_map()
+        if world_map is None:
+            return None, None
+
+        return (
+            AccController._get_lane_id(world_map, ev),
+            AccController._get_lane_id(world_map, tv),
+        )
+
+    @staticmethod
+    def _get_lane_id(world_map, vehicle):
+        try:
+            waypoint = world_map.get_waypoint(
+                vehicle.get_location(),
+                project_to_road=True,
+                lane_type=carla.LaneType.Driving,
+            )
+        except RuntimeError:
+            return None
+
+        if waypoint is None:
+            return None
+        return waypoint.lane_id
+
     def _compute_acc_target_speed(self, ev_speed, distance):
         safe_distance = max(self.min_distance, ev_speed * self.time_headway)
         distance_error = distance - safe_distance
@@ -108,7 +154,6 @@ class AccController(BasicControl):
         control.manual_gear_shift = False
         control.hand_brake = False
         control.reverse = False
-        control.steer = 0.0
 
         error = target_speed - current_speed
 
@@ -120,3 +165,52 @@ class AccController(BasicControl):
             control.brake = min(self.max_brake, self.kp_speed * abs(error))
 
         return control
+
+    def _waypoint_steer_control(self):
+        if not self._waypoints:
+            self._reached_goal = False
+            return 0.0
+
+        actor_location = self._actor.get_location()
+        while (
+            self._waypoints
+            and self._waypoints[0].location.distance(actor_location) < self.waypoint_reached_threshold
+        ):
+            self._waypoints = self._waypoints[1:]
+
+        if not self._waypoints:
+            self._reached_goal = True
+            return 0.0
+
+        self._reached_goal = False
+        target_location = self._select_lookahead_waypoint(actor_location)
+        actor_transform = self._actor.get_transform()
+        heading_error = self._heading_error(actor_transform, target_location)
+        steer = self.kp_steer * heading_error
+        return max(-self.max_steer, min(self.max_steer, steer))
+
+    def _select_lookahead_waypoint(self, actor_location):
+        lookahead_distance = max(4.0, self._get_speed(self._actor) * 0.4)
+        target = self._waypoints[0].location
+        for waypoint in self._waypoints:
+            target = waypoint.location
+            if target.distance(actor_location) >= lookahead_distance:
+                break
+        return target
+
+    @staticmethod
+    def _heading_error(actor_transform, target_location):
+        actor_location = actor_transform.location
+        target_yaw = math.atan2(
+            target_location.y - actor_location.y,
+            target_location.x - actor_location.x,
+        )
+        actor_yaw = math.radians(actor_transform.rotation.yaw)
+        error = target_yaw - actor_yaw
+
+        while error > math.pi:
+            error -= 2.0 * math.pi
+        while error < -math.pi:
+            error += 2.0 * math.pi
+
+        return error
