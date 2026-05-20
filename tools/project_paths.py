@@ -18,7 +18,7 @@ class ProjectPaths:
 
     @property
     def scenarios_root(self) -> Path:
-        return self.repo_root / "scenarios"
+        return self.repo_root / "scenarios" / "general_scenarios"
 
     @property
     def scenario_runner_script(self) -> Path:

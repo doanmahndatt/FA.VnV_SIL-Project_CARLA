@@ -5,21 +5,21 @@
 Input:
 
 ```text
-scenarios/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
+scenarios/general_scenarios/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
 ```
 
 Output:
 
 ```text
-scenarios/generated/carla/<feature_domain>/<functional>/<scenario_id>/<case_id>.xosc
+scenarios/general_scenarios/generated/carla/<feature_domain>/<functional>/<scenario_id>/<case_id>.xosc
 ```
 
 Example:
 
 ```text
-scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
+scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
 
-=> scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.xosc
+=> scenarios/general_scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.xosc
 ```
 
 ## 1. Required Metadata
@@ -61,13 +61,13 @@ feature_domain: Longitudinal
 The expected storyboard template is:
 
 ```text
-scenarios/templates/storyboard/longitudinal_feature/ACC_storyboard.xosc
+scenarios/general_scenarios/templates/storyboard/longitudinal_feature/ACC_storyboard.xosc
 ```
 
 The expected maneuver blocks are in:
 
 ```text
-scenarios/templates/maneuver_blocks/longitudinal_feature/ACC/
+scenarios/general_scenarios/templates/maneuver_blocks/longitudinal_feature/ACC/
 ```
 
 Each maneuver type in the logical YAML must exist in the internal maneuver map in `generated.py`.
@@ -83,7 +83,7 @@ maneuvers:
 This uses:
 
 ```text
-scenarios/templates/maneuver_blocks/longitudinal_feature/ACC/cruise_control.xosc
+scenarios/general_scenarios/templates/maneuver_blocks/longitudinal_feature/ACC/cruise_control.xosc
 ```
 
 ## 3. Run From This Folder
@@ -130,7 +130,7 @@ python generated.py Longitudinal/ACC/acc_csc_001
 Both resolve to:
 
 ```text
-scenarios/core/longitudinal_feature/ACC/acc_csc_001/
+scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/
 ```
 
 ## 5. Generate One Scenario Folder
@@ -144,7 +144,7 @@ python generated.py longitudinal/acc/acc_csc_001
 Expected output:
 
 ```text
-scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/
+scenarios/general_scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/
 ```
 
 ## 6. Generate One Scenario With Clean
@@ -211,7 +211,7 @@ python generated.py longitudinal/acc
 This generates every core scenario folder under:
 
 ```text
-scenarios/core/longitudinal_feature/ACC/
+scenarios/general_scenarios/core/longitudinal_feature/ACC/
 ```
 
 With clean:
@@ -222,7 +222,7 @@ python generated.py longitudinal/acc --clean
 
 ## 10. Generate Everything
 
-Use `--all` to generate `.xosc` files from every core scenario folder under `scenarios/core/`.
+Use `--all` to generate `.xosc` files from every core scenario folder under `scenarios/general_scenarios/core/`.
 
 ```powershell
 python generated.py --all
@@ -256,7 +256,7 @@ logical YAML + parameter YAML
 Final output:
 
 ```text
-scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/*.xosc
+scenarios/general_scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/*.xosc
 ```
 
 ## 12. Common Errors
@@ -274,7 +274,7 @@ python expander\expander.py longitudinal/acc/acc_csc_001 --clean
 Check that the storyboard template exists:
 
 ```text
-scenarios/templates/storyboard/<feature_domain>/<functional>_storyboard.xosc
+scenarios/general_scenarios/templates/storyboard/<feature_domain>/<functional>_storyboard.xosc
 ```
 
 `Template file not found`
@@ -282,7 +282,7 @@ scenarios/templates/storyboard/<feature_domain>/<functional>_storyboard.xosc
 Check that the maneuver block exists:
 
 ```text
-scenarios/templates/maneuver_blocks/<feature_domain>/<functional>/<block_file>.xosc
+scenarios/general_scenarios/templates/maneuver_blocks/<feature_domain>/<functional>/<block_file>.xosc
 ```
 
 `Unknown maneuver type`

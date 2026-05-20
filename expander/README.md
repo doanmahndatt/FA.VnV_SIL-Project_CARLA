@@ -5,23 +5,23 @@
 Input:
 
 ```text
-scenarios/logical/<feature_domain>/<functional>/<scenario_id>.yaml
-scenarios/parameters/<feature_domain>/<functional>/<parameter_id>.yaml
+scenarios/general_scenarios/logical/<feature_domain>/<functional>/<scenario_id>.yaml
+scenarios/general_scenarios/parameters/<feature_domain>/<functional>/<parameter_id>.yaml
 ```
 
 Output:
 
 ```text
-scenarios/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
+scenarios/general_scenarios/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
 ```
 
 Example:
 
 ```text
-scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
-scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
+scenarios/general_scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
+scenarios/general_scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
 
-=> scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
+=> scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
 ```
 
 ## 1. Required Metadata
@@ -95,7 +95,7 @@ python expander.py Longitudinal/ACC/acc_csc_001
 Both resolve to:
 
 ```text
-scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
+scenarios/general_scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
 ```
 
 ## 4. Generate One Scenario
@@ -109,13 +109,13 @@ python expander.py longitudinal/acc/acc_csc_001
 Expected output:
 
 ```text
-scenarios/core/longitudinal_feature/ACC/acc_csc_001/
+scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/
 ```
 
 The number of generated YAML files depends on the parameter combinations and constraints in:
 
 ```text
-scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
+scenarios/general_scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
 ```
 
 ## 5. Generate One Scenario With Clean
@@ -188,7 +188,7 @@ python expander.py longitudinal/acc
 This expands every `.yaml` file in:
 
 ```text
-scenarios/logical/longitudinal_feature/ACC/
+scenarios/general_scenarios/logical/longitudinal_feature/ACC/
 ```
 
 With clean:
@@ -199,7 +199,7 @@ python expander.py longitudinal/acc --clean
 
 ## 9. Generate Everything
 
-Use `--all` to expand every logical YAML under `scenarios/logical/`.
+Use `--all` to expand every logical YAML under `scenarios/general_scenarios/logical/`.
 
 ```powershell
 python expander.py --all
@@ -220,7 +220,7 @@ Use this carefully because it may regenerate many folders.
 The selector does not match a logical YAML file. Check this path:
 
 ```text
-scenarios/logical/<feature_domain>/<functional>/<scenario_id>.yaml
+scenarios/general_scenarios/logical/<feature_domain>/<functional>/<scenario_id>.yaml
 ```
 
 `File not found: ... parameters ...`
@@ -228,7 +228,7 @@ scenarios/logical/<feature_domain>/<functional>/<scenario_id>.yaml
 The parameter YAML is missing. For `acc_csc_001`, the expected parameter file is:
 
 ```text
-scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
+scenarios/general_scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
 ```
 
 `Logical YAML ... must define 'functional' and 'feature_domain'`

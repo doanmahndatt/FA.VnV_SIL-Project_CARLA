@@ -37,13 +37,23 @@ If `import carla` fails, install the CARLA Python API wheel that matches your Py
 ```text
 FA_VnV/
 |-- CARLA_0.9.16/
-|   |-- CarlaUE4.exe
-|   `-- PythonAPI/
-`-- Test_assets_v1.3/
-    |-- scenarios/
-    |-- scenario_runner/
-    |-- tools/
-    `-- requirements.txt
+        |-- CarlaUE4.exe
+        `-- PythonAPI/
+|-- Test_assets_v1.3/
+        |-- adapters/
+        |-- adas_sil_execution/
+        |-- config/
+        |-- docs/
+        |-- expander/
+        |-- report/
+        |-- scenarios/
+        |    |--general_scenarios/
+        |    |--boundaries_scenarios/
+        |    |--homo_scenarios/
+        |    `--ncap_scenarios/
+        |-- scenario_runner/
+        |-- tools/
+        `-- requirements.txt
 ```
 
 The tools resolve paths through `tools/project_paths.py`.
@@ -67,7 +77,7 @@ Test_assets_v1.3/
 ├── README.md                                         # This guide
 ├── requirements.txt                                  # Runtime and maintenance dependencies
 │
-├── 🚗 scenarios/
+├── 🚗 scenarios/general_scenarios/
 │   ├── logical/
 │   │   └── <feature_domain_dir>/<functional>/        # Source logical YAML
 │   ├── parameters/
@@ -134,8 +144,8 @@ Test_assets_v1.3/
 The scenario folders continue deeper than the three-level view above. For example:
 
 ```text
-scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
-scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.xosc
+scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
+scenarios/general_scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.xosc
 ```
 
 ## 4. Domain-Based Scenario Layout
@@ -151,10 +161,10 @@ CLI selectors use the shorter domain name, for example `longitudinal/acc/acc_csc
 Example for ACC:
 
 ```text
-scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
-scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
-scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
-scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.xosc
+scenarios/general_scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
+scenarios/general_scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
+scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
+scenarios/general_scenarios/generated/carla/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.xosc
 ```
 
 Each logical YAML must define:
@@ -238,7 +248,7 @@ Whole functional folder:
 python expander\expander.py longitudinal/acc --clean
 ```
 
-Everything under `scenarios/logical/`:
+Everything under `scenarios/general_scenarios/logical/`:
 
 ```powershell
 python expander\expander.py --all --clean
@@ -278,7 +288,7 @@ Whole functional folder:
 python adapters\carla\generated.py longitudinal/acc --clean
 ```
 
-Everything under `scenarios/core/`:
+Everything under `scenarios/general_scenarios/core/`:
 
 ```powershell
 python adapters\carla\generated.py --all --clean
@@ -295,7 +305,7 @@ adapters/carla/README.md
 Use this for quick debugging before running a batch.
 
 ```powershell
-python scenario_runner\scenario_runner.py --openscenario scenarios\generated\carla\longitudinal_feature\ACC\acc_csc_001\acc_csc_001_001.xosc --reloadWorld
+python scenario_runner\scenario_runner.py --openscenario scenarios\general_scenarios\generated\carla\longitudinal_feature\ACC\acc_csc_001\acc_csc_001_001.xosc --reloadWorld
 ```
 
 If the scenario is valid, CARLA should spawn the ego vehicle `ev` and target vehicle `tv` according to the `.xosc`.
@@ -335,7 +345,7 @@ python tools\run_batch.py
 The GUI recursively scans:
 
 ```text
-scenarios/generated/carla/<feature_domain_dir>/<functional>/<scenario_id>/*.xosc
+scenarios/general_scenarios/generated/carla/<feature_domain_dir>/<functional>/<scenario_id>/*.xosc
 ```
 
 A selectable folder is the full relative scenario group, for example:
@@ -403,7 +413,7 @@ For one ACC scenario:
 ```powershell
 python expander\expander.py longitudinal/acc/acc_csc_001 --clean
 python adapters\carla\generated.py longitudinal/acc/acc_csc_001 --clean
-python scenario_runner\scenario_runner.py --openscenario scenarios\generated\carla\longitudinal_feature\ACC\acc_csc_001\acc_csc_001_001.xosc --reloadWorld
+python scenario_runner\scenario_runner.py --openscenario scenarios\general_scenarios\generated\carla\longitudinal_feature\ACC\acc_csc_001\acc_csc_001_001.xosc --reloadWorld
 ```
 
 If the single case works:
@@ -433,7 +443,7 @@ Check that the `.xosc` contains `ScenarioObject` entries with `role_name="ev"` a
 Check that `.xosc` files exist under:
 
 ```text
-scenarios/generated/carla/<feature_domain_dir>/<functional>/<scenario_id>/
+scenarios/general_scenarios/generated/carla/<feature_domain_dir>/<functional>/<scenario_id>/
 ```
 
 Then click `Refresh` in the GUI.

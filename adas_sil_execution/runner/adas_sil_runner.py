@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     time.sleep(20)  # wait readiness (simplified demo)
 
-    run_scenario("scenarios/acc/acc_follow_001.xosc")
+    run_scenario("scenarios/general_scenarios/acc/acc_follow_001.xosc")
 
     time.sleep(60)
     sut.terminate()
