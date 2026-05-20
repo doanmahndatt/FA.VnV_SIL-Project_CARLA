@@ -88,7 +88,7 @@
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
                     <Property name="desired_speed" value="15"/>
-                    <Property name="target_role" value="tv"/>
+                    <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -118,7 +118,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="10"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -128,13 +128,13 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="cutout_ev" maximumExecutionCount="1">
+        <ManeuverGroup name="ev_cutout" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="ev"/>
           </Actors>
-          <Maneuver name="cutout_maneuver">
+          <Maneuver name="ev_cutout_maneuver">
             <Event name="ev_cutout_event" priority="overwrite">
-              <Action name="cutout_action">
+              <Action name="ev_cutout_action">
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
@@ -148,20 +148,20 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="cutin_start" delay="0" conditionEdge="rising">
+                  <Condition name="ev_cutout_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="1" rule="greaterThan"/>
+                      <SimulationTimeCondition value="6" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="maintain_speed_event" priority="parallel">
-              <Action name="maintain_speed">
+            <Event name="ev_maintain_speed_event" priority="parallel">
+              <Action name="ev_maintain_speed">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
+                      <SpeedActionDynamics dynamicsShape="linear" value="10" dynamicsDimension="time"/>
                       <SpeedActionTarget>
                         <AbsoluteTargetSpeed value="15"/>
                       </SpeedActionTarget>
@@ -171,9 +171,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="maintain_speed_condition" delay="0" conditionEdge="rising">
+                  <Condition name="ev_maintain_speed_condition" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <StoryboardElementStateCondition storyboardElementRef="cutout_event" storyboardElementType="event" state="endTransition"/>
+                      <StoryboardElementStateCondition storyboardElementRef="ev_cutout_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

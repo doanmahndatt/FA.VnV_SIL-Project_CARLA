@@ -8,8 +8,8 @@ parameters:
   tv_speed: [5, 10, 15]
 
 # ==== Timestamp====
-  trigger_cutout_time: [3, 5]
-  maintain_duration: [20]
+  trigger_cutout_time: [8, 12]
+  maintain_duration: [15]
 
 # ==== TARGET LANE CHANGE ====
   lane_change_distance: [5, 10]  

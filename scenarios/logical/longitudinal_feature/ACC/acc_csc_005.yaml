@@ -11,12 +11,12 @@ actors:
       type: ego
       lane: ego
       state: moving
-  - tv_old: 
+  - tv1: 
       type: car
       lane: ego
       position: front_ego
       state: moving
-  - tv:
+  - tv2:
       type: bus
       lane: left
       position: next_to_ego
@@ -24,4 +24,4 @@ actors:
 
 maneuvers:
   - type: cutin_event
-    actor: tv
+    actor: tv2

@@ -88,7 +88,7 @@
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
                     <Property name="desired_speed" value="20"/>
-                    <Property name="target_role" value="tv"/>
+                    <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-1" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -128,13 +128,13 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="cutin_tv" maximumExecutionCount="1">
+        <ManeuverGroup name="tv_cutin" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="tv"/>
           </Actors>
-          <Maneuver name="cutin_maneuver">
-            <Event name="cutin_event" priority="overwrite">
-              <Action name="cutin_action">
+          <Maneuver name="tv_cutin_maneuver">
+            <Event name="tv_cutin_event" priority="overwrite">
+              <Action name="tv_cutin_action">
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
@@ -148,7 +148,7 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="cutin_start" delay="0" conditionEdge="rising">
+                  <Condition name="tv_cutin_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
                       <SimulationTimeCondition value="5" rule="greaterThan"/>
                     </ByValueCondition>
@@ -156,8 +156,8 @@
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="maintain_speed_event" priority="parallel">
-              <Action name="maintain_speed_action">
+            <Event name="tv_maintain_speed_event" priority="parallel">
+              <Action name="tv_maintain_speed_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
@@ -171,9 +171,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="maintain_speed_condition" delay="0" conditionEdge="rising">
+                  <Condition name="tv_maintain_speed_condition" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <StoryboardElementStateCondition storyboardElementRef="cutin_event" storyboardElementType="event" state="endTransition"/>
+                      <StoryboardElementStateCondition storyboardElementRef="tv_cutin_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
@@ -185,9 +185,9 @@
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="tv"/>
           </Actors>
-          <Maneuver name="stop_maneuver">
-            <Event name="stop_event" priority="overwrite">
-              <Action name="stop_action">
+          <Maneuver name="tv_stop_maneuver">
+            <Event name="tv_stop_event" priority="overwrite">
+              <Action name="tv_stop_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
@@ -201,16 +201,16 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="stop_after_cutin" delay="0.5" conditionEdge="rising">
+                  <Condition name="tv_stop_after_cutin" delay="0.5" conditionEdge="rising">
                     <ByValueCondition>
-                      <StoryboardElementStateCondition storyboardElementRef="cutin_event" storyboardElementType="event" state="endTransition"/>
+                      <StoryboardElementStateCondition storyboardElementRef="tv_cutin_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="hold_stop_event" priority="parallel">
-              <Action name="hold_stop_action">
+            <Event name="tv_hold_stop_event" priority="parallel">
+              <Action name="tv_hold_stop_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
@@ -224,9 +224,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="hold_after_stop" delay="0" conditionEdge="rising">
+                  <Condition name="tv_hold_after_stop" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <StoryboardElementStateCondition storyboardElementRef="stop_event" storyboardElementType="event" state="endTransition"/>
+                      <StoryboardElementStateCondition storyboardElementRef="tv_stop_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

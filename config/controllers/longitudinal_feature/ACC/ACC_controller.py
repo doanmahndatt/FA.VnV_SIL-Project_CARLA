@@ -19,7 +19,7 @@ class AccController(BasicControl):
             raise ValueError("ACC_controller requires 'desired_speed' from XOSC properties")
 
         self.desired_speed = float(args["desired_speed"])
-        self.target_role = args.get("target_role", "tv")
+        self.target_role_prefix = args.get("target_role_prefix", args.get("target_role", "tv"))
 
         self.min_distance = float(args.get("min_distance", 10.0))
         self.time_headway = float(args.get("time_headway", 1.8))
@@ -46,14 +46,8 @@ class AccController(BasicControl):
 
         if target_actor is not None:
             ev_lane_id, tv_lane_id = self._get_lane_ids(self._actor, target_actor)
-            same_lane = ev_lane_id is not None and ev_lane_id == tv_lane_id
-
-            if same_lane:
-                distance = self._longitudinal_distance(self._actor, target_actor)
-                target_speed = self._compute_acc_target_speed(ev_speed, distance)
-            else:
-                distance = None
-                target_speed = self.desired_speed
+            distance = self._longitudinal_distance(self._actor, target_actor)
+            target_speed = self._compute_acc_target_speed(ev_speed, distance)
         else:
             ev_lane_id = None
             tv_lane_id = None
@@ -79,15 +73,30 @@ class AccController(BasicControl):
         if world is None:
             return None
 
+        candidates = []
+
         for actor in world.get_actors().filter("vehicle.*"):
             if actor.id == self._actor.id:
                 continue
 
             role = actor.attributes.get("role_name")
-            if role == self.target_role and actor.is_alive:
-                return actor
+            if not role or not role.startswith(self.target_role_prefix) or not actor.is_alive:
+                continue
 
-        return None
+            if not self._is_same_lane(self._actor, actor):
+                continue
+
+            distance = self._longitudinal_distance(self._actor, actor)
+            if distance <= 0.0:
+                continue
+
+            candidates.append((distance, actor))
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda item: item[0])
+        return candidates[0][1]
 
     @staticmethod
     def _get_speed(vehicle):
@@ -119,15 +128,35 @@ class AccController(BasicControl):
         if world_map is None:
             return None, None
 
+        ev_waypoint = AccController._get_waypoint(world_map, ev)
+        tv_waypoint = AccController._get_waypoint(world_map, tv)
+
+        return AccController._lane_id(ev_waypoint), AccController._lane_id(tv_waypoint)
+
+    @staticmethod
+    def _is_same_lane(ev, tv):
+        world = CarlaDataProvider.get_world()
+        if world is None:
+            return False
+
+        world_map = world.get_map()
+        if world_map is None:
+            return False
+
+        ev_waypoint = AccController._get_waypoint(world_map, ev)
+        tv_waypoint = AccController._get_waypoint(world_map, tv)
+        if ev_waypoint is None or tv_waypoint is None:
+            return False
+
         return (
-            AccController._get_lane_id(world_map, ev),
-            AccController._get_lane_id(world_map, tv),
+            ev_waypoint.road_id == tv_waypoint.road_id
+            and ev_waypoint.lane_id == tv_waypoint.lane_id
         )
 
     @staticmethod
-    def _get_lane_id(world_map, vehicle):
+    def _get_waypoint(world_map, vehicle):
         try:
-            waypoint = world_map.get_waypoint(
+            return world_map.get_waypoint(
                 vehicle.get_location(),
                 project_to_road=True,
                 lane_type=carla.LaneType.Driving,
@@ -135,6 +164,8 @@ class AccController(BasicControl):
         except RuntimeError:
             return None
 
+    @staticmethod
+    def _lane_id(waypoint):
         if waypoint is None:
             return None
         return waypoint.lane_id

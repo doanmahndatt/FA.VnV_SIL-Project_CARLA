@@ -25,7 +25,7 @@ parameters:
   tv_lane_id: -1
   ev_speed: 25
   tv_speed: 10
-  trigger_cutout_time: 3
+  trigger_cutout_time: 7
   maintain_duration: 20
   lane_change_distance: 5
   lane_change_direction: -1

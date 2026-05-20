@@ -17,5 +17,5 @@ actors:
     state: moving
 
 maneuvers:
-  - type: cruise_event
-    actor: ev
+  type: cruise_event
+  actor: ev

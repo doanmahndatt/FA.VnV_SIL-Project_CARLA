@@ -25,11 +25,16 @@ logic:
   - type: cutout_event
     actor: tv1
     direction: left
-  - type: appear_event
-    actor: tv2
-    position: front_ego
 parameters:
-  ev_speed: 120
-  tv_speed: 40
+  ev_lane_id: -2
+  tv1_lane_id: -2
+  tv2_lane_id: -2
+  ev_speed: 10
+  tv1_speed: 3
+  tv2_speed: 4
+  trigger_cutout_time: 5
+  maintain_duration: 15
+  lane_change_distance: 5
+  lane_change_direction: 1
   light: night
-  curve_radius: 250
+  weather: rain

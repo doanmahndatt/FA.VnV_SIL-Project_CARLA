@@ -88,7 +88,7 @@
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
                     <Property name="desired_speed" value="15"/>
-                    <Property name="target_role" value="tv"/>
+                    <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -118,7 +118,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="5"/>
+                  <AbsoluteTargetSpeed value="10"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -128,17 +128,17 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="cutin_tv" maximumExecutionCount="1">
+        <ManeuverGroup name="tv_cutin" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="tv"/>
           </Actors>
-          <Maneuver name="cutin_maneuver">
-            <Event name="cutin_event" priority="overwrite">
-              <Action name="cutin_action">
+          <Maneuver name="tv_cutin_maneuver">
+            <Event name="tv_cutin_event" priority="overwrite">
+              <Action name="tv_cutin_action">
                 <PrivateAction>
                   <LateralAction>
                     <LaneChangeAction>
-                      <LaneChangeActionDynamics dynamicsShape="linear" value="5" dynamicsDimension="distance"/>
+                      <LaneChangeActionDynamics dynamicsShape="linear" value="3" dynamicsDimension="distance"/>
                       <LaneChangeTarget>
                         <RelativeTargetLane value="1" entityRef="tv"/>
                       </LaneChangeTarget>
@@ -148,22 +148,22 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="cutin_start" delay="0" conditionEdge="rising">
+                  <Condition name="tv_cutin_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="5" rule="greaterThan"/>
+                      <SimulationTimeCondition value="4" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="maintain_speed_event" priority="parallel">
-              <Action name="maintain_speed_action">
+            <Event name="tv_maintain_speed_event" priority="parallel">
+              <Action name="tv_maintain_speed_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
                       <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="5"/>
+                        <AbsoluteTargetSpeed value="10"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -171,9 +171,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="maintain_speed_condition" delay="0" conditionEdge="rising">
+                  <Condition name="tv_maintain_speed_condition" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <StoryboardElementStateCondition storyboardElementRef="cutin_event" storyboardElementType="event" state="endTransition"/>
+                      <StoryboardElementStateCondition storyboardElementRef="tv_cutin_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

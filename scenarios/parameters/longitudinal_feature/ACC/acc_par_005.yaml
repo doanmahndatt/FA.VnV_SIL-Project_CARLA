@@ -1,10 +1,13 @@
 parameters:
-  # ==== SPAWN EV,TV =====
+  # ==== SPAWN EV,TVs =====
   ev_lane_id: [-2]       # Lane của EV
-  tv_lane_id: [-1]       # Lane của TV
+  tv1_lane_id: [-2]       # Lane của TV1
+  tv2_lane_id: [-1]        # Lane của TV2
 
-  # ===== SPEED =====
-  tv_speed: [5, 10, 15]
+  # ===== SPEED SET ===== 
+  ev_speed: [5, 10]  # Tốc độ của EV
+  tv1_speed: [4, 9] # Tốc độ của TV1
+  tv2_speed: [4, 9]  # Tốc độ của TV2
 
 # ==== Timestamp====
   trigger_cutin_time: [3, 5]
@@ -17,3 +20,7 @@ parameters:
 # ==== environment ====
   light: [day, night]
   weather: [clear, rain, fog]
+
+constraints:
+  - ev_speed > tv1_speed
+  - tv2_speed < tv1_speed

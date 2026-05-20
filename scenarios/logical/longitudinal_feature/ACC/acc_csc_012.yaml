@@ -26,5 +26,3 @@ maneuvers:
   - type: cutout_event
     actor: tv1
     direction: left
-  - type: appear_event
-    actor: tv2

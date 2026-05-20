@@ -4,15 +4,15 @@ parameters:
   tv_lane_id: [-1]       # Lane của TV
 
   # ===== SPEED =====
-  ev_speed: [10, 15, 20]
-  tv_speed: [5, 10, 15]
+  ev_speed: [15, 15]
+  tv_speed: [5, 10]
 
 # ==== Timestamp====
-  trigger_cutin_time: [3, 5]
+  trigger_cutin_time: [4]
   maintain_duration: [20]
 
 # ==== TARGET LANE CHANGE ====
-  lane_change_distance: [5, 10]  
+  lane_change_distance: [3, 6]  
   lane_change_direction: [-1]  #TV cutin từ bên trái EV
 
 # ==== environment ====

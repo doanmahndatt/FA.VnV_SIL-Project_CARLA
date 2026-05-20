@@ -17,14 +17,14 @@ logic:
       position: front_ego
       state: moving
   maneuvers:
-  - type: ev_cutout_event
+  - type: cutout_event
     actor: ev
 parameters:
   ev_lane_id: -2
   tv_lane_id: -2
   ev_speed: 20
-  tv_speed: 5
-  trigger_cutout_time: 3
+  tv_speed: 10
+  trigger_cutout_time: 13
   maintain_duration: 20
   lane_change_distance: 5
   lane_change_direction: 1

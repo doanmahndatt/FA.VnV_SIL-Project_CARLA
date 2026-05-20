@@ -11,8 +11,12 @@ logic:
       type: ego
       lane: ego
       state: moving
+    tv:
+      type: car
+      lane: ego
+      state: moving
   maneuvers:
-  - type: ev_cutout_event
+  - type: cutout_event
     actor: ev
     direction: right
 parameters:
@@ -20,8 +24,8 @@ parameters:
   tv_lane_id: -1
   ev_speed: 25
   tv_speed: 15
-  trigger_cutout_time: 5
-  maintain_duration: 20
+  trigger_cutout_time: 12
+  maintain_duration: 15
   lane_change_distance: 10
   lane_change_direction: -1
   light: day

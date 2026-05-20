@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 MAPS_DIR = BASE_DIR / "maps_CARLA"
 OPENDRIVE_DIR = MAPS_DIR / "OpenDrive"
 
-WINDOW_WIDTH = 700
+WINDOW_WIDTH = 550
 WINDOW_HEIGHT = 240
 FPS_DELAY_SECONDS = 0.05
 
@@ -33,6 +33,10 @@ def find_vehicle(world, role):
         if vehicle.attributes.get("role_name") == role:
             return vehicle
     return None
+
+
+def get_vehicle_role(vehicle):
+    return vehicle.attributes.get("role_name", "")
 
 
 def get_speed(vehicle):
@@ -114,6 +118,49 @@ def get_lane_position(world_map, vehicle):
     return map_name, road_id, lane_id, is_configured
 
 
+def find_target_vehicle(world, world_map, ev, target_role_prefix="tv"):
+    candidates = []
+    ev_lane_position = get_lane_position(world_map, ev)
+    _, ev_road_id, ev_lane_id, _ = ev_lane_position
+
+    for vehicle in world.get_actors().filter("vehicle.*"):
+        if vehicle.id == ev.id:
+            continue
+
+        role = get_vehicle_role(vehicle)
+        if not role.startswith(target_role_prefix):
+            continue
+
+        vehicle_lane_position = get_lane_position(world_map, vehicle)
+        _, vehicle_road_id, vehicle_lane_id, _ = vehicle_lane_position
+        distance = signed_longitudinal_distance(ev, vehicle)
+
+        same_lane = (
+            ev_road_id is not None
+            and ev_lane_id is not None
+            and vehicle_road_id == ev_road_id
+            and vehicle_lane_id == ev_lane_id
+        )
+        ahead = distance > 0
+
+        if same_lane and ahead:
+            priority = 0
+        elif ahead:
+            priority = 1
+        elif same_lane:
+            priority = 2
+        else:
+            priority = 3
+
+        candidates.append((priority, abs(distance), vehicle))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: (item[0], item[1], get_vehicle_role(item[2])))
+    return candidates[0][2]
+
+
 def format_lane_position(label, lane_position):
     map_name, road_id, lane_id, is_configured = lane_position
     if road_id is None or lane_id is None:
@@ -132,7 +179,7 @@ while True:
     world = client.get_world()
     world_map = world.get_map()
     ev = find_vehicle(world, "ev")
-    tv = find_vehicle(world, "tv")
+    tv = find_target_vehicle(world, world_map, ev) if ev else None
 
     if ev and tv:
         snapshot_time = world.get_snapshot().timestamp.elapsed_seconds
@@ -145,12 +192,27 @@ while True:
         distance = signed_longitudinal_distance(ev, tv)
         ev_lane_position = get_lane_position(world_map, ev)
         tv_lane_position = get_lane_position(world_map, tv)
+        tv_label = get_vehicle_role(tv).upper() or "TV"
 
         rel_speed = (ev_speed - tv_speed) / 3.6
         if distance > 0 and rel_speed > 0.1:
             ttc = distance / rel_speed
         else:
             ttc = 999
+    elif ev:
+        snapshot_time = world.get_snapshot().timestamp.elapsed_seconds
+        if start_time is None:
+            start_time = snapshot_time
+
+        sim_time = snapshot_time - start_time
+        ev_speed = get_speed(ev)
+        tv_speed = 0
+        distance = 0
+        ttc = 0
+        ev_lane_position = get_lane_position(world_map, ev)
+        map_name = get_world_map_name(world_map)
+        tv_lane_position = (map_name, None, None, False)
+        tv_label = "TV"
     else:
         start_time = None
         map_name = get_world_map_name(world_map)
@@ -161,17 +223,18 @@ while True:
         ttc = 0
         ev_lane_position = (map_name, None, None, False)
         tv_lane_position = (map_name, None, None, False)
+        tv_label = "TV"
 
     screen.fill((25, 25, 25))
 
     lines = [
         f"time : {sim_time:6.2f} s",
         f"EV   : {ev_speed:6.2f} km/h",
-        f"TV   : {tv_speed:6.2f} km/h",
+        f"{tv_label:<4}: {tv_speed:6.2f} km/h",
         f"distance : {distance:6.2f} m",
         f"TTC  : {ttc:6.2f} s",
         format_lane_position("EV", ev_lane_position),
-        format_lane_position("TV", tv_lane_position),
+        format_lane_position(tv_label, tv_lane_position),
     ]
 
     y = 15

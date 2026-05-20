@@ -2,9 +2,9 @@
   <Actors selectTriggeringEntities="false">
     <EntityRef entityRef="${actor}"/>
   </Actors>
-  <Maneuver name="stop_maneuver">
-    <Event name="stop_event" priority="overwrite">
-      <Action name="stop_action">
+  <Maneuver name="${actor}_stop_maneuver">
+    <Event name="${actor}_stop_event" priority="overwrite">
+      <Action name="${actor}_stop_action">
         <PrivateAction>
           <LongitudinalAction>
             <SpeedAction>
@@ -21,12 +21,12 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="stop_after_cutin"
+          <Condition name="${actor}_stop_after_cutin"
                      delay="${stop_after_cutin_delay}"
                      conditionEdge="rising">
             <ByValueCondition>
               <StoryboardElementStateCondition
-                  storyboardElementRef="cutin_event"
+                  storyboardElementRef="${actor}_cutin_event"
                   storyboardElementType="event"
                   state="endTransition"/>
             </ByValueCondition>
@@ -34,8 +34,8 @@
         </ConditionGroup>
       </StartTrigger>
     </Event>
-    <Event name="hold_stop_event" priority="parallel">
-      <Action name="hold_stop_action">
+    <Event name="${actor}_hold_stop_event" priority="parallel">
+      <Action name="${actor}_hold_stop_action">
         <PrivateAction>
           <LongitudinalAction>
             <SpeedAction>
@@ -52,12 +52,12 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="hold_after_stop"
+          <Condition name="${actor}_hold_after_stop"
                      delay="0"
                      conditionEdge="rising">
             <ByValueCondition>
               <StoryboardElementStateCondition
-                  storyboardElementRef="stop_event"
+                  storyboardElementRef="${actor}_stop_event"
                   storyboardElementType="event"
                   state="endTransition"/>
             </ByValueCondition>

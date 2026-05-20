@@ -1,5 +1,5 @@
 scenario_id: acc_csc_011
-name: TV1 Cut out right + new slow TV2
+name: TV1 Cut out left + new slow TV2
 functional: ACC
 feature_domain: Longitudinal
 
@@ -26,7 +26,3 @@ maneuvers:
   - type: cutout_event
     actor: tv1
     direction: right
-
-  - type: appear_event
-    actor: tv2
-    position: front_ego

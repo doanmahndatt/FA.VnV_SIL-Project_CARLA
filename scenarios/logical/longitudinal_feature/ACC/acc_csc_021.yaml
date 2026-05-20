@@ -18,5 +18,5 @@ actors:
     state: moving
 
 maneuvers:
-  - type: ev_cutout_event
+  - type: cutout_event
     actor: ev

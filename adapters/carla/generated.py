@@ -234,18 +234,86 @@ def map_environment(params):
     return env
 
 # =========================================================
-# MANEUVER MAP
+# MANEUVER BLOCK DISCOVERY
 # =========================================================
 
-MANEUVER_MAP = {
-    "appear_event": "appear.xosc",
-    "cruise_event": "cruise_control.xosc",
-    "stop_event": "stop.xosc",
-    "cutin_event": "cutin.xosc",
-    "cutout_event": "cutout.xosc",
-    "ev_cutout_event": "ego_cutout.xosc",
-    "curve_event": "curve.xosc",
-}
+def maneuver_block_dir(core):
+    feature_domain, functional = metadata_from_core(core)
+    return (
+        BASE
+        / "templates"
+        / "maneuver_blocks"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+    )
+
+
+def normalize_event_type(event_name):
+    event_name = str(event_name).strip()
+    for prefix in ("${actor}_", "actor_"):
+        if event_name.startswith(prefix):
+            return event_name[len(prefix):]
+    return event_name
+
+
+def discover_maneuver_blocks(core):
+    block_dir = maneuver_block_dir(core)
+    if not block_dir.exists():
+        raise RuntimeError(f"Maneuver block directory not found: {block_dir}")
+
+    block_map = {}
+
+    for block_path in sorted(block_dir.glob("*.xosc")):
+        text = load_text(block_path)
+        parse_text = text.replace("${actor}", "actor")
+
+        try:
+            group = ET.fromstring(parse_text)
+        except ET.ParseError as e:
+            raise RuntimeError(f"XML parse error while scanning block {block_path.name}: {e}")
+
+        if group.tag != "ManeuverGroup":
+            raise RuntimeError(
+                f"Block {block_path.name} root is <{group.tag}>, expected <ManeuverGroup>"
+            )
+
+        for event in group.findall(".//Event"):
+            event_type = normalize_event_type(event.get("name", ""))
+            if event_type and event_type not in block_map:
+                block_map[event_type] = block_path.name
+
+        stem_event_type = f"{block_path.stem}_event"
+        block_map.setdefault(stem_event_type, block_path.name)
+
+    return block_map
+
+
+def normalize_maneuvers(maneuvers):
+    if maneuvers is None:
+        return []
+    if isinstance(maneuvers, dict):
+        return [maneuvers]
+    if isinstance(maneuvers, list):
+        return maneuvers
+    raise RuntimeError(
+        "Maneuvers must be a mapping or a list of mappings, "
+        f"got {type(maneuvers).__name__}"
+    )
+
+
+def maneuver_actor(maneuver):
+    if not isinstance(maneuver, dict):
+        return None
+    actor = maneuver.get("actor")
+    if actor is None:
+        return None
+    return str(actor).strip()
+
+
+def uses_multi_tv_storyboard(core):
+    logic = core.get("logic", {}) or {}
+    maneuvers = normalize_maneuvers(logic.get("maneuvers"))
+    return any(re.fullmatch(r"tv\d+", actor or "") for actor in map(maneuver_actor, maneuvers))
 
 # =========================================================
 # MANEUVER GROUP INSERTION
@@ -271,23 +339,22 @@ def insert_maneuver_group(act, maneuver_group):
 # =========================================================
 
 def render_maneuver_group(block_file, params, actor, core):
-    feature_domain, functional = metadata_from_core(core)
-    path = (
-        BASE
-        / "templates"
-        / "maneuver_blocks"
-        / to_feature_domain_dir(feature_domain)
-        / to_functional_dir(functional)
-        / block_file
-    )
+    path = maneuver_block_dir(core) / block_file
 
     if not os.path.exists(path):
         raise RuntimeError(f"Template file not found: {path}")
 
-    text = load_text(path)
-    text = text.replace("${actor}", escape(str(actor)))
+    render_params = dict(params)
+    render_params["actor"] = actor
+    default_speed_key = "tv_speed" if str(actor).startswith("tv") else "ev_speed"
+    render_params.setdefault(
+        "actor_speed",
+        params.get(f"{actor}_speed", params.get(default_speed_key, "")),
+    )
 
-    for k, v in params.items():
+    text = load_text(path)
+
+    for k, v in render_params.items():
         text = text.replace(f"${{{k}}}", escape(str(v)))
 
     try:
@@ -318,6 +385,10 @@ def resolve_storyboard_path(core):
       1. core["functional"], core["feature_domain"]
       2. core["logic"]["functional"], core["logic"]["feature_domain"]
 
+    ACC storyboard templates are split by actor shape:
+      - single-TV: maneuver actor is ev or tv
+      - multi-TVs: maneuver actor is tv1, tv2, ...
+
     If metadata is missing, fall back to base_storyboard.xosc.
     """
     logic = core.get("logic", {}) or {}
@@ -345,7 +416,13 @@ def resolve_storyboard_path(core):
             f"Supported values: {valid_domains}"
         )
 
-    storyboard_path = BASE / "templates" / "storyboard" / feature_dir / f"{functional}_storyboard.xosc"
+    storyboard_dir = BASE / "templates" / "storyboard" / feature_dir / functional
+
+    if storyboard_dir.exists():
+        storyboard_kind = "multi-TVs" if uses_multi_tv_storyboard(core) else "single-TV"
+        storyboard_path = storyboard_dir / f"{functional}_{storyboard_kind}_storyboard.xosc"
+    else:
+        storyboard_path = BASE / "templates" / "storyboard" / feature_dir / f"{functional}_storyboard.xosc"
 
     if not os.path.exists(storyboard_path):
         raise RuntimeError(
@@ -371,22 +448,29 @@ def generate_xosc(core):
 
     tree = ET.parse(storyboard_path)
     root = tree.getroot()
+    maneuver_map = discover_maneuver_blocks(core)
 
     act = root.find(".//Act")
     if act is None:
         raise RuntimeError("Act node not found in storyboard template")
 
-    for m in logic.get("maneuvers", []):
+    for m in normalize_maneuvers(logic.get("maneuvers")):
+        if not isinstance(m, dict):
+            raise RuntimeError(
+                "Each maneuver must be a mapping with 'type' and 'actor', "
+                f"got {type(m).__name__}: {m}"
+            )
+
         m_type = m.get("type")
         actor = m.get("actor")
 
         if not m_type or not actor:
             raise RuntimeError(f"Maneuver missing 'type' or 'actor': {m}")
 
-        if m_type not in MANEUVER_MAP:
+        if m_type not in maneuver_map:
             raise RuntimeError(f"Unknown maneuver type: {m_type}")
 
-        block_file = MANEUVER_MAP[m_type]
+        block_file = maneuver_map[m_type]
 
         try:
             maneuver_group = render_maneuver_group(

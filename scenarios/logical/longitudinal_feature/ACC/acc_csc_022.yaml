@@ -18,5 +18,5 @@ actors:
     state: moving
 
 maneuvers:
-  - type: stop_event
+  - type: stop_n_go_event
     actor: tv

@@ -1,10 +1,10 @@
-<ManeuverGroup name="ego_curve" maximumExecutionCount="1">
+<ManeuverGroup name="${actor}_curve" maximumExecutionCount="1">
   <Actors selectTriggeringEntities="false">
-    <EntityRef entityRef="ego"/>
+    <EntityRef entityRef="${actor}"/>
   </Actors>
-  <Maneuver name="curve_maneuver">
-    <Event name="curve_event" priority="overwrite">
-      <Action name="curve_action">
+  <Maneuver name="${actor}_curve_maneuver">
+    <Event name="${actor}_curve_event" priority="overwrite">
+      <Action name="${actor}_curve_action">
         <PrivateAction>
           <RoutingAction>
             <FollowTrajectoryAction>
@@ -26,7 +26,7 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="curve_start"
+          <Condition name="${actor}_curve_start"
                      delay="0"
                      conditionEdge="rising">
             <ByValueCondition>

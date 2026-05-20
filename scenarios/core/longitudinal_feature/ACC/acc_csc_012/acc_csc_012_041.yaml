@@ -1,0 +1,40 @@
+scenario_id: acc_csc_012_041
+logic:
+  scenario_id: acc_csc_012
+  name: TV1 Cut out left + static TV2
+  functional: ACC
+  feature_domain: Longitudinal
+  pre_condition:
+    ev_mode: FL
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv1:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  - tv2:
+      type: car
+      lane: ego
+      position: front_tv1
+      state: static
+  maneuvers:
+  - type: cutout_event
+    actor: tv1
+    direction: left
+parameters:
+  ev_lane_id: -2
+  tv1_lane_id: -2
+  tv2_lane_id: -2
+  ev_speed: 7
+  tv1_speed: 3
+  tv2_speed: 0
+  trigger_cutout_time: 4
+  maintain_duration: 10
+  lane_change_distance: 2
+  lane_change_direction: 1
+  light: night
+  weather: rain

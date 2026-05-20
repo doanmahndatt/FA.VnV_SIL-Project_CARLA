@@ -1,11 +1,11 @@
-<ManeuverGroup name="cutin_tv" maximumExecutionCount="1">
+<ManeuverGroup name="${actor}_cutin" maximumExecutionCount="1">
   <Actors selectTriggeringEntities="false">
-    <EntityRef entityRef="tv"/>
+    <EntityRef entityRef="${actor}"/>
   </Actors>
-  <Maneuver name="cutin_maneuver">
+  <Maneuver name="${actor}_cutin_maneuver">
     <!-- Event 1: Lane Change -->
-    <Event name="cutin_event" priority="overwrite">
-      <Action name="cutin_action">
+    <Event name="${actor}_cutin_event" priority="overwrite">
+      <Action name="${actor}_cutin_action">
         <PrivateAction>
           <LateralAction>
             <LaneChangeAction>
@@ -14,7 +14,7 @@
                 value="${lane_change_distance}" 
                 dynamicsDimension="distance"/>
               <LaneChangeTarget>
-                <RelativeTargetLane value="${lane_change_direction}" entityRef="tv"/>
+                <RelativeTargetLane value="${lane_change_direction}" entityRef="${actor}"/>
               </LaneChangeTarget>
             </LaneChangeAction>
           </LateralAction>
@@ -22,7 +22,7 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="cutin_start" delay="0" conditionEdge="rising">
+          <Condition name="${actor}_cutin_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
               <SimulationTimeCondition value="${trigger_cutin_time}" rule="greaterThan"/>
             </ByValueCondition>
@@ -32,14 +32,14 @@
     </Event>
     
     <!-- Event 2: Maintain Speed (sau khi lane change hoàn thành) -->
-    <Event name="maintain_speed_event" priority="parallel">
-      <Action name="maintain_speed_action">
+    <Event name="${actor}_maintain_speed_event" priority="parallel">
+      <Action name="${actor}_maintain_speed_action">
         <PrivateAction>
           <LongitudinalAction>
             <SpeedAction>
               <SpeedActionDynamics dynamicsShape="linear" value="${maintain_duration}" dynamicsDimension="time"/>
               <SpeedActionTarget>
-                <AbsoluteTargetSpeed value="${tv_speed}"/>
+                <AbsoluteTargetSpeed value="${actor_speed}"/>
               </SpeedActionTarget>
             </SpeedAction>
           </LongitudinalAction>
@@ -47,12 +47,12 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="maintain_speed_condition"
+          <Condition name="${actor}_maintain_speed_condition"
                     delay="0"
                     conditionEdge="rising">
             <ByValueCondition>
               <StoryboardElementStateCondition
-                  storyboardElementRef="cutin_event"
+                  storyboardElementRef="${actor}_cutin_event"
                   storyboardElementType="event"
                   state="endTransition"/>
             </ByValueCondition>

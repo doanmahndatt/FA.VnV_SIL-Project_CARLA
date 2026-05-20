@@ -11,27 +11,29 @@ logic:
       type: ego
       lane: ego
       state: moving
-  - tv_old:
+  - tv1:
       type: car
       lane: ego
       position: front_ego
       state: moving
-  - tv_new:
+  - tv2:
       type: bus
       lane: right
       position: next_to_ego
       state: moving
   maneuvers:
   - type: cutin_event
-    actor: tv_new
+    actor: tv2
 parameters:
-  ev_lane_id: -2
-  tv_lane_id: -1
+  ev_lane_id: -1
+  tv1_lane_id: -1
+  tv2_lane_id: -2
   ev_speed: 10
-  tv_speed: 5
-  tv_maintain_speed: 7
-  response_cutin_time: 3
-  trigger_cutin_time: 5
-  lane_change_direction: -1
+  tv1_speed: 9
+  tv2_speed: 4
+  trigger_cutin_time: 3
+  maintain_duration: 12
+  lane_change_distance: 3
+  lane_change_direction: 1
   light: day
   weather: fog

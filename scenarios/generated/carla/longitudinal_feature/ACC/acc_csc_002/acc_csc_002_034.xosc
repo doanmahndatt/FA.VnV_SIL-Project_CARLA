@@ -88,7 +88,7 @@
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
                     <Property name="desired_speed" value="30"/>
-                    <Property name="target_role" value="tv"/>
+                    <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="-2" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -128,19 +128,19 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="cruise_control" maximumExecutionCount="1">
+        <ManeuverGroup name="tv_cruise_control" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
-            <EntityRef entityRef="ev"/>
+            <EntityRef entityRef="tv"/>
           </Actors>
-          <Maneuver name="cruise_control_maneuver">
-            <Event name="cruise_event" priority="overwrite">
-              <Action name="cruise_action">
+          <Maneuver name="tv_cruise_control_maneuver">
+            <Event name="tv_cruise_event" priority="overwrite">
+              <Action name="tv_cruise_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
                       <SpeedActionDynamics dynamicsShape="linear" value="20" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="30"/>
+                        <AbsoluteTargetSpeed value="25"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -148,7 +148,7 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="cruise_start" delay="0" conditionEdge="rising">
+                  <Condition name="tv_cruise_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
                       <SimulationTimeCondition value="0" rule="greaterThan"/>
                     </ByValueCondition>

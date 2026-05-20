@@ -88,7 +88,7 @@
                   <Properties>
                     <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
                     <Property name="desired_speed" value="30"/>
-                    <Property name="target_role" value="tv"/>
+                    <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -107,7 +107,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="${tv_lane_id}" s="20" offset="0"/>
+                <LanePosition roadId="3" laneId="${tv_lane_id}" s="40" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -128,13 +128,13 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="ego_curve" maximumExecutionCount="1">
+        <ManeuverGroup name="ev_curve" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
-            <EntityRef entityRef="ego"/>
+            <EntityRef entityRef="ev"/>
           </Actors>
-          <Maneuver name="curve_maneuver">
-            <Event name="curve_event" priority="overwrite">
-              <Action name="curve_action">
+          <Maneuver name="ev_curve_maneuver">
+            <Event name="ev_curve_event" priority="overwrite">
+              <Action name="ev_curve_action">
                 <PrivateAction>
                   <RoutingAction>
                     <FollowTrajectoryAction>
@@ -156,7 +156,7 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="curve_start" delay="0" conditionEdge="rising">
+                  <Condition name="ev_curve_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
                       <SimulationTimeCondition value="${curve_start_time}" rule="greaterThan"/>
                     </ByValueCondition>

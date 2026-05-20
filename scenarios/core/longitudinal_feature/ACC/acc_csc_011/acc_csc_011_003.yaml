@@ -1,7 +1,7 @@
 scenario_id: acc_csc_011_003
 logic:
   scenario_id: acc_csc_011
-  name: TV1 Cut out right + new slow TV2
+  name: TV1 Cut out left + new slow TV2
   functional: ACC
   feature_domain: Longitudinal
   pre_condition:
@@ -25,11 +25,16 @@ logic:
   - type: cutout_event
     actor: tv1
     direction: right
-  - type: appear_event
-    actor: tv2
-    position: front_ego
 parameters:
-  ev_speed: 60
-  tv_speed: 40
-  light: night
-  curve_radius: 250
+  ev_lane_id: -1
+  tv1_lane_id: -1
+  tv2_lane_id: -1
+  ev_speed: 10
+  tv1_speed: 3
+  tv2_speed: 4
+  trigger_cutout_time: 5
+  maintain_duration: 15
+  lane_change_distance: 3
+  lane_change_direction: -1
+  light: day
+  weather: fog

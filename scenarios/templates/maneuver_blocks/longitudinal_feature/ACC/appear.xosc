@@ -13,7 +13,7 @@
                 value="0"
                 dynamicsDimension="time"/>
               <SpeedActionTarget>
-                <AbsoluteTargetSpeed value="${tv_speed}"/>
+                <AbsoluteTargetSpeed value="${actor_speed}"/>
               </SpeedActionTarget>
             </SpeedAction>
           </LongitudinalAction>

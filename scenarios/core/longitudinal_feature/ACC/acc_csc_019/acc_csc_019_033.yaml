@@ -11,22 +11,22 @@ logic:
       type: ego
       lane: ego
       state: moving
-    tv1:
+    tv:
       type: car
       lane: right
       state: static
   maneuvers:
-  - type: ev_cutout_event
+  - type: cutout_event
     actor: ev
     direction: right
 parameters:
   ev_lane_id: -1
   tv_lane_id: -2
-  ev_speed: 20
+  ev_speed: 10
   tv_speed: 0
   trigger_cutout_time: 1
-  maintain_duration: 20
-  lane_change_distance: 5
+  maintain_duration: 10
+  lane_change_distance: 4
   lane_change_direction: -1
   light: day
   weather: fog

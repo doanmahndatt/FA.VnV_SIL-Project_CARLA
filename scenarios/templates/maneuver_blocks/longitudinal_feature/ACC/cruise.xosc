@@ -1,0 +1,38 @@
+<ManeuverGroup name="${actor}_cruise_control" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="${actor}_cruise_control_maneuver">
+    <Event name="${actor}_cruise_event" priority="overwrite">
+      <Action name="${actor}_cruise_action">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                  dynamicsShape="linear"
+                  value= "${response_cruise_time}"
+                  dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${actor_speed}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <!-- Start cruise immediately -->
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_cruise_start"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="0"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

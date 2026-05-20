@@ -16,7 +16,7 @@ logic:
       lane: next_to_ego
       state: moving
   maneuvers:
-  - type: cruise_event
+    type: cruise_event
     actor: ev
 parameters:
   ev_lane_id: -2
