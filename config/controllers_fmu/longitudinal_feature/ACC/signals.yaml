@@ -1,0 +1,118 @@
+controller:
+  name: ACCController
+  fmu_file: ACC_controller.fmu
+  fmi_version: "2.0"
+  mode: CoSimulation
+
+carla:
+  host: localhost
+  port: 2000
+  timeout_s: 60.0
+  ego_role_name: ev
+  target_role_prefix: tv
+  fixed_delta_seconds: 0.05
+
+parameters:
+  target_speed: 20.0
+  time_gap: 1.8
+  min_distance: 10.0
+  kp_speed: 0.35
+  kp_steer: 1.2
+  max_throttle: 0.75
+  max_brake: 0.65
+  max_steer: 0.6
+  waypoint_reached_threshold: 2.0
+
+inputs:
+  ego_speed:
+    source: carla.ego.speed
+    unit: mps
+
+  lead_distance:
+    source: carla.runtime.longitudinal_distance
+    unit: m
+
+  lead_speed:
+    source: carla.target.speed
+    unit: mps
+
+  target_speed:
+    source: scenario.parameter.desired_speed
+    unit: mps
+
+  time_gap:
+    source: scenario.parameter.time_headway
+    unit: s
+
+  min_distance:
+    source: scenario.parameter.min_distance
+    unit: m
+
+  heading_error:
+    source: carla.runtime.route_heading_error
+    unit: rad
+
+  has_lead:
+    source: carla.runtime.has_lead_vehicle
+    unit: boolean
+
+  has_waypoint:
+    source: carla.runtime.has_active_waypoint
+    unit: boolean
+
+  kp_speed:
+    source: controller.parameter.kp_speed
+    unit: "1/s"
+
+  kp_steer:
+    source: controller.parameter.kp_steer
+    unit: "1/rad"
+
+  max_throttle:
+    source: controller.parameter.max_throttle
+    unit: normalized
+
+  max_brake:
+    source: controller.parameter.max_brake
+    unit: normalized
+
+  max_steer:
+    source: controller.parameter.max_steer
+    unit: normalized
+
+outputs:
+  throttle:
+    target: carla.vehicle_control.throttle
+    unit: normalized
+
+  brake:
+    target: carla.vehicle_control.brake
+    unit: normalized
+
+  steer:
+    target: carla.vehicle_control.steer
+    unit: normalized
+
+  acceleration:
+    target: debug.acceleration
+    unit: mps2
+
+  deceleration:
+    target: debug.deceleration
+    unit: normalized
+
+  jerk:
+    target: debug.jerk
+    unit: mps3
+
+  acc_target_speed:
+    target: debug.acc_target_speed
+    unit: mps
+
+  safe_distance:
+    target: debug.safe_distance
+    unit: m
+
+  distance_error:
+    target: debug.distance_error
+    unit: m

@@ -10,7 +10,7 @@ class CarlaCollector:
 
     def __init__(self, host="127.0.0.1", port=2000):
         self.client = carla.Client(host, port)
-        self.client.set_timeout(5.0)
+        self.client.set_timeout(60.0)
 
         self.world = self.client.get_world()
         self.ego_vehicle = None

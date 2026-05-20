@@ -239,7 +239,7 @@ class BatchRunner:
                 on_log(f"Reload world: {map_name}")
 
             client = carla.Client(HOST, PORT)
-            client.set_timeout(10.0)
+            client.set_timeout(60.0)
             client.load_world(map_name)
             time.sleep(3)
         except Exception as exc:

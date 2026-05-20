@@ -2,6 +2,7 @@
 # FA VnV SIL / CARLA .xosc runner dependencies
 # Target environment:
 #   - Windows 10/11
+#   - Ubuntu 20.04 / 22.04
 #   - Python version compatible with the CARLA Python API wheel
 #   - CARLA Simulator 0.9.16
 #
@@ -12,42 +13,84 @@
 # Note:
 #   If `carla==0.9.16` cannot be resolved from pip in a fresh environment,
 #   install the CARLA wheel shipped with your CARLA package instead:
+#
+#   Windows:
 #   pip install C:\CARLA_0.9.16\PythonAPI\carla\dist\<matching-cp-tag>.whl
+#
+#   Linux:
+#   pip install ~/CARLA_0.9.16/PythonAPI/carla/dist/<matching-cp-tag>.whl
 # ============================================================================
 
+# ----------------------------------------------------------------------------
 # CARLA Python API
+# ----------------------------------------------------------------------------
 carla==0.9.16
 
+# ----------------------------------------------------------------------------
+# Core numerical stack
+# IMPORTANT:
+# CARLA ecosystem is not fully stable with NumPy 2.x yet.
+# Use NumPy 1.26.x for compatibility with:
+#   - pandas
+#   - numexpr
+#   - bottleneck
+#   - matplotlib
+#   - opencv-python
+# ----------------------------------------------------------------------------
+numpy==2.1.3
+
+# ----------------------------------------------------------------------------
 # Project runtime: GUI, batch runner, KPI, report writer
+# ----------------------------------------------------------------------------
 pygame==2.6.1
-pandas==2.3.3
+pandas==2.2.3
 openpyxl==3.1.5
 PyYAML==6.0.3
 lxml==6.1.0
+fmpy==0.3.22
+pythonfmu==0.6.9
 
+# ----------------------------------------------------------------------------
 # CARLA ScenarioRunner runtime
+# ----------------------------------------------------------------------------
 py-trees==0.8.3
-networkx==3.4.2
-Shapely==2.1.2
-xmlschema==4.3.1
-opencv-python==4.13.0.92
+networkx==3.3
+Shapely==2.0.7
+xmlschema==3.4.5
+
+# OpenCV version stable with NumPy 1.26.x
+opencv-python==4.10.0.84
+
 antlr4-python3-runtime==4.10
-psutil==7.2.2
-ephem==4.2.1
-tabulate==0.10.0
-matplotlib==3.10.9
+psutil==7.0.0
+ephem==4.1.6
+tabulate==0.9.0
+
+# Stable matplotlib compatible with NumPy 1.26.x
+matplotlib==3.8.4
+
 six==1.17.0
 simple-watchdog-timer==0.1.1
-graphviz==0.21
-numpy==2.2.6
+graphviz==0.20.3
 
-# Test/development utilities used by the repo test suite
-pytest==9.0.3
-pytest-cov==7.0.0
-pytest-mock==3.15.1
+# ----------------------------------------------------------------------------
+# Optional performance dependencies
+# These versions are compatible with NumPy 1.26.x
+# ----------------------------------------------------------------------------
+numexpr==2.10.1
+bottleneck==1.4.0
 
-# Code quality tools, optional but useful for local maintenance
-black==25.12.0
-flake8==7.3.0
-isort==7.0.0
-mypy==1.19.0
+# ----------------------------------------------------------------------------
+# Test / development utilities
+# ----------------------------------------------------------------------------
+pytest==8.3.5
+pytest-cov==5.0.0
+pytest-mock==3.14.0
+
+# ----------------------------------------------------------------------------
+# Code quality tools
+# ----------------------------------------------------------------------------
+black==24.10.0
+flake8==7.1.1
+isort==5.13.2
+mypy==1.11.2

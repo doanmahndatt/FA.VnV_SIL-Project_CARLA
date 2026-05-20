@@ -101,10 +101,23 @@
           <PrivateAction>
             <ControllerAction>
               <AssignControllerAction>
-                <Controller name="ACC_controller">
+                <Controller name="ACC_fmu_controller">
                   <Properties>
-                    <Property name="module" value="config/controllers/longitudinal_feature/ACC/ACC_controller.py"/>
+                    <Property name="module" value="config/controllers_fmu/longitudinal_feature/ACC/ACC_fmu_controller.py"/>
+                    <Property name="config" value="config/controllers_fmu/longitudinal_feature/ACC/signals.yaml"/>
+                    <Property name="fmu" value="config/controllers_fmu/longitudinal_feature/ACC/ACC_controller.fmu"/>
                     <Property name="desired_speed" value="10"/>
+                    <Property name="target_speed" value="10"/>
+                    <Property name="time_gap" value="1.8"/>
+                    <Property name="time_headway" value="1.8"/>
+                    <Property name="min_distance" value="10.0"/>
+                    <Property name="kp_speed" value="0.35"/>
+                    <Property name="kp_steer" value="1.2"/>
+                    <Property name="max_throttle" value="0.75"/>
+                    <Property name="max_brake" value="0.65"/>
+                    <Property name="max_steer" value="0.6"/>
+                    <Property name="waypoint_reached_threshold" value="2.0"/>
+                    <Property name="fixed_delta_seconds" value="0.05"/>
                     <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>

@@ -22,7 +22,7 @@ pygame.display.set_caption("ADAS HUD")
 font = pygame.font.SysFont("consolas", 20)
 
 client = carla.Client("localhost", 2000)
-client.set_timeout(10)
+client.set_timeout(60)
 
 
 _map_cache = {}

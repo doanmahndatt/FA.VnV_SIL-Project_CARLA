@@ -32,10 +32,12 @@ FEATURE_DOMAIN_DIRS = {
 # IO
 # =========================================================
 
+
 def load_yaml(path):
     """Load YAML file with UTF-8 encoding."""
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
 
 def load_text(path):
     """Load text file with UTF-8 encoding."""
@@ -114,12 +116,7 @@ def core_parent_from_selector(selector):
     parts = split_selector(selector)
     if len(parts) != 2:
         raise ValueError("Folder selector must be '<feature_domain>/<functional>'")
-    return (
-        BASE
-        / "core"
-        / normalize_selector_part(parts[0])
-        / normalize_functional_part(parts[1])
-    )
+    return BASE / "core" / normalize_selector_part(parts[0]) / normalize_functional_part(parts[1])
 
 
 def output_dir_for_core(core):
@@ -138,40 +135,97 @@ def output_dir_for_core(core):
     )
 
 
+CONTROLLER_DEFAULTS = {
+    "time_gap": "1.8",
+    "time_headway": "1.8",
+    "min_distance": "10.0",
+    "kp_speed": "0.35",
+    "kp_steer": "1.2",
+    "max_throttle": "0.75",
+    "max_brake": "0.65",
+    "max_steer": "0.6",
+    "waypoint_reached_threshold": "2.0",
+    "fixed_delta_seconds": "0.05",
+}
+
+
 def resolve_controller_module(core):
     feature_domain, functional = metadata_from_core(core)
     controller_path = (
         Path("config")
-        / "controllers"
+        / "controllers_fmu"
         / to_feature_domain_dir(feature_domain)
         / to_functional_dir(functional)
-        / f"{to_functional_dir(functional)}_controller.py"
+        / f"{to_functional_dir(functional)}_fmu_controller.py"
     )
 
     if not (PROJECT_PATHS.repo_root / controller_path).exists():
         raise RuntimeError(
-            "Controller module not found for "
+            "FMU controller module not found for "
             f"functional='{functional}', feature_domain='{feature_domain}'. "
             f"Expected: {PROJECT_PATHS.repo_root / controller_path}"
         )
 
     return controller_path.as_posix()
 
+
+def resolve_controller_config(core):
+    feature_domain, functional = metadata_from_core(core)
+    config_path = (
+        Path("config")
+        / "controllers_fmu"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+        / "signals.yaml"
+    )
+
+    if not (PROJECT_PATHS.repo_root / config_path).exists():
+        raise RuntimeError(
+            "FMU controller config not found for "
+            f"functional='{functional}', feature_domain='{feature_domain}'. "
+            f"Expected: {PROJECT_PATHS.repo_root / config_path}"
+        )
+
+    return config_path.as_posix()
+
+
+def resolve_controller_fmu(core):
+    feature_domain, functional = metadata_from_core(core)
+    fmu_path = (
+        Path("config")
+        / "controllers_fmu"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+        / f"{to_functional_dir(functional)}_controller.fmu"
+    )
+
+    if not (PROJECT_PATHS.repo_root / fmu_path).exists():
+        raise RuntimeError(
+            "FMU binary not found for "
+            f"functional='{functional}', feature_domain='{feature_domain}'. "
+            f"Expected: {PROJECT_PATHS.repo_root / fmu_path}"
+        )
+
+    return fmu_path.as_posix()
+
+
 # =========================================================
 # XML FORMATTING
 # =========================================================
+
 
 def prettify_xml(elem, indent="  "):
     rough_string = ET.tostring(elem, encoding="unicode")
     reparsed = minidom.parseString(rough_string)
     pretty_xml = reparsed.toprettyxml(indent=indent)
 
-    lines = [line for line in pretty_xml.split('\n') if line.strip()]
+    lines = [line for line in pretty_xml.split("\n") if line.strip()]
 
-    if lines and lines[0].startswith('<?xml'):
+    if lines and lines[0].startswith("<?xml"):
         lines = lines[1:]
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
+
 
 def write_xosc_file(tree, output_path):
     root = tree.getroot()
@@ -182,9 +236,11 @@ def write_xosc_file(tree, output_path):
         f.write(pretty_xml)
         f.write("\n")
 
+
 # =========================================================
 # ENVIRONMENT MAPPING
 # =========================================================
+
 
 def map_environment(params):
     """Map scenario parameters to environment configuration."""
@@ -194,48 +250,60 @@ def map_environment(params):
     env = {}
 
     if light == "day":
-        env.update({
-            "time_of_day": "2026-01-01T12:00:00",
-            "sun_intensity": "1.0",
-            "sun_elevation": "70",
-        })
+        env.update(
+            {
+                "time_of_day": "2026-01-01T12:00:00",
+                "sun_intensity": "1.0",
+                "sun_elevation": "70",
+            }
+        )
     else:
-        env.update({
-            "time_of_day": "2026-01-01T00:00:00",
-            "sun_intensity": "0.05",
-            "sun_elevation": "-10",
-        })
+        env.update(
+            {
+                "time_of_day": "2026-01-01T00:00:00",
+                "sun_intensity": "0.05",
+                "sun_elevation": "-10",
+            }
+        )
 
     if weather == "clear":
-        env.update({
-            "cloud_state": "free",
-            "fog_range": "100000",
-            "precip_type": "dry",
-            "precip_intensity": "0",
-            "friction": "1.0",
-        })
+        env.update(
+            {
+                "cloud_state": "free",
+                "fog_range": "100000",
+                "precip_type": "dry",
+                "precip_intensity": "0",
+                "friction": "1.0",
+            }
+        )
     elif weather == "rain":
-        env.update({
-            "cloud_state": "overcast",
-            "fog_range": "30000",
-            "precip_type": "rain",
-            "precip_intensity": "0.7",
-            "friction": "0.7",
-        })
+        env.update(
+            {
+                "cloud_state": "overcast",
+                "fog_range": "30000",
+                "precip_type": "rain",
+                "precip_intensity": "0.7",
+                "friction": "0.7",
+            }
+        )
     elif weather == "fog":
-        env.update({
-            "cloud_state": "cloudy",
-            "fog_range": "80",
-            "precip_type": "dry",
-            "precip_intensity": "0",
-            "friction": "0.9",
-        })
+        env.update(
+            {
+                "cloud_state": "cloudy",
+                "fog_range": "80",
+                "precip_type": "dry",
+                "precip_intensity": "0",
+                "friction": "0.9",
+            }
+        )
 
     return env
+
 
 # =========================================================
 # MANEUVER BLOCK DISCOVERY
 # =========================================================
+
 
 def maneuver_block_dir(core):
     feature_domain, functional = metadata_from_core(core)
@@ -252,7 +320,7 @@ def normalize_event_type(event_name):
     event_name = str(event_name).strip()
     for prefix in ("${actor}_", "actor_"):
         if event_name.startswith(prefix):
-            return event_name[len(prefix):]
+            return event_name[len(prefix) :]
     return event_name
 
 
@@ -296,8 +364,7 @@ def normalize_maneuvers(maneuvers):
     if isinstance(maneuvers, list):
         return maneuvers
     raise RuntimeError(
-        "Maneuvers must be a mapping or a list of mappings, "
-        f"got {type(maneuvers).__name__}"
+        "Maneuvers must be a mapping or a list of mappings, " f"got {type(maneuvers).__name__}"
     )
 
 
@@ -315,9 +382,11 @@ def uses_multi_tv_storyboard(core):
     maneuvers = normalize_maneuvers(logic.get("maneuvers"))
     return any(re.fullmatch(r"tv\d+", actor or "") for actor in map(maneuver_actor, maneuvers))
 
+
 # =========================================================
 # MANEUVER GROUP INSERTION
 # =========================================================
+
 
 def insert_maneuver_group(act, maneuver_group):
     start_trigger = act.find("StartTrigger")
@@ -334,9 +403,11 @@ def insert_maneuver_group(act, maneuver_group):
 
     act.insert(index, maneuver_group)
 
+
 # =========================================================
 # MANEUVER GROUP RENDERING
 # =========================================================
+
 
 def render_maneuver_group(block_file, params, actor, core):
     path = maneuver_block_dir(core) / block_file
@@ -363,15 +434,15 @@ def render_maneuver_group(block_file, params, actor, core):
         raise RuntimeError(f"XML parse error in block {block_file}: {e}")
 
     if group.tag != "ManeuverGroup":
-        raise RuntimeError(
-            f"Block {block_file} root is <{group.tag}>, expected <ManeuverGroup>"
-        )
+        raise RuntimeError(f"Block {block_file} root is <{group.tag}>, expected <ManeuverGroup>")
 
     return group
+
 
 # =========================================================
 # STORYBOARD TEMPLATE RESOLUTION
 # =========================================================
+
 
 def resolve_storyboard_path(core):
     """
@@ -412,8 +483,7 @@ def resolve_storyboard_path(core):
     if feature_dir is None:
         valid_domains = ", ".join(FEATURE_DOMAIN_DIRS.keys())
         raise RuntimeError(
-            f"Unknown feature_domain '{feature_domain}'. "
-            f"Supported values: {valid_domains}"
+            f"Unknown feature_domain '{feature_domain}'. " f"Supported values: {valid_domains}"
         )
 
     storyboard_dir = BASE / "templates" / "storyboard" / feature_dir / functional
@@ -422,7 +492,9 @@ def resolve_storyboard_path(core):
         storyboard_kind = "multi-TVs" if uses_multi_tv_storyboard(core) else "single-TV"
         storyboard_path = storyboard_dir / f"{functional}_{storyboard_kind}_storyboard.xosc"
     else:
-        storyboard_path = BASE / "templates" / "storyboard" / feature_dir / f"{functional}_storyboard.xosc"
+        storyboard_path = (
+            BASE / "templates" / "storyboard" / feature_dir / f"{functional}_storyboard.xosc"
+        )
 
     if not os.path.exists(storyboard_path):
         raise RuntimeError(
@@ -433,9 +505,11 @@ def resolve_storyboard_path(core):
 
     return storyboard_path
 
+
 # =========================================================
 # CORE GENERATOR
 # =========================================================
+
 
 def generate_xosc(core):
     params = core.get("parameters", {})
@@ -474,10 +548,7 @@ def generate_xosc(core):
 
         try:
             maneuver_group = render_maneuver_group(
-                block_file=block_file,
-                params=params,
-                actor=actor,
-                core=core
+                block_file=block_file, params=params, actor=actor, core=core
             )
             insert_maneuver_group(act, maneuver_group)
         except RuntimeError as e:
@@ -487,8 +558,13 @@ def generate_xosc(core):
 
     controller_module = resolve_controller_module(core)
     xml_str = xml_str.replace("${controller_module}", escape(controller_module))
+    xml_str = xml_str.replace("${controller_config}", escape(resolve_controller_config(core)))
+    xml_str = xml_str.replace("${controller_fmu}", escape(resolve_controller_fmu(core)))
 
-    for k, v in params.items():
+    render_params = dict(CONTROLLER_DEFAULTS)
+    render_params.update(params)
+
+    for k, v in render_params.items():
         xml_str = xml_str.replace(f"${{{k}}}", escape(str(v)))
 
     env = map_environment(params)
@@ -500,9 +576,11 @@ def generate_xosc(core):
 
     return tree
 
+
 # =========================================================
 # DIRECTORY MANAGEMENT
 # =========================================================
+
 
 def clean_dir(path):
     """Remove all files from directory."""
@@ -573,7 +651,9 @@ def generate_folder(selector, clean=False):
 
 def generate_all(clean=False):
     core_root = BASE / "core"
-    for in_dir in sorted(path for path in core_root.rglob("*") if path.is_dir() and list(path.glob("*.yaml"))):
+    for in_dir in sorted(
+        path for path in core_root.rglob("*") if path.is_dir() and list(path.glob("*.yaml"))
+    ):
         generate_core_dir(in_dir, clean=clean)
 
 
@@ -585,9 +665,11 @@ def generate_range(selector_prefix, start, end, clean=False):
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
 
+
 # =========================================================
 # MAIN
 # =========================================================
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -597,21 +679,14 @@ def main():
         "selectors",
         nargs="*",
         help=(
-            "Scenario or folder selector, e.g. "
-            "longitudinal/acc/acc_csc_001 or longitudinal/acc"
+            "Scenario or folder selector, e.g. " "longitudinal/acc/acc_csc_001 or longitudinal/acc"
         ),
     )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Generate all scenarios"
-    )
+    parser.add_argument("--all", action="store_true", help="Generate all scenarios")
     parser.add_argument("--from", dest="start", type=int)
     parser.add_argument("--to", dest="end", type=int)
     parser.add_argument(
-        "--clean",
-        action="store_true",
-        help="Clean output directory before generation"
+        "--clean", action="store_true", help="Clean output directory before generation"
     )
     args = parser.parse_args()
 
@@ -641,6 +716,7 @@ def main():
                 generate_core_dir(core_dir_from_selector(selector), clean=args.clean)
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
+
 
 if __name__ == "__main__":
     main()

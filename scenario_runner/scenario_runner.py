@@ -84,8 +84,8 @@ class ScenarioRunner(object):
     ego_vehicles = []
 
     # Tunable parameters
-    client_timeout = 10.0  # in seconds
-    wait_for_world = 20.0  # in seconds
+    client_timeout = 120.0  # in seconds
+    wait_for_world = 30.0  # in seconds
 
     # CARLA world and scenario handlers
     world = None
@@ -416,7 +416,7 @@ class ScenarioRunner(object):
                                         ego_vehicles=self.ego_vehicles,
                                         config=config,
                                         config_file=self._args.openscenario,
-                                        timeout=100000)
+                                        timeout=120000)
             elif self._args.route:
                 scenario = RouteScenario(world=self.world,
                                          config=config,
@@ -426,7 +426,7 @@ class ScenarioRunner(object):
                                         ego_vehicles=self.ego_vehicles,
                                         config=config,
                                         osc2_file=self._args.openscenario2,
-                                        timeout=100000)
+                                        timeout=120000)
             else:
                 scenario_class = self._get_scenario_class_or_fail(config.type)
                 scenario = scenario_class(world=self.world,

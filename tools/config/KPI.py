@@ -8,7 +8,7 @@ class KPIMonitor:
     def __init__(self, host="localhost", port=2000):
 
         self.client = carla.Client(host, port)
-        self.client.set_timeout(5.0)
+        self.client.set_timeout(60.0)
 
         self.world = None
         self.collision_sensor = None

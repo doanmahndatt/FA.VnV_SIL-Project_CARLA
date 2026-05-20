@@ -135,15 +135,28 @@
           </PrivateAction>
         </Private>
 
-        <!-- ===== EV ACC CONTROLLER ===== -->
+        <!-- ===== EV ACC FMU CONTROLLER ===== -->
         <Private entityRef="ev">
           <PrivateAction>
             <ControllerAction>
               <AssignControllerAction>
-                <Controller name="ACC_controller">
+                <Controller name="ACC_fmu_controller">
                   <Properties>
                     <Property name="module" value="${controller_module}"/>
+                    <Property name="config" value="${controller_config}"/>
+                    <Property name="fmu" value="${controller_fmu}"/>
                     <Property name="desired_speed" value="${ev_speed}"/>
+                    <Property name="target_speed" value="${ev_speed}"/>
+                    <Property name="time_gap" value="${time_gap}"/>
+                    <Property name="time_headway" value="${time_headway}"/>
+                    <Property name="min_distance" value="${min_distance}"/>
+                    <Property name="kp_speed" value="${kp_speed}"/>
+                    <Property name="kp_steer" value="${kp_steer}"/>
+                    <Property name="max_throttle" value="${max_throttle}"/>
+                    <Property name="max_brake" value="${max_brake}"/>
+                    <Property name="max_steer" value="${max_steer}"/>
+                    <Property name="waypoint_reached_threshold" value="${waypoint_reached_threshold}"/>
+                    <Property name="fixed_delta_seconds" value="${fixed_delta_seconds}"/>
                     <Property name="target_role_prefix" value="tv"/>
                   </Properties>
                 </Controller>

@@ -2,7 +2,7 @@ import carla
 import time
 
 client = carla.Client("localhost", 2000)
-client.set_timeout(10.0)
+client.set_timeout(60.0)
 
 print("birdview camera started")
 
