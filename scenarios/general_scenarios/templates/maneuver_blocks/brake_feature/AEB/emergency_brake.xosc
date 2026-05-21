@@ -1,0 +1,69 @@
+<ManeuverGroup name="${actor}_emergency_brake" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="${actor}_emergency_brake_maneuver">
+    <Event name="${actor}_brake_event" priority="overwrite">
+      <Action name="${actor}_emergency_brake_action">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                  dynamicsShape="linear"
+                  value="${tv_deceleration}"
+                  dynamicsDimension="rate"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="0"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_emergency_brake_start"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition
+                  value="${trigger_emergency_brake_time}"
+                  rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+
+    <Event name="${actor}_hold_stop_event" priority="parallel">
+      <Action name="${actor}_hold_stop_action">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="0"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_hold_after_emergency_brake"
+                     delay="0"
+                     conditionEdge="rising">
+            <ByValueCondition>
+              <StoryboardElementStateCondition
+                  storyboardElementRef="${actor}_brake_event"
+                  storyboardElementType="event"
+                  state="endTransition"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

@@ -1,0 +1,98 @@
+controller:
+  name: LKAController
+  fmu_file: LKA_controller.fmu
+  fmi_version: "2.0"
+  mode: CoSimulation
+
+carla:
+  host: localhost
+  port: 2000
+  timeout_s: 60.0
+  ego_role_name: ev
+  fixed_delta_seconds: 0.05
+
+parameters:
+  target_speed: 15.0
+  activation_offset: 0.25
+  deadband_offset: 0.05
+  kp_offset: 0.22
+  kp_heading: 0.85
+  kp_speed: 0.25
+  max_steer: 0.45
+  max_throttle: 0.45
+  max_brake: 0.25
+  offset_command_steer: 0.05
+
+inputs:
+  ego_speed:
+    source: carla.ego.speed
+    unit: mps
+
+  target_speed:
+    source: scenario.parameter.desired_speed
+    unit: mps
+
+  lane_offset:
+    source: carla.runtime.signed_lane_center_offset
+    unit: m
+
+  heading_error:
+    source: carla.runtime.lane_heading_error
+    unit: rad
+
+  has_lane:
+    source: carla.runtime.has_driving_lane
+    unit: boolean
+
+  activation_offset:
+    source: controller.parameter.activation_offset
+    unit: m
+
+  deadband_offset:
+    source: controller.parameter.deadband_offset
+    unit: m
+
+  kp_offset:
+    source: controller.parameter.kp_offset
+    unit: "1/m"
+
+  kp_heading:
+    source: controller.parameter.kp_heading
+    unit: "1/rad"
+
+  kp_speed:
+    source: controller.parameter.kp_speed
+    unit: "1/s"
+
+  max_steer:
+    source: controller.parameter.max_steer
+    unit: normalized
+
+  max_throttle:
+    source: controller.parameter.max_throttle
+    unit: normalized
+
+  max_brake:
+    source: controller.parameter.max_brake
+    unit: normalized
+
+outputs:
+  throttle:
+    target: carla.vehicle_control.throttle
+    unit: normalized
+
+  brake:
+    target: carla.vehicle_control.brake
+    unit: normalized
+
+  steer:
+    target: carla.vehicle_control.steer
+    unit: normalized
+
+  corrected_offset:
+    target: debug.corrected_lane_offset
+    unit: m
+
+  lka_state:
+    target: debug.lka_state
+    unit: enum

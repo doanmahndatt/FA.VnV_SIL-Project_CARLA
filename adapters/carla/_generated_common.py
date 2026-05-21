@@ -28,6 +28,8 @@ FEATURE_DOMAIN_DIRS = {
     "Brake": "brake_feature",
 }
 
+FEATURE_DOMAIN_NAMES = {value: key for key, value in FEATURE_DOMAIN_DIRS.items()}
+
 # =========================================================
 # IO
 # =========================================================
@@ -70,6 +72,46 @@ def normalize_functional_part(value):
 
 def split_selector(selector):
     return [part for part in selector.replace("\\", "/").strip("/").split("/") if part]
+
+
+def canonical_feature_domain_dir(value):
+    value = str(value).strip()
+    if not value:
+        return ""
+    if value in FEATURE_DOMAIN_DIRS:
+        return FEATURE_DOMAIN_DIRS[value]
+    return normalize_selector_part(value)
+
+
+def validate_selector_domain(selector, allowed_feature_domain_dir):
+    if allowed_feature_domain_dir is None:
+        return
+
+    parts = split_selector(selector)
+    if len(parts) < 2:
+        return
+
+    selector_domain = canonical_feature_domain_dir(parts[0])
+    if selector_domain != allowed_feature_domain_dir:
+        expected = FEATURE_DOMAIN_NAMES.get(allowed_feature_domain_dir, allowed_feature_domain_dir)
+        raise ValueError(
+            f"Selector '{selector}' belongs to '{selector_domain}', "
+            f"but this generator only supports '{expected}'"
+        )
+
+
+def validate_core_domain(core, source, allowed_feature_domain_dir):
+    if allowed_feature_domain_dir is None:
+        return
+
+    feature_domain, _ = metadata_from_core(core)
+    core_domain = to_feature_domain_dir(feature_domain)
+    if core_domain != allowed_feature_domain_dir:
+        expected = FEATURE_DOMAIN_NAMES.get(allowed_feature_domain_dir, allowed_feature_domain_dir)
+        raise RuntimeError(
+            f"{source} belongs to feature_domain='{feature_domain}', "
+            f"but this generator only supports '{expected}'"
+        )
 
 
 def scenario_prefix_from_case_id(case_id):
@@ -596,7 +638,7 @@ def clean_dir(path):
                 print(f"[WARN] Failed to remove {fp}: {e}")
 
 
-def generate_core_dir(in_dir, clean=False):
+def generate_core_dir(in_dir, clean=False, allowed_feature_domain_dir=None):
     if not os.path.isdir(in_dir):
         raise FileNotFoundError(f"Core scenario folder not found: {in_dir}")
 
@@ -617,6 +659,8 @@ def generate_core_dir(in_dir, clean=False):
 
             if not core:
                 raise ValueError("YAML file is empty")
+
+            validate_core_domain(core, yaml_path, allowed_feature_domain_dir)
 
             out_dir = output_dir_for_core(core)
             if output_dir is None:
@@ -640,28 +684,49 @@ def generate_core_dir(in_dir, clean=False):
     print(f"[DONE] {Path(in_dir).name}: generated={generated}, skipped={skipped}\n")
 
 
-def generate_folder(selector, clean=False):
+def generate_folder(selector, clean=False, allowed_feature_domain_dir=None):
+    validate_selector_domain(selector, allowed_feature_domain_dir)
     core_parent = core_parent_from_selector(selector)
     if not core_parent.exists():
         raise FileNotFoundError(f"Core folder not found: {core_parent}")
 
     for in_dir in sorted(path for path in core_parent.iterdir() if path.is_dir()):
-        generate_core_dir(in_dir, clean=clean)
+        generate_core_dir(
+            in_dir,
+            clean=clean,
+            allowed_feature_domain_dir=allowed_feature_domain_dir,
+        )
 
 
-def generate_all(clean=False):
+def generate_all(clean=False, allowed_feature_domain_dir=None):
     core_root = BASE / "core"
+    if allowed_feature_domain_dir is not None:
+        core_root = core_root / allowed_feature_domain_dir
+
+    if not core_root.exists():
+        print(f"[WARN] Core root not found: {core_root}")
+        return
+
     for in_dir in sorted(
         path for path in core_root.rglob("*") if path.is_dir() and list(path.glob("*.yaml"))
     ):
-        generate_core_dir(in_dir, clean=clean)
+        generate_core_dir(
+            in_dir,
+            clean=clean,
+            allowed_feature_domain_dir=allowed_feature_domain_dir,
+        )
 
 
-def generate_range(selector_prefix, start, end, clean=False):
+def generate_range(selector_prefix, start, end, clean=False, allowed_feature_domain_dir=None):
+    validate_selector_domain(selector_prefix, allowed_feature_domain_dir)
     for i in range(start, end + 1):
         selector = f"{selector_prefix}_{i:03d}"
         try:
-            generate_core_dir(core_dir_from_selector(selector), clean=clean)
+            generate_core_dir(
+                core_dir_from_selector(selector),
+                clean=clean,
+                allowed_feature_domain_dir=allowed_feature_domain_dir,
+            )
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
 
@@ -671,9 +736,17 @@ def generate_range(selector_prefix, start, end, clean=False):
 # =========================================================
 
 
-def main():
+def main(allowed_feature_domain_dir=None):
+    if allowed_feature_domain_dir is not None:
+        allowed_feature_domain_dir = canonical_feature_domain_dir(allowed_feature_domain_dir)
+
+    domain_help = ""
+    if allowed_feature_domain_dir is not None:
+        domain_name = FEATURE_DOMAIN_NAMES.get(allowed_feature_domain_dir, allowed_feature_domain_dir)
+        domain_help = f" for {domain_name} scenarios"
+
     parser = argparse.ArgumentParser(
-        description="Generate XOSC scenario files from YAML definitions"
+        description=f"Generate XOSC scenario files from YAML definitions{domain_help}"
     )
     parser.add_argument(
         "selectors",
@@ -691,13 +764,19 @@ def main():
     args = parser.parse_args()
 
     if args.all:
-        generate_all(clean=args.clean)
+        generate_all(clean=args.clean, allowed_feature_domain_dir=allowed_feature_domain_dir)
         return
 
     if args.start is not None and args.end is not None:
         if len(args.selectors) != 1:
             parser.error("--from/--to requires exactly one selector prefix")
-        generate_range(args.selectors[0], args.start, args.end, clean=args.clean)
+        generate_range(
+            args.selectors[0],
+            args.start,
+            args.end,
+            clean=args.clean,
+            allowed_feature_domain_dir=allowed_feature_domain_dir,
+        )
         return
 
     if args.start is not None or args.end is not None:
@@ -710,11 +789,22 @@ def main():
     for selector in args.selectors:
         parts = split_selector(selector)
         try:
+            validate_selector_domain(selector, allowed_feature_domain_dir)
             if len(parts) == 2:
-                generate_folder(selector, clean=args.clean)
+                generate_folder(
+                    selector,
+                    clean=args.clean,
+                    allowed_feature_domain_dir=allowed_feature_domain_dir,
+                )
             else:
-                generate_core_dir(core_dir_from_selector(selector), clean=args.clean)
+                generate_core_dir(
+                    core_dir_from_selector(selector),
+                    clean=args.clean,
+                    allowed_feature_domain_dir=allowed_feature_domain_dir,
+                )
         except FileNotFoundError as e:
+            print(f"[SKIP] {e}")
+        except ValueError as e:
             print(f"[SKIP] {e}")
 
 

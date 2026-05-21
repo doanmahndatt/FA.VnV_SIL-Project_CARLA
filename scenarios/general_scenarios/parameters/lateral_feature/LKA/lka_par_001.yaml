@@ -1,0 +1,18 @@
+parameters:
+  # ==== SPAWN EV,TV ====
+  ev_lane_id: [-2]
+  tv_lane_id: [-2]
+
+  # ===== SPEED =====
+  ev_speed: [15] # unit: m/s
+  tv_speed: [15] # unit: m/s
+
+  # ===== LANE DEPARTURE =====
+  trigger_lane_departure_time: [5] # unit: s
+  lane_departure_offset: [0.35] # unit: m, positive is right side of lane center
+  lane_departure_max_lateral_acc: [0.8] # unit: m/s2
+  lane_departure_release_time: [5.4] # unit: s
+
+  # ===== ENVIRONMENT =====
+  light: [day]
+  weather: [clear]

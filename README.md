@@ -96,7 +96,11 @@ Test_assets_v1.3/
 │
 ├── 🔌 adapters/
 │   └── carla/
-│       ├── generated.py                              # Core YAML → CARLA .xosc
+│       ├── _generated_common.py                      # Shared CARLA XOSC generation engine
+│       ├── generated_wrapper.py                      # Compatibility wrapper for all domains
+│       ├── longitudinal_feature/generated.py         # Longitudinal-only generator wrapper
+│       ├── lateral_feature/generated.py              # Lateral-only generator wrapper
+│       ├── brake_feature/generated.py                # Brake-only generator wrapper
 │       └── README.md                                 # Detailed generator guide
 │
 ├── 🖥  adas_sil_execution/
@@ -262,36 +266,55 @@ expander/README.md
 
 ## 8. Generate CARLA .xosc Files
 
-`adapters/carla/generated.py` converts core YAML cases into CARLA OpenSCENARIO `.xosc` files.
+`adapters/carla/generated_wrapper.py` converts core YAML cases into CARLA OpenSCENARIO `.xosc` files.
+The generator has also been split into domain wrappers so each feature domain scans only its own storyboard and maneuver blocks.
 
 Single scenario:
 
 ```powershell
-python adapters\carla\generated.py longitudinal/acc/acc_csc_001 --clean
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc_001 --clean
+python adapters\carla\lateral_feature\generated.py lateral/lka/lka_csc_001 --clean
+python adapters\carla\brake_feature\generated.py brake/aeb/aeb_csc_001 --clean
+```
+
+The compatibility wrapper still supports the old command style:
+
+```powershell
+python adapters\carla\generated_wrapper.py longitudinal/acc/acc_csc_001 --clean
 ```
 
 Multiple scenarios:
 
 ```powershell
-python adapters\carla\generated.py longitudinal/acc/acc_csc_001 longitudinal/acc/acc_csc_002
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc_001 longitudinal/acc/acc_csc_002
 ```
 
 Range:
 
 ```powershell
-python adapters\carla\generated.py longitudinal/acc/acc_csc --from 1 --to 22 --clean
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc --from 1 --to 22 --clean
 ```
 
 Whole functional folder:
 
 ```powershell
-python adapters\carla\generated.py longitudinal/acc --clean
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc --clean
+python adapters\carla\lateral_feature\generated.py lateral/lka --clean
+python adapters\carla\brake_feature\generated.py brake/aeb --clean
 ```
 
-Everything under `scenarios/general_scenarios/core/`:
+Everything under one domain:
 
 ```powershell
-python adapters\carla\generated.py --all --clean
+python adapters\carla\longitudinal_feature\generated.py --all --clean
+python adapters\carla\lateral_feature\generated.py --all --clean
+python adapters\carla\brake_feature\generated.py --all --clean
+```
+
+Everything under `scenarios/general_scenarios/core/` through the compatibility wrapper:
+
+```powershell
+python adapters\carla\generated_wrapper.py --all --clean
 ```
 
 Detailed guide:
@@ -412,7 +435,7 @@ For one ACC scenario:
 
 ```powershell
 python expander\expander.py longitudinal/acc/acc_csc_001 --clean
-python adapters\carla\generated.py longitudinal/acc/acc_csc_001 --clean
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc_001 --clean
 python scenario_runner\scenario_runner.py --openscenario scenarios\general_scenarios\generated\carla\longitudinal_feature\ACC\acc_csc_001\acc_csc_001_001.xosc --reloadWorld
 ```
 
@@ -420,7 +443,7 @@ If the single case works:
 
 ```powershell
 python expander\expander.py longitudinal/acc/acc_csc --from 1 --to 22 --clean
-python adapters\carla\generated.py longitudinal/acc/acc_csc --from 1 --to 22 --clean
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc --from 1 --to 22 --clean
 python tools\run_batch.py
 ```
 

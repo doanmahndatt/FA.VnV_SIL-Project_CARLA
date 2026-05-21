@@ -1,0 +1,138 @@
+controller:
+  name: AEBController
+  fmu_file: AEB_controller.fmu
+  fmi_version: "2.0"
+  mode: CoSimulation
+
+carla:
+  host: localhost
+  port: 2000
+  timeout_s: 60.0
+  ego_role_name: ev
+  target_role_prefix: tv
+  fixed_delta_seconds: 0.05
+
+parameters:
+  target_speed: 20.0
+  min_distance: 6.0
+  warning_ttc: 2.5
+  brake_ttc: 1.5
+  emergency_ttc: 0.8
+  kp_speed: 0.35
+  kp_brake: 0.45
+  max_throttle: 0.75
+  max_brake: 1.0
+  brake_hold_time: 0.5
+  kp_steer: 1.2
+  max_steer: 0.6
+  waypoint_reached_threshold: 2.0
+
+inputs:
+  ego_speed:
+    source: carla.ego.speed
+    unit: mps
+
+  lead_distance:
+    source: carla.runtime.longitudinal_distance
+    unit: m
+
+  lead_speed:
+    source: carla.target.speed
+    unit: mps
+
+  target_speed:
+    source: scenario.parameter.desired_speed
+    unit: mps
+
+  heading_error:
+    source: carla.runtime.route_heading_error
+    unit: rad
+
+  has_lead:
+    source: carla.runtime.has_lead_vehicle
+    unit: boolean
+
+  has_waypoint:
+    source: carla.runtime.has_active_waypoint
+    unit: boolean
+
+  min_distance:
+    source: controller.parameter.min_distance
+    unit: m
+
+  warning_ttc:
+    source: controller.parameter.warning_ttc
+    unit: s
+
+  brake_ttc:
+    source: controller.parameter.brake_ttc
+    unit: s
+
+  emergency_ttc:
+    source: controller.parameter.emergency_ttc
+    unit: s
+
+  kp_speed:
+    source: controller.parameter.kp_speed
+    unit: "1/s"
+
+  kp_brake:
+    source: controller.parameter.kp_brake
+    unit: normalized
+
+  max_throttle:
+    source: controller.parameter.max_throttle
+    unit: normalized
+
+  max_brake:
+    source: controller.parameter.max_brake
+    unit: normalized
+
+  brake_hold_time:
+    source: controller.parameter.brake_hold_time
+    unit: s
+
+  kp_steer:
+    source: controller.parameter.kp_steer
+    unit: "1/rad"
+
+  max_steer:
+    source: controller.parameter.max_steer
+    unit: normalized
+
+outputs:
+  throttle:
+    target: carla.vehicle_control.throttle
+    unit: normalized
+
+  brake:
+    target: carla.vehicle_control.brake
+    unit: normalized
+
+  steer:
+    target: carla.vehicle_control.steer
+    unit: normalized
+
+  deceleration:
+    target: debug.deceleration
+    unit: normalized
+
+  ttc:
+    target: debug.ttc
+    unit: s
+
+  relative_speed:
+    target: debug.relative_speed
+    unit: mps
+
+  safe_distance:
+    target: debug.safe_distance
+    unit: m
+
+  distance_error:
+    target: debug.distance_error
+    unit: m
+
+  aeb_state:
+    target: debug.aeb_state
+    unit: enum
