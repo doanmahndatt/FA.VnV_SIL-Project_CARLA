@@ -215,6 +215,7 @@ class CarlaACCSignalAdapter:
         self.target_role_prefix = target_role_prefix
         self.waypoint_reached_threshold = float(waypoint_reached_threshold)
         self.world_getter = world_getter
+        self._reference_lane_id = None
 
     def sample(self, waypoints=None) -> ACCSignals:
         waypoints = waypoints or []
@@ -286,7 +287,7 @@ class CarlaACCSignalAdapter:
 
     def _heading_error_from_waypoints(self, waypoints):
         if not waypoints:
-            return 0.0, False
+            return self._heading_error_from_lane_center()
 
         actor_location = self.ego.get_location()
         lookahead_distance = max(4.0, get_speed(self.ego) * 0.4)
@@ -297,6 +298,58 @@ class CarlaACCSignalAdapter:
                 break
 
         return heading_error(self.ego.get_transform(), target_location), True
+
+    def _heading_error_from_lane_center(self):
+        world = self._get_world()
+        if world is None:
+            return 0.0, False
+
+        world_map = world.get_map()
+        if world_map is None:
+            return 0.0, False
+
+        waypoint = get_waypoint(world_map, self.ego)
+        if waypoint is None:
+            return 0.0, False
+        waypoint = self._reference_lane_waypoint(waypoint)
+
+        lookahead_distance = max(6.0, get_speed(self.ego) * 0.6)
+        next_waypoints = waypoint.next(lookahead_distance)
+        if next_waypoints:
+            target_location = next_waypoints[0].transform.location
+        else:
+            target_location = waypoint.transform.location
+
+        return heading_error(self.ego.get_transform(), target_location), True
+
+    def _reference_lane_waypoint(self, waypoint):
+        if self._reference_lane_id is None:
+            self._reference_lane_id = waypoint.lane_id
+
+        if waypoint.lane_id == self._reference_lane_id:
+            return waypoint
+
+        candidates = [waypoint]
+        current = waypoint
+        for _ in range(2):
+            current = current.get_left_lane() if current is not None else None
+            if current is not None:
+                candidates.append(current)
+
+        current = waypoint
+        for _ in range(2):
+            current = current.get_right_lane() if current is not None else None
+            if current is not None:
+                candidates.append(current)
+
+        for candidate in candidates:
+            if (
+                candidate.lane_type == carla.LaneType.Driving
+                and candidate.lane_id == self._reference_lane_id
+            ):
+                return candidate
+
+        return waypoint
 
 
 class CarlaACCAdapter:

@@ -568,7 +568,6 @@ class HudPanel:
         y = self._classic_bar(y, "Throttle:", throttle, 0.0, 1.0)
         y = self._classic_bar(y, "Steer:", steer, -1.0, 1.0)
         y = self._classic_bar(y, "Brake:", brake, 0.0, 1.0)
-        y = self._classic_pair(y, "Reverse:", "[]")
         y = self._classic_pair(y, "Hand brake:", "[X]" if snapshot.hand_brake_active else "[]")
         y = self._classic_pair(y, "Brake lights:", "ON" if snapshot.brake_active else "OFF")
         y += 17
@@ -613,9 +612,12 @@ class HudPanel:
 
     def _classic_bar(self, y, label, value, min_value, max_value):
         self._classic_line(y, label)
+        percent_text = self._percent_text(value, signed=min_value < 0.0)
+        percent_surface = self.classic_font.render(percent_text, True, TEXT)
+        self.surface.blit(percent_surface, (self.width - percent_surface.get_width() - 10, y))
         bar_x = 98
         bar_y = y + 5
-        bar_w = self.width - bar_x - 16
+        bar_w = self.width - bar_x - percent_surface.get_width() - 24
         pygame.draw.rect(self.surface, TEXT, (bar_x, bar_y, bar_w, 6), 1)
 
         if min_value < 0:
@@ -856,7 +858,20 @@ class HudPanel:
             normalized = max(0.0, min(1.0, (value - min_value) / (max_value - min_value)))
             fill = pygame.Rect(bar_x, y + 3, int(bar_w * normalized), 9)
         pygame.draw.rect(self.surface, color, fill, border_radius=4)
-        self._text(f"{value:5.2f}", bar_x + bar_w - 42, y - 3, self.value_font, TEXT)
+        self._text(
+            self._percent_text(value, signed=min_value < 0.0),
+            bar_x + bar_w - 48,
+            y - 3,
+            self.value_font,
+            TEXT,
+        )
+
+    @staticmethod
+    def _percent_text(value, signed=False):
+        percent = max(-100.0, min(100.0, float(value) * 100.0))
+        if signed:
+            return f"{percent:+.0f}%"
+        return f"{max(0.0, percent):.0f}%"
 
     def _acc_state(self, snapshot, safe_distance):
         if snapshot.distance_m is None:
