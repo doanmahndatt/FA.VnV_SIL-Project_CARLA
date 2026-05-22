@@ -188,6 +188,17 @@ CONTROLLER_DEFAULTS = {
     "max_steer": "0.6",
     "waypoint_reached_threshold": "2.0",
     "fixed_delta_seconds": "0.05",
+    "activation_offset": "0.20",
+    "deadband_offset": "0.04",
+    "kp_offset": "0.11",
+    "kp_heading": "0.38",
+    "kp_speed": "0.22",
+    "offset_command_steer": "0.075",
+    "lane_departure_disturbance_duration": "1.4",
+    "scenario_duration": "34",
+    "trigger_lane_departure_time_1": "5",
+    "trigger_lane_departure_time_2": "12",
+    "trigger_lane_departure_time_3": "19",
 }
 
 

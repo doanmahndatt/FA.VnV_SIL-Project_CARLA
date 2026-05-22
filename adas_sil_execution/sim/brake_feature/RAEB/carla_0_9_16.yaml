@@ -1,0 +1,10 @@
+simulator:
+  name: CARLA
+  version: 0.9.16
+  timeout_s: 30.0
+  sync: true
+  fixed_delta_seconds: 0.05
+  traffic:
+    enabled: true
+    config: config/traffic/brake_feature/RAEB/raeb_traffic.yaml
+    profile: raeb_traffic

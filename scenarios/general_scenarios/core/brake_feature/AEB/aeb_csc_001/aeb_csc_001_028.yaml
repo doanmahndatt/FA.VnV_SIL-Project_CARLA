@@ -1,0 +1,31 @@
+scenario_id: aeb_csc_001_028
+logic:
+  scenario_id: aeb_csc_001
+  name: FAEB active with moving vehicle
+  functional: AEB
+  feature_domain: Brake
+  pre_condition:
+    ev_mode: AEB
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: slowdown_reachTTC_event
+    actor: tv
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -2
+  ev_speed: 25
+  tv_speed: 15
+  tv_decel_speed: 15
+  trigger_emergency_brake_time: 3
+  tv_deceleration: 10
+  light: night
+  weather: clear

@@ -1,5 +1,5 @@
 scenario_id: aeb_csc_001
-name: EV approaches a suddenly braking TV in ego lane
+name: FAEB active with moving vehicle
 functional: AEB
 feature_domain: Brake
 
@@ -18,5 +18,5 @@ actors:
       state: moving
 
 maneuvers:
-  - type: brake_event
+  - type: slowdown_reachTTC_event
     actor: tv

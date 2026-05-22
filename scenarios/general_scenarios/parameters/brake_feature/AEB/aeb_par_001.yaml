@@ -4,17 +4,18 @@ parameters:
   tv_lane_id: [-2]
 
   # ===== SPEED =====
-  ev_speed: [20] # unit: m/s
-  tv_speed: [12] # unit: m/s
+  ev_speed: [5, 15, 25] # unit: m/s
+  tv_speed: [5, 15, 25] # unit: m/s
+  tv_decel_speed: [2, 8, 15]
 
   # ===== AEB TRIGGER =====
   trigger_emergency_brake_time: [3] # unit: s
-  tv_deceleration: [8] # unit: m/s2
-  tv_stop_duration: [12] # unit: s
+  tv_deceleration: [10] # unit: m/s2
 
   # ===== ENVIRONMENT =====
-  light: [day]
-  weather: [clear]
+  light: [day, night]
+  weather: [clear, rain, fog]
 
 constraints:
   - ev_speed > tv_speed
+  - tv_decel_speed <= tv_speed

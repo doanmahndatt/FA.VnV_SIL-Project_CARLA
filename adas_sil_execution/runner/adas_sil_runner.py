@@ -1,21 +1,27 @@
 import subprocess
 import time
 
+
 def start_sut(cmd):
     return subprocess.Popen(cmd, shell=True)
 
+
 def run_scenario(xosc):
-    subprocess.Popen([
-        "python3",
-        "/opt/scenario_runner/scenario_runner.py",
-        "--openscenario", xosc,
-        "--sync"
-    ])
+    subprocess.Popen(
+        [
+            "python3",
+            "/opt/scenario_runner/scenario_runner.py",
+            "--openscenario",
+            xosc,
+            "--sync",
+            "--frameRate",
+            "20",
+        ]
+    )
+
 
 if __name__ == "__main__":
-    sut = start_sut(
-        "ros2 launch autoware_launch autoware.launch.xml"
-    )
+    sut = start_sut("ros2 launch autoware_launch autoware.launch.xml")
 
     time.sleep(20)  # wait readiness (simplified demo)
 

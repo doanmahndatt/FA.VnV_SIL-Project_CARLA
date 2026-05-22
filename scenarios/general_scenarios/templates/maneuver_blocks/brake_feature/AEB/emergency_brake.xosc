@@ -41,7 +41,7 @@
             <SpeedAction>
               <SpeedActionDynamics
                   dynamicsShape="step"
-                  value="0"
+                  value="5"
                   dynamicsDimension="time"/>
               <SpeedActionTarget>
                 <AbsoluteTargetSpeed value="0"/>

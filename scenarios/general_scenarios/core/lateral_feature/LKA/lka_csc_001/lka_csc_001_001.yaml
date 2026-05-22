@@ -25,9 +25,22 @@ parameters:
   tv_lane_id: -2
   ev_speed: 15
   tv_speed: 15
-  trigger_lane_departure_time: 5
-  lane_departure_offset: 0.35
-  lane_departure_max_lateral_acc: 0.8
-  lane_departure_release_time: 5.4
+  trigger_lane_departure_time_1: 5
+  trigger_lane_departure_time_2: 12
+  trigger_lane_departure_time_3: 19
+  lane_departure_offset: 0.75
+  lane_departure_max_lateral_acc: 0.42
+  scenario_duration: 34
+  activation_offset: 0.2
+  deadband_offset: 0.04
+  kp_offset: 0.11
+  kp_heading: 0.38
+  kp_speed: 0.22
+  max_steer: 0.2
+  max_throttle: 0.42
+  max_brake: 0.18
+  offset_command_steer: 0.075
+  lane_departure_disturbance_duration: 1.4
+  fixed_delta_seconds: 0.05
   light: day
   weather: clear

@@ -29,15 +29,18 @@ DEFAULT_INPUTS = {
     "heading_error": 0.0,
     "has_lead": 0.0,
     "has_waypoint": 0.0,
-    "min_distance": 6.0,
-    "warning_ttc": 2.5,
-    "brake_ttc": 1.5,
-    "emergency_ttc": 0.8,
+    "min_distance": 4.5,
+    "warning_ttc": 1.8,
+    "brake_ttc": 1.0,
+    "emergency_ttc": 0.55,
     "kp_speed": 0.35,
     "kp_brake": 0.45,
     "max_throttle": 0.75,
     "max_brake": 1.0,
     "brake_hold_time": 0.5,
+    "hard_brake_distance": 3.2,
+    "park_speed_threshold": 0.25,
+    "park_hold_delay": 1.5,
     "kp_steer": 1.2,
     "max_steer": 0.6,
 }
@@ -52,21 +55,27 @@ DEFAULT_OUTPUTS = (
     "safe_distance",
     "distance_error",
     "aeb_state",
+    "hand_brake",
+    "manual_gear_shift",
+    "gear",
 )
 
 
 @dataclass(frozen=True)
 class AEBParameters:
     target_speed: float = 20.0
-    min_distance: float = 6.0
-    warning_ttc: float = 2.5
-    brake_ttc: float = 1.5
-    emergency_ttc: float = 0.8
+    min_distance: float = 4.5
+    warning_ttc: float = 1.8
+    brake_ttc: float = 1.0
+    emergency_ttc: float = 0.55
     kp_speed: float = 0.35
     kp_brake: float = 0.45
     max_throttle: float = 0.75
     max_brake: float = 1.0
     brake_hold_time: float = 0.5
+    hard_brake_distance: float = 3.2
+    park_speed_threshold: float = 0.25
+    park_hold_delay: float = 1.5
     kp_steer: float = 1.2
     max_steer: float = 0.6
     waypoint_reached_threshold: float = 2.0
@@ -76,15 +85,18 @@ class AEBParameters:
         args = args or {}
         return cls(
             target_speed=_float_arg(args, "target_speed", _float_arg(args, "desired_speed", 20.0)),
-            min_distance=_float_arg(args, "min_distance", 6.0),
-            warning_ttc=_float_arg(args, "warning_ttc", 2.5),
-            brake_ttc=_float_arg(args, "brake_ttc", 1.5),
-            emergency_ttc=_float_arg(args, "emergency_ttc", 0.8),
+            min_distance=_float_arg(args, "min_distance", 4.5),
+            warning_ttc=_float_arg(args, "warning_ttc", 1.8),
+            brake_ttc=_float_arg(args, "brake_ttc", 1.0),
+            emergency_ttc=_float_arg(args, "emergency_ttc", 0.55),
             kp_speed=_float_arg(args, "kp_speed", 0.35),
             kp_brake=_float_arg(args, "kp_brake", 0.45),
             max_throttle=_float_arg(args, "max_throttle", 0.75),
             max_brake=_float_arg(args, "max_brake", 1.0),
             brake_hold_time=_float_arg(args, "brake_hold_time", 0.5),
+            hard_brake_distance=_float_arg(args, "hard_brake_distance", 3.2),
+            park_speed_threshold=_float_arg(args, "park_speed_threshold", 0.25),
+            park_hold_delay=_float_arg(args, "park_hold_delay", 1.5),
             kp_steer=_float_arg(args, "kp_steer", 1.2),
             max_steer=_float_arg(args, "max_steer", 0.6),
             waypoint_reached_threshold=_float_arg(args, "waypoint_reached_threshold", 2.0),
@@ -102,6 +114,9 @@ class AEBParameters:
             "max_throttle": self.max_throttle,
             "max_brake": self.max_brake,
             "brake_hold_time": self.brake_hold_time,
+            "hard_brake_distance": self.hard_brake_distance,
+            "park_speed_threshold": self.park_speed_threshold,
+            "park_hold_delay": self.park_hold_delay,
             "kp_steer": self.kp_steer,
             "max_steer": self.max_steer,
         }
@@ -392,6 +407,10 @@ def control_from_fmu_output(result: dict[str, float]) -> carla.VehicleControl:
     control.throttle = clamp(result.get("throttle", 0.0), 0.0, 1.0)
     control.brake = clamp(result.get("brake", result.get("deceleration", 0.0)), 0.0, 1.0)
     control.steer = clamp(result.get("steer", 0.0), -1.0, 1.0)
+    control.hand_brake = bool(result.get("hand_brake", 0.0) >= 0.5)
+    control.manual_gear_shift = bool(result.get("manual_gear_shift", 0.0) >= 0.5)
+    if control.manual_gear_shift:
+        control.gear = int(round(result.get("gear", 0.0)))
     return control
 
 

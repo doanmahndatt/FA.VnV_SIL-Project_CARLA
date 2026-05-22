@@ -3,8 +3,8 @@
     <EntityRef entityRef="${actor}"/>
   </Actors>
   <Maneuver name="${actor}_lane_departure_maneuver">
-    <Event name="${actor}_lane_departure_event" priority="overwrite">
-      <Action name="${actor}_lane_departure_action">
+    <Event name="${actor}_lane_departure_1_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_1_action">
         <PrivateAction>
           <LateralAction>
             <LaneOffsetAction continuous="true">
@@ -20,20 +20,16 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="${actor}_lane_departure_start"
-                     delay="0"
-                     conditionEdge="rising">
+          <Condition name="${actor}_lane_departure_1_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
-              <SimulationTimeCondition
-                  value="${trigger_lane_departure_time}"
-                  rule="greaterThan"/>
+              <SimulationTimeCondition value="${trigger_lane_departure_time_1}" rule="greaterThan"/>
             </ByValueCondition>
           </Condition>
         </ConditionGroup>
       </StartTrigger>
     </Event>
-    <Event name="${actor}_lane_departure_release_event" priority="overwrite">
-      <Action name="${actor}_lane_departure_release_action">
+    <Event name="${actor}_lane_departure_2_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_2_action">
         <PrivateAction>
           <LateralAction>
             <LaneOffsetAction continuous="true">
@@ -41,7 +37,7 @@
                   dynamicsShape="linear"
                   maxLateralAcc="${lane_departure_max_lateral_acc}"/>
               <LaneOffsetTarget>
-                <AbsoluteTargetLaneOffset value="0"/>
+                <AbsoluteTargetLaneOffset value="-${lane_departure_offset}"/>
               </LaneOffsetTarget>
             </LaneOffsetAction>
           </LateralAction>
@@ -49,13 +45,34 @@
       </Action>
       <StartTrigger>
         <ConditionGroup>
-          <Condition name="${actor}_lane_departure_release_start"
-                     delay="0"
-                     conditionEdge="rising">
+          <Condition name="${actor}_lane_departure_2_start" delay="0" conditionEdge="rising">
             <ByValueCondition>
-              <SimulationTimeCondition
-                  value="${lane_departure_release_time}"
-                  rule="greaterThan"/>
+              <SimulationTimeCondition value="${trigger_lane_departure_time_2}" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    <Event name="${actor}_lane_departure_3_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_3_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneOffsetAction continuous="true">
+              <LaneOffsetActionDynamics
+                  dynamicsShape="linear"
+                  maxLateralAcc="${lane_departure_max_lateral_acc}"/>
+              <LaneOffsetTarget>
+                <AbsoluteTargetLaneOffset value="${lane_departure_offset}"/>
+              </LaneOffsetTarget>
+            </LaneOffsetAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_lane_departure_3_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="${trigger_lane_departure_time_3}" rule="greaterThan"/>
             </ByValueCondition>
           </Condition>
         </ConditionGroup>

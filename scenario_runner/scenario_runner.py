@@ -27,6 +27,8 @@ except ImportError:
 import importlib
 import inspect
 import os
+from pathlib import Path
+import re
 import signal
 import sys
 """ CARLA_ROOT = "/home/tungnv68fa/Downloads/CARLA_0.9.16"
@@ -57,6 +59,7 @@ import carla
 from srunner.scenarioconfigs.openscenario_configuration import OpenScenarioConfiguration
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from srunner.scenariomanager.scenario_manager import ScenarioManager
+from srunner.scenariomanager.urban_traffic_manager import UrbanTrafficManager
 from srunner.scenarios.open_scenario import OpenScenario
 from srunner.scenarios.route_scenario import RouteScenario
 from srunner.tools.scenario_parser import ScenarioConfigurationParser
@@ -67,6 +70,29 @@ from srunner.scenarioconfigs.osc2_scenario_configuration import OSC2ScenarioConf
 
 # Minimum version of CARLA that is required
 MIN_CARLA_VERSION = '0.9.16'
+
+
+def _resolve_traffic_config(xosc_path, base_config_dir="config/traffic"):
+    """
+    Resolve a feature-specific urban traffic config from the scenario path.
+    Falls back to config/traffic/urban_traffic.yaml when no domain config exists.
+    """
+    base_dir = Path(base_config_dir)
+    fallback = base_dir / "urban_traffic.yaml"
+    if not xosc_path:
+        return str(fallback)
+
+    match = re.search(
+        r"(longitudinal_feature|lateral_feature|brake_feature|parking_feature)[/\\]([A-Za-z0-9_]+)[/\\]",
+        str(xosc_path),
+    )
+    if match:
+        domain, function = match.group(1), match.group(2)
+        candidate = base_dir / domain / function / "{}_traffic.yaml".format(function.lower())
+        if candidate.exists():
+            return str(candidate)
+
+    return str(fallback)
 
 
 class ScenarioRunner(object):
@@ -97,6 +123,7 @@ class ScenarioRunner(object):
 
     agent_instance = None
     module_agent = None
+    urban_traffic = None
 
     def __init__(self, args):
         """
@@ -228,6 +255,10 @@ class ScenarioRunner(object):
         if self.agent_instance:
             self.agent_instance.destroy()
             self.agent_instance = None
+
+        if self.urban_traffic:
+            self.urban_traffic.destroy()
+            self.urban_traffic = None
 
     def _prepare_ego_vehicles(self, ego_vehicles):
         """
@@ -434,6 +465,16 @@ class ScenarioRunner(object):
                                           config=config,
                                           randomize=self._args.randomize,
                                           debug_mode=self._args.debug)
+
+            if self._args.urbanTraffic:
+                self.urban_traffic = UrbanTrafficManager(
+                    client=self.client,
+                    world=self.world,
+                    traffic_manager=tm,
+                    traffic_manager_port=int(self._args.trafficManagerPort),
+                    config_path=self._urban_traffic_config_path(),
+                    profile=self._args.urbanTrafficProfile,
+                )
         except Exception as exception:                  # pylint: disable=broad-except
             print("The scenario cannot be loaded")
             traceback.print_exc()
@@ -449,6 +490,10 @@ class ScenarioRunner(object):
 
             # Load scenario and run it
             self.manager.load_scenario(scenario, self.agent_instance)
+            if self.urban_traffic:
+                self.urban_traffic.start()
+                if hasattr(self.manager, "set_urban_traffic"):
+                    self.manager.set_urban_traffic(self.urban_traffic)
             self.manager.run_scenario()
 
             # Provide outputs if required
@@ -456,6 +501,9 @@ class ScenarioRunner(object):
 
             # Remove all actors, stop the recorder and save all criterias (if needed)
             scenario.remove_all_actors()
+            if self.urban_traffic:
+                self.urban_traffic.destroy()
+                self.urban_traffic = None
             if self._args.record:
                 self.client.stop_recorder()
                 self._record_criteria(self.manager.scenario.get_criteria(), recorder_name)
@@ -466,9 +514,17 @@ class ScenarioRunner(object):
             traceback.print_exc()
             print(e)
             result = False
+            if self.urban_traffic:
+                self.urban_traffic.destroy()
+                self.urban_traffic = None
 
         self._cleanup()
         return result
+
+    def _urban_traffic_config_path(self):
+        if self._args.urbanTrafficConfig:
+            return self._args.urbanTrafficConfig
+        return _resolve_traffic_config(self._args.openscenario)
 
     def _run_scenarios(self):
         """
@@ -588,6 +644,12 @@ def main():
                         help='Port to use for the TrafficManager (default: 8000)')
     parser.add_argument('--trafficManagerSeed', default='0',
                         help='Seed used by the TrafficManager (default: 0)')
+    parser.add_argument('--urbanTraffic', action='store_true',
+                        help='Spawn Traffic Manager controlled urban background vehicles')
+    parser.add_argument('--urbanTrafficConfig', default=None,
+                        help='YAML config for --urbanTraffic')
+    parser.add_argument('--urbanTrafficProfile', default=None,
+                        help='Profile name inside --urbanTrafficConfig')
     parser.add_argument('--sync', action='store_true',
                         help='Forces the simulation to run synchronously')
     parser.add_argument('--list', action="store_true", help='List all supported scenarios and exit')

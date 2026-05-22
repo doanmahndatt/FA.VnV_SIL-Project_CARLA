@@ -1,0 +1,30 @@
+scenario_id: aeb_csc_003_001
+logic:
+  scenario_id: aeb_csc_003
+  name: FAEB active with static vehicle
+  functional: AEB
+  feature_domain: Brake
+  pre_condition:
+    ev_mode: AEB
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: ego
+      position: front_ego
+      state: static
+  maneuvers:
+  - type: brake_event
+    actor: tv
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -2
+  ev_speed: 3
+  tv_speed: 0
+  trigger_emergency_brake_time: 3
+  tv_deceleration: 8
+  light: day
+  weather: clear

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="ACC Longitudinal Storyboard" author="AutoGen"/>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="ACC Longitudinal Storyboard" author="DatDM7.FPT"/>
   <ParameterDeclarations/>
   <CatalogLocations/>
   <RoadNetwork>

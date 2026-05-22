@@ -1,0 +1,60 @@
+enabled: true
+default_profile: raeb_traffic
+
+profiles:
+  raeb_traffic:
+    seed: 17
+    vehicle_count: 8
+    max_vehicle_count: 8
+    role_name: background
+    warmup_ticks: 10
+    spawn_z_offset: 0.6
+    spawn_attempt_multiplier: 150
+    spawn_failure_log_limit: 30
+    blueprint_filter: vehicle.*
+    blueprint_model_keywords: [audi, bmw, chevrolet, dodge, ford, lincoln, mini, mustang, nissan, prius, tesla, toyota, volkswagen]
+
+    prefer_spawn_near_ego: true
+    require_same_road_as_ego: false
+    spawn_only_opposite_lane: false
+    require_opposite_heading: false
+    avoid_junction_spawn: true
+    exclude_same_lane_as_ego: true
+    exclude_same_lane_id_globally: false
+
+    min_spawn_distance_from_ego: 10.0
+    max_spawn_distance_from_ego: 60.0
+    safe_radius_around_ego: 15.0
+    safe_radius_around_existing_vehicles: 16.0
+    min_spawn_spacing: 20.0
+
+    desired_speed_kph_range: [5.0, 15.0]
+    global_percentage_speed_difference: 0.0
+    per_vehicle_speed_difference_range: [-5.0, 5.0]
+    global_distance_to_leading_vehicle: 8.0
+    collision_avoidance_enabled: true
+    collision_brake_distance_m: 12.0
+    collision_slow_distance_m: 26.0
+    collision_lateral_window_m: 3.2
+
+    red_light_runner_percentage: 0.0
+    red_light_runner_ignore_lights_percentage: 0.0
+    normal_driver_ignore_lights_percentage: 0.0
+    ignore_signs_percentage_range: [0.0, 0.0]
+    ignore_walkers_percentage_range: [0.0, 0.0]
+    auto_lane_change: false
+    random_left_lanechange_percentage_range: [0.0, 0.0]
+    random_right_lanechange_percentage_range: [0.0, 0.0]
+    vehicle_lights: true
+
+    agent_fallback_enabled: true
+    agent_fallback_mode: lane_follow
+    fallback_min_moving_after_warmup: 3
+    agent_ignore_vehicles: false
+    agent_min_route_distance: 25.0
+    keepalive_interval: 1.0
+    status_log_interval: 2.0
+    status_log_count: 6
+    respawn_dormant_vehicles: true
+    hybrid_physics_mode: false
+    hybrid_physics_radius: 80.0

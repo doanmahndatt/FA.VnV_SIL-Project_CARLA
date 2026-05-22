@@ -1,0 +1,16 @@
+parameters:
+  # ==== SPAWN EV,TV ====
+  ev_lane_id: [-2]
+  tv_lane_id: [-2]
+
+  # ===== SPEED =====
+  ev_speed: [3, 12, 20] # unit: m/s
+  tv_speed: [0] # unit: m/s
+
+  # ===== AEB TRIGGER =====
+  trigger_emergency_brake_time: [3] # unit: s
+  tv_deceleration: [8] # unit: m/s2
+
+   # ===== ENVIRONMENT =====
+  light: [day, night]
+  weather: [clear, rain, fog]

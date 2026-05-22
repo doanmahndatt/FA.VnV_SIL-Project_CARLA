@@ -18,6 +18,11 @@ from fmu_adapter import (
     signal_names,
 )
 
+try:
+    from srunner.scenariomanager.timer import GameTime
+except ImportError:
+    from scenario_runner.srunner.scenariomanager.timer import GameTime
+
 
 class LkaFmuController(BasicControl):
     def __init__(self, actor, args=None):
@@ -54,7 +59,12 @@ class LkaFmuController(BasicControl):
             ego=self._actor,
             world_getter=CarlaDataProvider.get_world,
         )
-        self.offset_command_steer = float(parameter_args.get("offset_command_steer", 0.28))
+        self.offset_command_steer = float(parameter_args.get("offset_command_steer", 0.070))
+        self.lane_departure_disturbance_duration = float(
+            parameter_args.get("lane_departure_disturbance_duration", 1.1)
+        )
+        self._disturbance_offset = 0.0
+        self._disturbance_until = 0.0
 
     def update_target_speed(self, speed):
         super().update_target_speed(speed)
@@ -75,6 +85,8 @@ class LkaFmuController(BasicControl):
         self._waypoints_updated = False
         self._offset = 0
         self._offset_updated = False
+        self._disturbance_offset = 0.0
+        self._disturbance_until = 0.0
         self._reached_goal = False
 
     def run_step(self):
@@ -90,12 +102,22 @@ class LkaFmuController(BasicControl):
         control = control_from_fmu_output(result)
 
         # ScenarioRunner sends LaneOffsetAction targets through update_offset().
-        # Use that command as a short driver-disturbance input, then let the FMU
-        # correct once the scenario releases the requested offset back to zero.
+        # Treat them only as a short driver-disturbance input. Recovery is left
+        # to the FMU based on measured lane offset and heading error.
         requested_offset = float(getattr(self, "_offset", 0.0) or 0.0)
-        if abs(requested_offset) > 0.05:
+        now = GameTime.get_time()
+        if self._offset_updated and abs(requested_offset) > 0.05:
+            self._disturbance_offset = requested_offset
+            self._disturbance_until = now + self.lane_departure_disturbance_duration
+            self._offset_updated = False
+
+        if now < self._disturbance_until and abs(self._disturbance_offset) > 0.05:
             steer = abs(self.offset_command_steer)
-            control.steer = steer if requested_offset > 0 else -steer
+            disturbance = steer if self._disturbance_offset > 0 else -steer
+            control.steer = max(-1.0, min(1.0, control.steer + disturbance))
+        elif self._disturbance_offset:
+            self._disturbance_offset = 0.0
+            self._offset = 0.0
 
         self._actor.apply_control(control)
 

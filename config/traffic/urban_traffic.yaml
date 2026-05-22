@@ -1,0 +1,105 @@
+enabled: true
+default_profile: urban_acc_aeb
+
+profiles:
+  urban_acc_aeb:
+    seed: 17
+    vehicle_count: 20
+    max_vehicle_count: 20
+    role_name: background
+    warmup_ticks: 14
+
+    spawn_z_offset: 0.6
+    spawn_attempt_multiplier: 150
+    spawn_failure_log_limit: 30
+
+    blueprint_filter: vehicle.*
+    blueprint_model_keywords:
+      - audi
+      - bmw
+      - chevrolet
+      - dodge
+      - ford
+      - lincoln
+      - mini
+      - mustang
+      - nissan
+      - prius
+      - tesla
+      - toyota
+      - volkswagen
+
+    # HARD RULE:
+    # Never spawn any TV-background with same lane_id as EV.
+    exclude_same_lane_as_ego: true
+    exclude_same_lane_id_globally: true
+
+    # Spawn strategy for Town03 LKA demo.
+    # Background TVs are biased to the opposite heading and kept away from EV/functional-TV lanes.
+    prefer_spawn_near_ego: true
+    require_same_road_as_ego: false
+    spawn_only_opposite_lane: true
+    require_opposite_heading: true
+    avoid_junction_spawn: true
+
+    min_spawn_distance_from_ego: 28.0
+    max_spawn_distance_from_ego: 210.0
+
+    safe_radius_around_ego: 15.0
+    # ~14 m between vehicles = ~1.7 s gap at 30 kph → realistic urban density
+    safe_radius_around_existing_vehicles: 16.0
+    min_spawn_spacing: 20.0
+
+    preferred_road_ids:
+      - 65
+      - 67
+      - 76
+      - 20
+      - 3
+      - 2
+      - 28
+      - 30
+
+    desired_speed_kph_range: [22.0, 32.0]
+    global_percentage_speed_difference: 0.0
+    # More speed variation → natural staggering, avoids convoy effect
+    per_vehicle_speed_difference_range: [-8.0, 8.0]
+    # 5 m gap + ~4.5 m car body ≈ 9.5 m total following distance at 30 kph
+    global_distance_to_leading_vehicle: 8.0
+
+    # Extra guard for the lane-follow fallback so background TVs do not hit each other.
+    collision_avoidance_enabled: true
+    collision_brake_distance_m: 12.0
+    collision_slow_distance_m: 26.0
+    collision_lateral_window_m: 3.2
+
+    # Traffic rule compliance
+    red_light_runner_percentage: 0.0
+    red_light_runner_ignore_lights_percentage: 0.0
+    normal_driver_ignore_lights_percentage: 0.0
+    ignore_signs_percentage_range: [0.0, 0.0]
+    ignore_walkers_percentage_range: [0.0, 0.0]
+
+    # Stable visual behavior
+    auto_lane_change: false
+    random_left_lanechange_percentage_range: [0.0, 0.0]
+    random_right_lanechange_percentage_range: [0.0, 0.0]
+
+    vehicle_lights: true
+
+    # Fallback if some TV cannot move with TM
+    agent_fallback_enabled: true
+    agent_fallback_mode: lane_follow
+    fallback_min_moving_after_warmup: 5
+    agent_ignore_vehicles: false
+    agent_min_route_distance: 35.0
+
+    # Runtime status
+    keepalive_interval: 1.0
+    status_log_interval: 2.0
+    status_log_count: 6
+
+    # Re-spawn dormant TVs so 20 oncoming vehicles stay visible throughout demo
+    respawn_dormant_vehicles: true
+    hybrid_physics_mode: false
+    hybrid_physics_radius: 80.0

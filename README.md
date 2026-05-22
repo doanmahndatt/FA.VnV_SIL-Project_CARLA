@@ -333,6 +333,24 @@ python scenario_runner\scenario_runner.py --openscenario scenarios\general_scena
 
 If the scenario is valid, CARLA should spawn the ego vehicle `ev` and target vehicle `tv` according to the `.xosc`.
 
+To add realistic urban background traffic for ACC/AEB validation, enable the CARLA Traffic Manager layer:
+
+```powershell
+python scenario_runner\scenario_runner.py --openscenario scenarios\general_scenarios\generated\carla\longitudinal_feature\ACC\acc_csc_001\acc_csc_001_001.xosc --reloadWorld --sync --frameRate 20 --urbanTraffic --urbanTrafficConfig config\traffic\urban_traffic.yaml --urbanTrafficProfile urban_acc_aeb
+```
+
+The GUI/batch runner reads this default from:
+
+```text
+adas_sil_execution/sim/carla_0_9_16.yaml
+```
+
+Background vehicles are Traffic Manager autopilot actors spread across the loaded map. They use `role_name="background"` so ACC/AEB controllers still track only `tv*` targets. Tune traffic density and behavior in:
+
+```text
+config/traffic/urban_traffic.yaml
+```
+
 ## 10. Debug Camera And HUD
 
 Run each tool in a separate terminal:

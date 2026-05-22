@@ -27,15 +27,15 @@ DEFAULT_INPUTS = {
     "lead_distance": 999.0,
     "lead_speed": 0.0,
     "target_speed": 20.0,
-    "time_gap": 1.8,
-    "min_distance": 10.0,
+    "time_gap": 2.2,
+    "min_distance": 8.0,
     "heading_error": 0.0,
     "has_lead": 0.0,
     "has_waypoint": 0.0,
-    "kp_speed": 0.35,
+    "kp_speed": 0.20,
     "kp_steer": 1.2,
     "max_throttle": 0.75,
-    "max_brake": 0.65,
+    "max_brake": 0.45,
     "max_steer": 0.6,
 }
 
@@ -55,26 +55,30 @@ DEFAULT_OUTPUTS = (
 @dataclass(frozen=True)
 class ACCParameters:
     target_speed: float = 20.0
-    time_gap: float = 1.8
-    min_distance: float = 10.0
-    kp_speed: float = 0.35
+    time_gap: float = 2.2
+    min_distance: float = 8.0
+    kp_speed: float = 0.20
     kp_steer: float = 1.2
     max_throttle: float = 0.75
-    max_brake: float = 0.65
+    max_brake: float = 0.45
     max_steer: float = 0.6
     waypoint_reached_threshold: float = 2.0
 
     @classmethod
     def from_args(cls, args: dict | None) -> "ACCParameters":
         args = args or {}
+        time_gap = _float_arg(args, "time_gap", _float_arg(args, "time_headway", 2.2))
+        min_distance = _float_arg(args, "min_distance", 8.0)
+        kp_speed = _float_arg(args, "kp_speed", 0.20)
+        max_brake = _float_arg(args, "max_brake", 0.45)
         return cls(
             target_speed=_float_arg(args, "target_speed", _float_arg(args, "desired_speed", 20.0)),
-            time_gap=_float_arg(args, "time_gap", _float_arg(args, "time_headway", 1.8)),
-            min_distance=_float_arg(args, "min_distance", 10.0),
-            kp_speed=_float_arg(args, "kp_speed", 0.35),
+            time_gap=clamp(time_gap, 1.8, 2.2),
+            min_distance=clamp(min_distance, 6.0, 8.0),
+            kp_speed=clamp(kp_speed, 0.08, 0.20),
             kp_steer=_float_arg(args, "kp_steer", 1.2),
             max_throttle=_float_arg(args, "max_throttle", 0.75),
-            max_brake=_float_arg(args, "max_brake", 0.65),
+            max_brake=clamp(max_brake, 0.20, 0.45),
             max_steer=_float_arg(args, "max_steer", 0.6),
             waypoint_reached_threshold=_float_arg(args, "waypoint_reached_threshold", 2.0),
         )

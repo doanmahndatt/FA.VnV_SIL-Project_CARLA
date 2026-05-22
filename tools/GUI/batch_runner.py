@@ -33,7 +33,7 @@ class ScenarioJob:
 
 
 class BatchRunner:
-    def __init__(self, repo_root: Path, case_timeout_seconds: int = 120):
+    def __init__(self, repo_root: Path, case_timeout_seconds: Optional[int] = None):
         self.paths = get_project_paths(repo_root)
         self.paths.ensure_carla_python_imports()
         self.repo_root = self.paths.repo_root
@@ -94,7 +94,7 @@ class BatchRunner:
                 on_log("Không có case nào để chạy.")
             return []
 
-        self.process_manager.start_support_tools()
+        self.process_manager.start_support_tools(feature=self._feature_for_jobs(jobs))
         if on_log:
             on_log("Đã khởi chạy camera.py và hud.py.")
 
@@ -128,6 +128,17 @@ class BatchRunner:
 
         return self.results
 
+    @staticmethod
+    def _feature_for_jobs(jobs: List[ScenarioJob]) -> Optional[str]:
+        if not jobs:
+            return None
+
+        parts = [part.upper() for part in jobs[0].group_name.replace("\\", "/").split("/")]
+        for feature in ("ACC", "AEB", "LKA"):
+            if feature in parts:
+                return feature
+        return None
+
     def run_one(self, job: ScenarioJob, on_log=None) -> Dict:
         started_at = datetime.now()
         params = self._load_core_params(job)
@@ -141,8 +152,15 @@ class BatchRunner:
 
         try:
             process = self.process_manager.start_scenario(job.xosc_path)
+            if on_log:
+                on_log(self._traffic_launch_message())
+                on_log(self._count_background_traffic())
             kpi = self._create_kpi_monitor()
-            deadline = time.time() + self.case_timeout_seconds
+            deadline = (
+                time.time() + self.case_timeout_seconds
+                if self.case_timeout_seconds and self.case_timeout_seconds > 0
+                else None
+            )
 
             while True:
                 if self.stop_event.is_set():
@@ -150,7 +168,7 @@ class BatchRunner:
                     self.process_manager.terminate_current_scenario()
                     break
 
-                if time.time() > deadline:
+                if deadline is not None and time.time() > deadline:
                     timeout = True
                     self.process_manager.terminate_current_scenario()
                     break
@@ -167,7 +185,9 @@ class BatchRunner:
                 time.sleep(0.05)
 
             exit_code = process.poll() if process is not None else None
-            kpi_result = kpi.get_result() if kpi is not None else self._empty_kpi_result("kpi_unavailable")
+            kpi_result = (
+                kpi.get_result() if kpi is not None else self._empty_kpi_result("kpi_unavailable")
+            )
 
         except Exception as exc:
             exit_code = process.poll() if process is not None else None
@@ -220,6 +240,79 @@ class BatchRunner:
             return KPIMonitor(host=HOST, port=PORT)
         except Exception:
             return None
+
+    def _traffic_launch_message(self) -> str:
+        if not self.process_manager.traffic_enabled:
+            return "Urban traffic: disabled"
+        return (
+            "Urban traffic: enabled | "
+            f"profile={self.process_manager.traffic_profile} | "
+            f"config={self.process_manager.traffic_config}"
+        )
+
+    @staticmethod
+    def _count_background_traffic() -> str:
+        try:
+            import carla
+
+            client = carla.Client(HOST, PORT)
+            client.set_timeout(5.0)
+            world = client.get_world()
+
+            deadline = time.time() + 8.0
+            count = 0
+            moving = 0
+            min_distance = None
+            max_distance = None
+            first_seen_at = None
+            while time.time() < deadline:
+                ev = next(
+                    (
+                        actor
+                        for actor in world.get_actors().filter("vehicle.*")
+                        if actor.attributes.get("role_name") in ("ev", "ego", "hero")
+                    ),
+                    None,
+                )
+                vehicles = [
+                    actor
+                    for actor in world.get_actors().filter("vehicle.*")
+                    if actor.attributes.get("role_name") == "background"
+                ]
+                count = len(vehicles)
+                moving = 0
+                distances = []
+                for actor in vehicles:
+                    velocity = actor.get_velocity()
+                    speed = (
+                        velocity.x * velocity.x
+                        + velocity.y * velocity.y
+                    ) ** 0.5
+                    if speed > 0.2:
+                        moving += 1
+                    if ev is not None:
+                        distances.append(ev.get_location().distance(actor.get_location()))
+
+                if distances:
+                    min_distance = min(distances)
+                    max_distance = max(distances)
+
+                if count > 0:
+                    if first_seen_at is None:
+                        first_seen_at = time.time()
+                    if moving > 0 or time.time() - first_seen_at >= 4.0:
+                        break
+                time.sleep(0.5)
+
+            distance_text = "n/a"
+            if min_distance is not None and max_distance is not None:
+                distance_text = f"{min_distance:.1f}-{max_distance:.1f}m"
+            return (
+                "Urban traffic: background vehicles "
+                f"active in CARLA={count}, moving={moving}, dist_to_ev={distance_text}"
+            )
+        except Exception as exc:
+            return f"Urban traffic: cannot count background vehicles ({exc})"
 
     def _load_core_params(self, job: ScenarioJob) -> Dict:
         if not job.core_path.exists():

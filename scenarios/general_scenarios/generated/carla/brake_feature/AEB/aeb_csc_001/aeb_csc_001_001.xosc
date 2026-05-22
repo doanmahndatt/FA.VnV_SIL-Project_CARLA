@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="AEB Brake Storyboard" author="AutoGen"/>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="AEB Brake Storyboard" author="DatDM7.FPT"/>
   <ParameterDeclarations/>
   <CatalogLocations/>
   <RoadNetwork>
@@ -74,7 +74,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="20"/>
+                  <AbsoluteTargetSpeed value="15"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -89,8 +89,8 @@
                     <Property name="module" value="config/controllers_fmu/brake_feature/AEB/AEB_fmu_controller.py"/>
                     <Property name="config" value="config/controllers_fmu/brake_feature/AEB/signals.yaml"/>
                     <Property name="fmu" value="config/controllers_fmu/brake_feature/AEB/AEB_controller.fmu"/>
-                    <Property name="desired_speed" value="20"/>
-                    <Property name="target_speed" value="20"/>
+                    <Property name="desired_speed" value="15"/>
+                    <Property name="target_speed" value="15"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -120,7 +120,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="12"/>
+                  <AbsoluteTargetSpeed value="5"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -130,19 +130,19 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="tv_emergency_brake" maximumExecutionCount="1">
+        <ManeuverGroup name="tv_slowdonw_reachTTC" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="tv"/>
           </Actors>
-          <Maneuver name="tv_emergency_brake_maneuver">
-            <Event name="tv_brake_event" priority="overwrite">
-              <Action name="tv_emergency_brake_action">
+          <Maneuver name="tv_slowdonw_reachTTC_maneuver">
+            <Event name="tv_slowdonw_reachTTC_event" priority="overwrite">
+              <Action name="tv_slowdonw_reachTTC_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="linear" value="8" dynamicsDimension="rate"/>
+                      <SpeedActionDynamics dynamicsShape="linear" value="10" dynamicsDimension="rate"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="0"/>
+                        <AbsoluteTargetSpeed value="2"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -158,14 +158,14 @@
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="tv_hold_stop_event" priority="parallel">
-              <Action name="tv_hold_stop_action">
+            <Event name="tv_hold_speed_event" priority="parallel">
+              <Action name="tv_hold_speed_action">
                 <PrivateAction>
                   <LongitudinalAction>
                     <SpeedAction>
-                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                      <SpeedActionDynamics dynamicsShape="step" value="5" dynamicsDimension="time"/>
                       <SpeedActionTarget>
-                        <AbsoluteTargetSpeed value="0"/>
+                        <AbsoluteTargetSpeed value="2"/>
                       </SpeedActionTarget>
                     </SpeedAction>
                   </LongitudinalAction>
@@ -173,9 +173,9 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="tv_hold_after_emergency_brake" delay="0" conditionEdge="rising">
+                  <Condition name="${actor_hold_after_slowdown_reachTTC}" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <StoryboardElementStateCondition storyboardElementRef="tv_brake_event" storyboardElementType="event" state="endTransition"/>
+                      <StoryboardElementStateCondition storyboardElementRef="tv_slowdonw_reachTTC_event" storyboardElementType="event" state="endTransition"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>

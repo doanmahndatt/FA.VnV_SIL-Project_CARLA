@@ -5,7 +5,7 @@
       revMinor="0"
       date="2026-01-01T00:00:00"
       description="LKA Lateral Storyboard"
-      author="AutoGen"/>
+      author="DatDM7.FPT"/>
   <ParameterDeclarations/>
   <CatalogLocations/>
   <RoadNetwork>
@@ -125,6 +125,17 @@
                     <Property name="fmu" value="${controller_fmu}"/>
                     <Property name="desired_speed" value="${ev_speed}"/>
                     <Property name="target_speed" value="${ev_speed}"/>
+                    <Property name="activation_offset" value="${activation_offset}"/>
+                    <Property name="deadband_offset" value="${deadband_offset}"/>
+                    <Property name="kp_offset" value="${kp_offset}"/>
+                    <Property name="kp_heading" value="${kp_heading}"/>
+                    <Property name="kp_speed" value="${kp_speed}"/>
+                    <Property name="max_steer" value="${max_steer}"/>
+                    <Property name="max_throttle" value="${max_throttle}"/>
+                    <Property name="max_brake" value="${max_brake}"/>
+                    <Property name="offset_command_steer" value="${offset_command_steer}"/>
+                    <Property name="lane_departure_disturbance_duration" value="${lane_departure_disturbance_duration}"/>
+                    <Property name="fixed_delta_seconds" value="${fixed_delta_seconds}"/>
                   </Properties>
                 </Controller>
               </AssignControllerAction>
@@ -206,7 +217,7 @@
       <ConditionGroup>
         <Condition name="end" delay="0" conditionEdge="rising">
           <ByValueCondition>
-            <SimulationTimeCondition value="20" rule="greaterThan"/>
+            <SimulationTimeCondition value="${scenario_duration}" rule="greaterThan"/>
           </ByValueCondition>
         </Condition>
       </ConditionGroup>

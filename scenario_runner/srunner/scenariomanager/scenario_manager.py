@@ -65,6 +65,9 @@ class ScenarioManager(object):
         self.scenario_duration_game = 0.0
         self.start_system_time = None
         self.end_system_time = None
+        self._next_sync_tick_time = None
+        self._urban_traffic = None
+        self._last_debug_print_time = -1.0
 
     def _reset(self):
         """
@@ -76,7 +79,15 @@ class ScenarioManager(object):
         self.scenario_duration_game = 0.0
         self.start_system_time = None
         self.end_system_time = None
+        self._next_sync_tick_time = None
+        self._last_debug_print_time = -1.0
         GameTime.restart()
+
+    def set_urban_traffic(self, urban_traffic):
+        """
+        Register ScenarioRunner-managed Traffic Manager background traffic.
+        """
+        self._urban_traffic = urban_traffic
 
     def cleanup(self):
         """
@@ -126,6 +137,7 @@ class ScenarioManager(object):
         self._watchdog = Watchdog(float(self._timeout))
         self._watchdog.start()
         self._running = True
+        self._next_sync_tick_time = time.perf_counter()
 
         while self._running:
             timestamp = None
@@ -171,7 +183,13 @@ class ScenarioManager(object):
             world = CarlaDataProvider.get_world()
 
             settings = world.get_settings()
-            print("[DEBUG] fixed_delta_seconds =", settings.fixed_delta_seconds)
+            debug_due = (
+                self._last_debug_print_time < 0.0
+                or GameTime.get_time() - self._last_debug_print_time >= 1.0
+            )
+            if debug_due:
+                self._last_debug_print_time = GameTime.get_time()
+                print("[DEBUG] fixed_delta_seconds =", settings.fixed_delta_seconds)
 
 
             # ========================
@@ -191,9 +209,9 @@ class ScenarioManager(object):
             # ========================
             # ✅ DEBUG ACTORS
             # ========================
-            if ev is None:
+            if debug_due and ev is None:
                 print("[DEBUG] EV NOT FOUND")
-            if tv is None:
+            if debug_due and tv is None:
                 print("[DEBUG] TV NOT FOUND")
 
             # ========================
@@ -224,17 +242,21 @@ class ScenarioManager(object):
             # ========================
             # ✅ STEP 3: DEBUG RESULT (after physics updated)
             # ========================
-            if ev is not None:
+            if self._urban_traffic is not None:
+                self._urban_traffic.tick(GameTime.get_time())
+
+            if debug_due and ev is not None:
                 print(f"[EV] speed={ev.get_velocity().length():.2f}")
 
-            if tv is not None and tv.is_alive:
+            if debug_due and tv is not None and tv.is_alive:
                 vel = tv.get_velocity()
                 ctrl = tv.get_control()
 
                 print(f"[TV] speed={vel.length():.2f} throttle={ctrl.throttle:.2f} brake={ctrl.brake:.2f}")
 
-            print(f"[TREE] {self.scenario_tree.status}")
-            print(f"[TIME] {GameTime.get_time():.2f}")
+            if debug_due:
+                print(f"[TREE] {self.scenario_tree.status}")
+                print(f"[TIME] {GameTime.get_time():.2f}")
 
             # ========================
             # ✅ STOP CONDITION
@@ -247,7 +269,28 @@ class ScenarioManager(object):
         # ✅ TICK WORLD (SYNC MODE)
         # ========================
         if self._sync_mode and self._running and self._watchdog.get_status():
+            self._pace_sync_tick()
             CarlaDataProvider.get_world().tick()
+
+    def _pace_sync_tick(self):
+        world = CarlaDataProvider.get_world()
+        if world is None:
+            return
+
+        fixed_delta_seconds = world.get_settings().fixed_delta_seconds
+        if fixed_delta_seconds is None or fixed_delta_seconds <= 0:
+            return
+
+        now = time.perf_counter()
+        if self._next_sync_tick_time is None or self._next_sync_tick_time < now - fixed_delta_seconds:
+            self._next_sync_tick_time = now
+
+        sleep_time = self._next_sync_tick_time - now
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+
+        self._next_sync_tick_time += fixed_delta_seconds
+
     def get_running_status(self):
         """
         returns:

@@ -14,15 +14,18 @@ carla:
 
 parameters:
   target_speed: 20.0
-  min_distance: 6.0
-  warning_ttc: 2.5
-  brake_ttc: 1.5
-  emergency_ttc: 0.8
+  min_distance: 4.5
+  warning_ttc: 1.8
+  brake_ttc: 1.0
+  emergency_ttc: 0.55
   kp_speed: 0.35
   kp_brake: 0.45
   max_throttle: 0.75
   max_brake: 1.0
   brake_hold_time: 0.5
+  hard_brake_distance: 3.2
+  park_speed_threshold: 0.25
+  park_hold_delay: 1.5
   kp_steer: 1.2
   max_steer: 0.6
   waypoint_reached_threshold: 2.0
@@ -92,6 +95,18 @@ inputs:
     source: controller.parameter.brake_hold_time
     unit: s
 
+  hard_brake_distance:
+    source: controller.parameter.hard_brake_distance
+    unit: m
+
+  park_speed_threshold:
+    source: controller.parameter.park_speed_threshold
+    unit: mps
+
+  park_hold_delay:
+    source: controller.parameter.park_hold_delay
+    unit: s
+
   kp_steer:
     source: controller.parameter.kp_steer
     unit: "1/rad"
@@ -135,4 +150,16 @@ outputs:
 
   aeb_state:
     target: debug.aeb_state
+    unit: enum
+
+  hand_brake:
+    target: carla.vehicle_control.hand_brake
+    unit: boolean
+
+  manual_gear_shift:
+    target: carla.vehicle_control.manual_gear_shift
+    unit: boolean
+
+  gear:
+    target: carla.vehicle_control.gear
     unit: enum
