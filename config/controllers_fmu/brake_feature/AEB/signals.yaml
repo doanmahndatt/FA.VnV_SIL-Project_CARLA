@@ -16,8 +16,8 @@ parameters:
   target_speed: 20.0
   min_distance: 4.5
   warning_ttc: 1.8
-  brake_ttc: 1.0
-  emergency_ttc: 0.55
+  brake_ttc: 1.5
+  emergency_ttc: 1.0
   kp_speed: 0.35
   kp_brake: 0.45
   max_throttle: 0.75

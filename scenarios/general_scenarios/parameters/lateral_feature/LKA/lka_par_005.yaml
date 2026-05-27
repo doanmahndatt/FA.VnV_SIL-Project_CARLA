@@ -1,0 +1,4 @@
+parameters:
+  ev_speed: [13.8889, 20.8333, 27.7778]
+  light: [day, night]
+  weather: [clear, rain, fog]

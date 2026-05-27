@@ -4,10 +4,10 @@ default_profile: lka_traffic
 profiles:
   lka_traffic:
     seed: 17
-    vehicle_count: 20
-    max_vehicle_count: 20
+    vehicle_count: 10
+    max_vehicle_count: 10
     role_name: background
-    warmup_ticks: 14
+    warmup_ticks: 0
     spawn_z_offset: 0.6
     spawn_attempt_multiplier: 150
     spawn_failure_log_limit: 30
@@ -48,7 +48,7 @@ profiles:
     random_right_lanechange_percentage_range: [0.0, 0.0]
     vehicle_lights: true
 
-    agent_fallback_enabled: true
+    agent_fallback_enabled: false
     agent_fallback_mode: lane_follow
     fallback_min_moving_after_warmup: 5
     agent_ignore_vehicles: false
@@ -56,6 +56,6 @@ profiles:
     keepalive_interval: 1.0
     status_log_interval: 2.0
     status_log_count: 6
-    respawn_dormant_vehicles: true
+    respawn_dormant_vehicles: false
     hybrid_physics_mode: false
     hybrid_physics_radius: 80.0

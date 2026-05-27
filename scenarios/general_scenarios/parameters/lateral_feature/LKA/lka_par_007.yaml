@@ -1,0 +1,5 @@
+parameters:
+  ev_speed: [13.8889, 20.8333, 27.7778]
+  ev_spawn_offset: [0.7]
+  light: [day, night]
+  weather: [clear, rain, fog]

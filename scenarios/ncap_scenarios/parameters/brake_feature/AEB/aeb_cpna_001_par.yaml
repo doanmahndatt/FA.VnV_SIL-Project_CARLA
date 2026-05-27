@@ -1,0 +1,11 @@
+# ==== Spawn EV, VRU ==== #
+  ev_lane_id: [-2]
+  tv_lane_id: [-2]
+
+# ==== Initial Speed ==== #
+  ev_speed_kph: [30]
+  overlap: [25]
+
+# ===== ENVIRONMENT ===== #
+  light: [day, night]
+  weather: [clear, rain, fog]

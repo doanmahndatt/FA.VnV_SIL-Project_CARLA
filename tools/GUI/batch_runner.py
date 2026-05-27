@@ -14,6 +14,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.project_paths import get_project_paths
+from adapters.carla._generated_common import generate_xosc, write_xosc_file
 
 from .process_manager import ProcessManager
 from .report_writer import ReportWriter
@@ -32,18 +33,64 @@ class ScenarioJob:
     core_path: Path
 
 
+@dataclass(frozen=True)
+class ScenarioLibrary:
+    name: str
+    root: Path
+    folder_count: int
+    case_count: int
+
+    @property
+    def generated_root(self) -> Path:
+        return self.root / "generated" / "carla"
+
+    @property
+    def core_root(self) -> Path:
+        return self.root / "core"
+
+
 class BatchRunner:
-    def __init__(self, repo_root: Path, case_timeout_seconds: Optional[int] = None):
+    DEFAULT_SCENARIO_LIBRARY = "general_scenarios"
+
+    def __init__(
+        self,
+        repo_root: Path,
+        case_timeout_seconds: Optional[int] = None,
+        scenario_library: str = DEFAULT_SCENARIO_LIBRARY,
+    ):
         self.paths = get_project_paths(repo_root)
         self.paths.ensure_carla_python_imports()
         self.repo_root = self.paths.repo_root
-        self.xosc_root = self.paths.generated_xosc_root
-        self.core_root = self.paths.core_scenarios_root
+        self.scenarios_dir = self.repo_root / "scenarios"
+        self.scenario_library = ""
+        self.xosc_root = Path()
+        self.core_root = Path()
+        self.select_scenario_library(scenario_library)
         self.report_writer = ReportWriter(self.paths.report_root)
         self.process_manager = ProcessManager(self.repo_root)
         self.case_timeout_seconds = case_timeout_seconds
         self.stop_event = threading.Event()
         self.results = []
+
+    def discover_libraries(self) -> List[ScenarioLibrary]:
+        if not self.scenarios_dir.exists():
+            return []
+
+        libraries = []
+        for root in sorted(path for path in self.scenarios_dir.iterdir() if path.is_dir()):
+            generated_root = root / "generated" / "carla"
+            xosc_paths = list(generated_root.rglob("*.xosc")) if generated_root.exists() else []
+            folders = {path.parent.relative_to(generated_root) for path in xosc_paths}
+            libraries.append(ScenarioLibrary(root.name, root, len(folders), len(xosc_paths)))
+        return libraries
+
+    def select_scenario_library(self, name: str) -> None:
+        candidate = (self.scenarios_dir / name).resolve()
+        if candidate.parent != self.scenarios_dir.resolve() or not candidate.is_dir():
+            raise ValueError(f"Scenario library not found: {name}")
+        self.scenario_library = candidate.name
+        self.xosc_root = candidate / "generated" / "carla"
+        self.core_root = candidate / "core"
 
     def discover_groups(self) -> List[str]:
         if not self.xosc_root.exists():
@@ -141,7 +188,7 @@ class BatchRunner:
 
     def run_one(self, job: ScenarioJob, on_log=None) -> Dict:
         started_at = datetime.now()
-        params = self._load_core_params(job)
+        params = {}
         process = None
         timeout = False
         stopped = False
@@ -151,6 +198,7 @@ class BatchRunner:
             on_log(f"START {job.case_id} | group={job.group_name}")
 
         try:
+            params = self._load_core_params(job)
             process = self.process_manager.start_scenario(job.xosc_path)
             if on_log:
                 on_log(self._traffic_launch_message())
@@ -232,6 +280,22 @@ class BatchRunner:
             on_log(f"END {job.case_id} | result={row['result']} | reason={row['fail_reason']}")
 
         return row
+
+    def _refresh_generated_xosc(self, job: ScenarioJob, on_log=None) -> None:
+        if not job.core_path.exists():
+            if on_log:
+                on_log(f"WARN no core YAML for refresh: {job.core_path}")
+            return
+
+        with job.core_path.open("r", encoding="utf-8") as file:
+            core = yaml.safe_load(file) or {}
+
+        scenario_root = self.scenarios_dir / self.scenario_library
+        tree = generate_xosc(core, scenario_root=scenario_root)
+        job.xosc_path.parent.mkdir(parents=True, exist_ok=True)
+        write_xosc_file(tree, job.xosc_path)
+        if on_log:
+            on_log(f"Refreshed XOSC from current core/template: {job.case_id}")
 
     def _create_kpi_monitor(self):
         try:

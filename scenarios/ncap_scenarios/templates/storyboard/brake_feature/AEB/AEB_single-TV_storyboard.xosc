@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSCENARIO>
+  <FileHeader
+      revMajor="1"
+      revMinor="0"
+      date="2026-01-01T00:00:00"
+      description="AEB_storyboard for NCAP Scenarios (CARLA 0.9.16 - UE4)"
+      author="DatDM7.FPT"/>
+  <ParameterDeclarations/>
+  <CatalogLocations>
+    <VehicleCatalog>
+     <Directory path="../../../../../catalogs/Vehicles" />
+    </VehicleCatalog>
+    <PedestrianCatalog>
+      <Directory path="../../../../../catalogs/Pedestrians" />
+    </PedestrianCatalog>
+    <EnvironmentCatalog>
+      <Directory path="../../../../../catalogs/Environments" />
+    </EnvironmentCatalog>
+  </CatalogLocations>
+  <!-- ================= ROAD ================= -->
+  <RoadNetwork>
+    <LogicFile filepath="Town03"/>
+  </RoadNetwork>
+  <!-- ================= ENTITIES ================= -->
+  <Entities>
+    <!-- ===== EGO VEHICLE ===== -->
+    <ScenarioObject name="ev">
+      <CatalogReference entryName="Tesla_model3" catalogName="Vehicles"/>
+    </ScenarioObject>
+    <ScenarioObject name="VRU">
+      <CatalogReference entryName="NCAP_Adult" catalogName="Pedestrians" />
+    </ScenarioObject>
+  </Entities>
+
+  <!-- ================= STORYBOARD ================= -->
+  <Storyboard>
+    <!-- ===== INIT ===== -->
+    <Init>
+      <Actions>
+        <!-- ===== ENVIRONMENT ===== -->
+        <GlobalAction>
+          <EnvironmentAction>
+            <CatalogReference entryName="${environment_catalog_entry}" catalogName="Environments"/>
+          </EnvironmentAction>
+        </GlobalAction>
+
+        <!-- ===== EV SPAWN ===== -->
+        <Private entityRef="ev">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="${ev_lane_id}" s="$ev_initS" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== EV INITIAL SPEED ===== -->
+        <Private entityRef="ev">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$_ev_speed"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== EV AEB FMU CONTROLLER ===== -->
+        <Private entityRef="ev">
+          <PrivateAction>
+            <ControllerAction>
+              <AssignControllerAction>
+                <Controller name="AEB_fmu_controller">
+                  <Properties>
+                    <Property name="module" value="${controller_module}"/>
+                    <Property name="config" value="${controller_config}"/>
+                    <Property name="fmu" value="${controller_fmu}"/>
+                    <Property name="desired_speed" value="${ev_speed}"/>
+                    <Property name="target_speed" value="${ev_speed}"/>
+                    <Property name="initial_speed" value="${ev_speed}"/>
+                    <Property name="target_role_prefix" value="VRU"/>
+                    <Property name="warning_ttc" value="3.5"/>
+                    <Property name="brake_ttc" value="1.5"/>
+                    <Property name="emergency_ttc" value="1.0"/>
+                    <Property name="min_distance" value="2.0"/>
+                    <Property name="hard_brake_distance" value="4.0"/>
+                  </Properties>
+                </Controller>
+              </AssignControllerAction>
+              <OverrideControllerValueAction>
+                <Throttle active="false" value="0"/>
+                <Brake active="false" value="0"/>
+                <Clutch active="false" value="0"/>
+                <ParkingBrake active="false" value="0"/>
+                <SteeringWheel active="false" value="0"/>
+                <Gear active="false" number="0"/>
+              </OverrideControllerValueAction>
+            </ControllerAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== VRU SPAWN AT THE CROSSING LINE ===== -->
+        <Private entityRef="VRU">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="${tv_lane_id}" s="${vru_init_s}"
+                              offset="${vru_initial_offset}"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+
+        <!-- ===== VRU INITIAL SPEED ===== -->
+        <Private entityRef="VRU">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics
+                  dynamicsShape="step"
+                  value="0"
+                  dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="0"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+
+    <!-- ===== STORY ===== -->
+    <Story name="main_story">
+      <Act name="act_1">
+
+        <!-- ManeuverGroups for AEB target braking / stopping
+             will be inserted here by generator -->
+        <StartTrigger>
+          <ConditionGroup>
+            <Condition name="start"
+                       delay="0"
+                       conditionEdge="rising">
+              <ByValueCondition>
+                <SimulationTimeCondition
+                    value="0"
+                    rule="greaterThan"/>
+              </ByValueCondition>
+            </Condition>
+          </ConditionGroup>
+        </StartTrigger>
+        <!-- Local ScenarioRunner consumes terminal conditions attached to Act. -->
+        <StopTrigger>
+          <ConditionGroup>
+            <Condition name="act_end_after_monitoring"
+                       delay="0"
+                       conditionEdge="rising">
+              <ByValueCondition>
+                <SimulationTimeCondition
+                    value="20"
+                    rule="greaterThan"/>
+              </ByValueCondition>
+            </Condition>
+          </ConditionGroup>
+        </StopTrigger>
+      </Act>
+    </Story>
+
+    <!-- ===== STOP ===== -->
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end"
+                   delay="0"
+                   conditionEdge="rising">
+          <ByValueCondition>
+            <SimulationTimeCondition
+                value="20"
+                rule="greaterThan"/>
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>

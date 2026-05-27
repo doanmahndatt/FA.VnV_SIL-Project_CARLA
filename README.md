@@ -14,20 +14,20 @@ Framework SIL (Software-in-the-Loop) để sinh, thực thi và đánh giá tự
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │  [DEFINE]  logical YAML + parameters YAML                           │
-│            scenarios/general_scenarios/logical/<domain>/<fn>/       │
-│            scenarios/general_scenarios/parameters/<domain>/<fn>/    │
+│            scenarios/<scenario_type>/logical/<domain>/<fn>/         │
+│            scenarios/<scenario_type>/parameters/<domain>/<fn>/      │
 └───────────────────────┬─────────────────────────────────────────────┘
                         │  expander/expander.py
                         ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │  [EXPAND]  core YAML (parameterized test cases)                     │
-│            scenarios/general_scenarios/core/<domain>/<fn>/<id>/     │
+│            scenarios/<scenario_type>/core/<domain>/<fn>/<id>/       │
 └───────────────────────┬─────────────────────────────────────────────┘
                         │  adapters/carla/<domain>/generated.py
                         ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │  [GENERATE]  CARLA OpenSCENARIO (.xosc)                             │
-│              scenarios/general_scenarios/generated/carla/...        │
+│              scenarios/<scenario_type>/generated/carla/...          │
 └───────────────────────┬─────────────────────────────────────────────┘
                         │  tools/run_batch.py  (GUI)
                         ▼
@@ -140,169 +140,88 @@ CARLA world  ──>  fmu_adapter.sample()  ──>  FMU.do_step()  ──>  veh
 
 ---
 
-## 5. Folder Structure (Level 4)
+## 5. Folder Structure (Level 2)
+
+Cây dưới đây liệt kê source/runtime folders và các file làm việc chính;
+không liệt kê `.git/`, IDE metadata hoặc `__pycache__/`.
 
 ```
 Test_assets_v1.4/
-│
-├── scenarios/
-│   └── general_scenarios/
-│       ├── logical/                          ← [DEFINE] Concept scenarios
-│       │   ├── brake_feature/AEB/            │  4 YAML files (1 per scenario_id)
-│       │   ├── lateral_feature/LKA/          │  1 YAML file
-│       │   └── longitudinal_feature/ACC/     │  22 YAML files
-│       │
-│       ├── parameters/                       ← [DEFINE] Parameter spaces
-│       │   ├── brake_feature/AEB/            │  4 YAML (1:1 với logical)
-│       │   ├── lateral_feature/LKA/          │  1 YAML
-│       │   └── longitudinal_feature/ACC/     │  22 YAML
-│       │
-│       ├── core/                             ← [EXPAND] Concrete test cases
-│       │   ├── brake_feature/
-│       │   │   └── AEB/
-│       │   │       ├── aeb_csc_001/          │  30 YAML  (acc_csc_001_001..030)
-│       │   │       ├── aeb_csc_003/          │  18 YAML
-│       │   │       ├── aeb_csc_005/          │  36 YAML
-│       │   │       └── aeb_csc_007/          │  18 YAML
-│       │   ├── lateral_feature/
-│       │   │   └── LKA/lka_csc_001/          │   1 YAML
-│       │   └── longitudinal_feature/
-│       │       └── ACC/
-│       │           ├── acc_csc_001/          │  24 YAML
-│       │           ├── acc_csc_002/          │  36 YAML
-│       │           ├── ...                   │  ...
-│       │           └── acc_csc_022/          │ 108 YAML
-│       │                              TOTAL: │ 2,323 YAML
-│       │
-│       ├── generated/carla/                  ← [GENERATE] OpenSCENARIO executables
-│       │   ├── brake_feature/AEB/            │  102 XOSC
-│       │   ├── lateral_feature/LKA/          │    1 XOSC
-│       │   └── longitudinal_feature/ACC/     │ 2,220 XOSC
-│       │                              TOTAL: │ 2,323 XOSC (1:1 với core YAML)
-│       │
-│       └── templates/
-│           ├── storyboard/                   ← Base storyboard XML per feature
-│           └── maneuver_blocks/              ← Reusable maneuver XML blocks
-│
-├── expander/
-│   ├── expander.py                           ← Main expand tool
-│   └── README.md
-│
 ├── adapters/
-│   └── carla/
-│       ├── _generated_common.py              ← Core XOSC generation engine (shared)
-│       ├── generated_wrapper.py              ← Compatibility wrapper (all domains)
-│       ├── longitudinal_feature/generated.py ← ACC/HWA generator
-│       ├── lateral_feature/generated.py      ← LKA generator
-│       ├── brake_feature/generated.py        ← AEB/RAEB generator
-│       └── README.md
-│
-├── config/
-│   ├── controllers_fmu/                      ← FMI 2.0 closed-loop controllers
-│   │   ├── brake_feature/AEB/
-│   │   │   ├── AEBController.py              ← FMU logic (Fmi2Slave)
-│   │   │   ├── AEB_fmu_controller.py         ← BasicControl adapter cho ScenarioRunner
-│   │   │   ├── fmu_adapter.py                ← Signal bridge CARLA↔FMU
-│   │   │   ├── signals.yaml                  ← I/O signal mapping + default params
-│   │   │   └── AEB_controller.fmu            ← Compiled binary (pythonfmu build)
-│   │   ├── lateral_feature/LKA/
-│   │   │   ├── LKAController.py
-│   │   │   ├── LKA_fmu_controller.py
-│   │   │   ├── fmu_adapter.py
-│   │   │   ├── signals.yaml
-│   │   │   └── LKA_controller.fmu
-│   │   └── longitudinal_feature/ACC/
-│   │       ├── ACCController.py
-│   │       ├── ACC_fmu_controller.py
-│   │       ├── fmu_adapter.py
-│   │       ├── signals.yaml
-│   │       └── ACC_controller.fmu
-│   │
-│   ├── controllers_py/                       ← Python reference controllers
-│   │   └── longitudinal_feature/ACC/
-│   │       └── ACC_controller.py
-│   │
-│   └── traffic/                              ← Background traffic profiles
-│       ├── urban_traffic.yaml                ← Base profile (fallback)
-│       ├── longitudinal_feature/
-│       │   ├── ACC/acc_traffic.yaml          ← ACC-tuned traffic
-│       │   └── HWA/hwa_traffic.yaml
-│       ├── lateral_feature/
-│       │   └── LKA/lka_traffic.yaml          ← LKA: oncoming, opposite heading
-│       └── brake_feature/
-│           ├── AEB/aeb_traffic.yaml          ← AEB: slow, short range
-│           └── RAEB/raeb_traffic.yaml
-│
+│   └── carla/                     ← XOSC generators and adapter guide
 ├── adas_sil_execution/
 │   ├── interface/
-│   │   ├── signal_mapping.yaml               ← Ánh xạ tên signal giữa SUT↔KPI
-│   │   └── timing_model.yaml                 ← Latency / sync model
 │   ├── kpi/
-│   │   ├── engine/kpi_engine.py              ← KPIEngine: collect + verdict
-│   │   ├── collectors/
-│   │   │   ├── carla_collector.py            ← Lấy data từ CARLA actors
-│   │   │   └── ros2_collector.py             ← Lấy data từ ROS2 topics
-│   │   ├── metrics/
-│   │   │   ├── jerk.py                       ← Jerk metric (stateful)
-│   │   │   └── ttc.py                        ← Time-To-Collision metric
-│   │   └── profiles/
-│   │       └── acc_follow.yaml               ← KPI threshold profile cho ACC
 │   ├── report/
-│   │   └── excel_reporter.py                 ← Sinh báo cáo Excel từ KPIEngine
 │   ├── runner/
-│   │   └── adas_sil_runner.py                ← SIL runner stub (WIP)
 │   ├── sim/
-│   │   └── carla_0_9_16.yaml                 ← Simulator config (sync, traffic)
 │   └── sut/
-│       ├── sut_base.yaml                     ← Base SUT config template
-│       └── oem_like_autoware.yaml            ← Autoware-based SUT profile
-│
-├── scenario_runner/
-│   ├── scenario_runner.py                    ← Entrypoint chính của ScenarioRunner
-│   └── srunner/
-│       ├── scenariomanager/
-│       │   ├── urban_traffic_manager.py      ← Background TV spawner (custom)
-│       │   └── ...
-│       ├── scenarios/
-│       ├── tools/
-│       └── ...
-│
-├── tools/
-│   ├── project_paths.py                      ← Portable path resolver
-│   ├── start_carla.py                        ← CARLA server launcher
-│   ├── run_batch.py                          ← GUI entrypoint
-│   ├── config/
-│   │   ├── camera.py                         ← Spectator birdview camera
-│   │   ├── hud.py                            ← Real-time pygame HUD (34KB)
-│   │   ├── KPI.py                            ← Standalone KPI monitor
-│   │   └── maps_CARLA/OpenDrive/             ← 16 XODR map files
-│   └── GUI/
-│       ├── gui_runner.py                     ← Tkinter 4-panel GUI
-│       ├── batch_runner.py                   ← Batch orchestrator
-│       ├── process_manager.py                ← Process lifecycle manager
-│       └── report_writer.py                  ← Excel writer
-│
-├── report/                                   ← [OUTPUT] Tự động tạo khi chạy
-│   ├── <case_id>/report.xlsx
-│   └── batch_<timestamp>/summary.xlsx
-│
-├── specifications/
-│   ├── Test Requirements.xlsx
-│   └── Test Scenarios.xlsx
-│
+├── config/
+│   ├── controllers_fmu/
+│   ├── controllers_py/
+│   └── traffic/
 ├── docs/
-│   └── path_structure.md
-│
+├── expander/                      ← logical + parameters → core YAML
+├── report/                        ← execution output
+├── scenario_runner/
+│   ├── Docs/
+│   ├── openpilot/
+│   ├── srunner/
+│   └── tests/
+├── scenarios/
+│   ├── boundaries scenarios/
+│   ├── general_scenarios/         ← default CLI scenario type
+│   ├── homo_scenarios/
+│   └── ncap_scenarios/            ← Euro NCAP scenario type
+├── specifications/
+│   └── NCAP_2026/                 ← Euro NCAP source protocols
+├── tools/
+│   ├── config/
+│   └── GUI/
+├── .env
+├── .gitignore
 ├── pyproject.toml
+├── README.md
 ├── requirements.txt
-└── .gitignore
+└── verifyScenario.md
 ```
 
 ---
 
-## 6. Mô tả chi tiết từng Folder
+## 6. Folder detailed description
 
-### 6.1 `scenarios/general_scenarios/`
+### 6.0 Scenario types và CLI selector
+
+Các pipeline command đọc và ghi trong cùng một `scenarios/<scenario_type>/`.
+Selector có dạng:
+
+```text
+[<scenario_type>/]<feature_domain>/<functional>/<scenario_id>
+```
+
+Nếu bỏ `<scenario_type>/`, CLI mặc định dùng `general_scenarios` để giữ
+compatibility với lệnh cũ.
+
+| Scenario type | Mục đích | Expand / Generate ví dụ |
+|---|---|---|
+| `general_scenarios` | Functional scenario thông thường | `python expander\expander.py longitudinal/acc/acc_csc_001 --clean` |
+| `ncap_scenarios` | Scenario theo Euro NCAP protocol | `python expander\expander.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean` |
+
+```powershell
+# General scenario: prefix có thể bỏ qua
+python expander\expander.py longitudinal/acc/acc_csc_001 --clean
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc_001 --clean
+
+# NCAP scenario: phải chọn scenario type
+python expander\expander.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
+
+# Generate toàn bộ một scenario type
+python expander\expander.py ncap_scenarios --all --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios --all --clean
+```
+
+### 6.1 `scenarios/<scenario_type>/`
 
 Toàn bộ dữ liệu kịch bản được tổ chức theo cấp bậc:
 
@@ -655,7 +574,7 @@ Sơ đồ kết nối chi tiết từ file đầu tiên đến report cuối cù
 
 ---
 
-## 8. Installation — Từ A đến Z
+## 8. Installation — From A to Z
 
 ### Bước 1: Cài Python
 
@@ -752,7 +671,7 @@ python scenario_runner\scenario_runner.py \
 ### Case C: Expand + Generate + chạy 1 scenario mới (end-to-end 1 case)
 
 ```powershell
-# Expand
+# Expand (`general_scenarios` là default khi không có prefix)
 python expander\expander.py longitudinal/acc/acc_csc_006 --clean
 
 # Generate XOSC
@@ -781,20 +700,24 @@ python tools\run_batch.py
 
 GUI: Chọn domain `Longitudinal` → `ACC` → chọn scenario group → `Start`
 
-### Case E: Expand + Generate tất cả + Batch run toàn bộ
+### Case E: Expand + Generate tất cả theo scenario type + Batch run
 
 ```powershell
-# Expand tất cả
+# General scenarios (default nếu không truyền scenario type)
 python expander\expander.py --all --clean
 
-# Generate tất cả (chạy từng domain)
+# Generate general scenarios (chạy từng domain)
 python adapters\carla\longitudinal_feature\generated.py --all --clean
 python adapters\carla\lateral_feature\generated.py --all --clean
 python adapters\carla\brake_feature\generated.py --all --clean
 
+# NCAP scenarios
+python expander\expander.py ncap_scenarios --all --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios --all --clean
+
 # Batch run
 python tools\run_batch.py
-# GUI: chọn "All folders" → Start
+# GUI: chọn Scenario type, sau đó chọn "All folders" → Start
 ```
 
 ### Case F: Generate lại sau khi sửa template (không cần re-expand)
@@ -894,7 +817,7 @@ Remove-Item -Recurse -Force scenarios\general_scenarios\generated\carla\longitud
 
 ---
 
-## 12. Định hướng phát triển (Roadmap)
+## 12. Roadmap
 
 Chi tiết trong [`PLAN_acc_smooth_traffic_refactor.md`](PLAN_acc_smooth_traffic_refactor.md).
 
@@ -951,9 +874,12 @@ Thay toàn bộ `print()` bằng `logging` module với levels và file output.
 |---|---|
 | `python expander\expander.py longitudinal/acc/acc_csc_001 --clean` | Expand 1 scenario |
 | `python expander\expander.py longitudinal/acc --clean` | Expand toàn bộ ACC |
-| `python expander\expander.py --all --clean` | Expand tất cả |
+| `python expander\expander.py --all --clean` | Expand tất cả `general_scenarios` (default) |
+| `python expander\expander.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean` | Expand 1 NCAP CPNA scenario |
+| `python expander\expander.py ncap_scenarios --all --clean` | Expand tất cả `ncap_scenarios` |
 | `python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc_001 --clean` | Generate XOSC |
-| `python adapters\carla\longitudinal_feature\generated.py --all --clean` | Generate tất cả ACC |
+| `python adapters\carla\longitudinal_feature\generated.py --all --clean` | Generate tất cả ACC trong `general_scenarios` |
+| `python adapters\carla\brake_feature\generated.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean` | Generate XOSC cho NCAP CPNA |
 | `python tools\run_batch.py` | Mở GUI batch runner |
 | `python tools\config\camera.py` | Birdview camera |
 | `python tools\config\hud.py --feature ACC` | HUD |

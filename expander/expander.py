@@ -21,10 +21,9 @@ from tools.project_paths import get_project_paths
 # ==================================================
 
 PROJECT_PATHS = get_project_paths(Path(__file__))
-BASE_SCENARIO_DIR = PROJECT_PATHS.scenarios_root
-LOGICAL_DIR = BASE_SCENARIO_DIR / "logical"
-PARAMETER_DIR = BASE_SCENARIO_DIR / "parameters"
-CORE_DIR = BASE_SCENARIO_DIR / "core"
+SCENARIOS_DIR = PROJECT_PATHS.repo_root / "scenarios"
+DEFAULT_SCENARIO_SET = "general_scenarios"
+BASE_SCENARIO_DIR = SCENARIOS_DIR / DEFAULT_SCENARIO_SET
 
 FEATURE_DOMAIN_DIRS = {
     "Longitudinal": "longitudinal_feature",
@@ -78,12 +77,29 @@ def split_selector(selector: str) -> List[str]:
     return [part for part in selector.replace("\\", "/").strip("/").split("/") if part]
 
 
-def logical_path_from_selector(selector: str) -> Path:
-    parts = split_selector(selector)
+def resolve_scenario_set(parts: List[str]) -> tuple[Path, List[str]]:
+    if parts and parts[0].lower().endswith("_scenarios"):
+        scenario_root = SCENARIOS_DIR / parts[0].lower()
+        if not scenario_root.exists():
+            raise FileNotFoundError(f"Scenario set not found: {scenario_root}")
+        return scenario_root, parts[1:]
+    return BASE_SCENARIO_DIR, parts
+
+
+def is_ncap_scenario_set(scenario_root: Path) -> bool:
+    return scenario_root.name.lower() == "ncap_scenarios"
+
+
+def logical_path_from_selector(selector: str) -> tuple[Path, Path]:
+    scenario_root, parts = resolve_scenario_set(split_selector(selector))
+    logical_dir = scenario_root / "logical"
     if len(parts) == 1:
-        matches = sorted(LOGICAL_DIR.rglob(f"{parts[0]}.yaml"))
+        names = [f"{parts[0]}.yaml"]
+        if is_ncap_scenario_set(scenario_root) and not parts[0].endswith("_nsc"):
+            names.insert(0, f"{parts[0]}_nsc.yaml")
+        matches = sorted(path for name in names for path in logical_dir.rglob(name))
         if len(matches) == 1:
-            return matches[0]
+            return scenario_root, matches[0]
         if not matches:
             raise FileNotFoundError(f"Logical scenario not found: {selector}")
         raise RuntimeError(f"Ambiguous scenario selector '{selector}': {matches}")
@@ -92,32 +108,44 @@ def logical_path_from_selector(selector: str) -> Path:
         domain_dir = normalize_selector_part(parts[0])
         functional_dir = normalize_functional_part(parts[1])
         scenario_id = parts[2]
-        return LOGICAL_DIR / domain_dir / functional_dir / f"{scenario_id}.yaml"
+        suffix = "_nsc" if is_ncap_scenario_set(scenario_root) and not scenario_id.endswith("_nsc") else ""
+        return scenario_root, logical_dir / domain_dir / functional_dir / f"{scenario_id}{suffix}.yaml"
 
     raise ValueError(
-        "Selector must be '<scenario_id>' or '<feature_domain>/<functional>/<scenario_id>'"
+        "Selector must be '[<scenario_set>/]<scenario_id>' or "
+        "'[<scenario_set>/]<feature_domain>/<functional>/<scenario_id>'"
     )
 
 
-def logical_dir_from_selector(selector: str) -> Path:
-    parts = split_selector(selector)
+def logical_dir_from_selector(selector: str) -> tuple[Path, Path]:
+    scenario_root, parts = resolve_scenario_set(split_selector(selector))
     if len(parts) != 2:
-        raise ValueError("Folder selector must be '<feature_domain>/<functional>'")
-    return LOGICAL_DIR / normalize_selector_part(parts[0]) / normalize_functional_part(parts[1])
+        raise ValueError(
+            "Folder selector must be '[<scenario_set>/]<feature_domain>/<functional>'"
+        )
+    return (
+        scenario_root,
+        scenario_root / "logical" / normalize_selector_part(parts[0]) / normalize_functional_part(parts[1]),
+    )
 
 
 def scenario_id_from_logical_path(logical_path: Path) -> str:
     return logical_path.stem
 
 
-def parameter_path_for_logical(logical_path: Path, logical: Dict) -> Path:
+def parameter_path_for_logical(scenario_root: Path, logical_path: Path, logical: Dict) -> Path:
     scenario_id = str(logical.get("scenario_id") or logical_path.stem)
-    parameter_id = scenario_id.replace("csc", "par")
-    relative_parent = logical_path.parent.relative_to(LOGICAL_DIR)
-    return PARAMETER_DIR / relative_parent / f"{parameter_id}.yaml"
+    if is_ncap_scenario_set(scenario_root):
+        parameter_id = (
+            scenario_id[:-4] if scenario_id.endswith("_nsc") else scenario_id
+        ) + "_par"
+    else:
+        parameter_id = scenario_id.replace("csc", "par")
+    relative_parent = logical_path.parent.relative_to(scenario_root / "logical")
+    return scenario_root / "parameters" / relative_parent / f"{parameter_id}.yaml"
 
 
-def output_dir_for_logical(logical: Dict, scenario_id: str) -> Path:
+def output_dir_for_logical(scenario_root: Path, logical: Dict, scenario_id: str) -> Path:
     functional = logical.get("functional")
     feature_domain = logical.get("feature_domain")
 
@@ -127,7 +155,7 @@ def output_dir_for_logical(logical: Dict, scenario_id: str) -> Path:
         )
 
     return (
-        CORE_DIR
+        scenario_root / "core"
         / to_feature_domain_dir(str(feature_domain))
         / to_functional_dir(str(functional))
         / scenario_id
@@ -221,11 +249,11 @@ def build_core_scenario(
 # Expansion Logic
 # ==================================================
 
-def expand_single_logical(logical_path: Path, clean: bool = False) -> None:
+def expand_single_logical(scenario_root: Path, logical_path: Path, clean: bool = False) -> None:
     logical = load_yaml(logical_path)
     scenario_id = str(logical.get("scenario_id") or scenario_id_from_logical_path(logical_path))
-    parameter_path = parameter_path_for_logical(logical_path, logical)
-    output_dir = output_dir_for_logical(logical, scenario_id)
+    parameter_path = parameter_path_for_logical(scenario_root, logical_path, logical)
+    output_dir = output_dir_for_logical(scenario_root, logical, scenario_id)
 
     print(f"\n[INFO] Expanding scenario: {scenario_id}")
     print(f"[INFO] Logical: {logical_path}")
@@ -236,8 +264,13 @@ def expand_single_logical(logical_path: Path, clean: bool = False) -> None:
 
     param_cfg = load_yaml(parameter_path)
 
-    parameters = param_cfg.get("parameters", {})
+    parameters = param_cfg if is_ncap_scenario_set(scenario_root) else param_cfg.get("parameters", {})
     constraints = param_cfg.get("constraints", [])
+    parameters = {
+        key: value
+        for key, value in parameters.items()
+        if key != "constraints"
+    }
 
     generated = 0
     skipped = 0
@@ -264,25 +297,26 @@ def expand_single_logical(logical_path: Path, clean: bool = False) -> None:
 
 
 def expand_single_scenario(selector: str, clean: bool = False) -> None:
-    expand_single_logical(logical_path_from_selector(selector), clean=clean)
+    scenario_root, logical_path = logical_path_from_selector(selector)
+    expand_single_logical(scenario_root, logical_path, clean=clean)
 
 
 def expand_folder(selector: str, clean: bool = False) -> None:
-    logical_dir = logical_dir_from_selector(selector)
+    scenario_root, logical_dir = logical_dir_from_selector(selector)
     if not logical_dir.exists():
         raise FileNotFoundError(f"Logical folder not found: {logical_dir}")
 
     for logical_path in sorted(logical_dir.glob("*.yaml")):
         try:
-            expand_single_logical(logical_path, clean=clean)
+            expand_single_logical(scenario_root, logical_path, clean=clean)
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
 
 
-def expand_all(clean: bool = False) -> None:
-    for logical_path in sorted(LOGICAL_DIR.rglob("*.yaml")):
+def expand_all(scenario_root: Path = BASE_SCENARIO_DIR, clean: bool = False) -> None:
+    for logical_path in sorted((scenario_root / "logical").rglob("*.yaml")):
         try:
-            expand_single_logical(logical_path, clean=clean)
+            expand_single_logical(scenario_root, logical_path, clean=clean)
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
 
@@ -319,7 +353,15 @@ def main():
     args = parser.parse_args()
 
     if args.all:
-        expand_all(clean=args.clean)
+        if len(args.selectors) > 1:
+            parser.error("--all accepts at most one scenario set, e.g. ncap_scenarios --all")
+        if args.selectors:
+            scenario_root, remaining = resolve_scenario_set(split_selector(args.selectors[0]))
+            if remaining:
+                parser.error("--all selector must be a scenario set, e.g. ncap_scenarios")
+        else:
+            scenario_root = BASE_SCENARIO_DIR
+        expand_all(scenario_root=scenario_root, clean=args.clean)
         return
 
     if args.start is not None and args.end is not None:
@@ -336,7 +378,7 @@ def main():
         return
 
     for selector in args.selectors:
-        parts = split_selector(selector)
+        _, parts = resolve_scenario_set(split_selector(selector))
         try:
             if len(parts) == 2:
                 expand_folder(selector, clean=args.clean)

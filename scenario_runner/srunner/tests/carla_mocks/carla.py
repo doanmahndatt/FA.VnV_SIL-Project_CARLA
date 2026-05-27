@@ -281,6 +281,9 @@ class World:
 class Client:
     world = World()
 
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
     def load_world(self, name):
         return None
 

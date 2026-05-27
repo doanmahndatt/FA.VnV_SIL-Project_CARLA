@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OpenSCENARIO>
+  <FileHeader
+      author="DatDM7-FA.VnV"
+      date="2025-02-20T09:09:29"
+      description="Pedestrian Catalog for NCAP Scenarios (CARLA 0.9.16 - UE4)"
+      revMajor="1"
+      revMinor="0"/>
+  <Catalog name="Pedestrians">
+    <!-- ===================== -->
+    <!-- NCAP Adult Pedestrian -->
+    <!-- ===================== -->
+    <Pedestrian
+        name="NCAP_Adult"
+        pedestrianCategory="pedestrian"
+        model="walker.pedestrian.0001"
+        mass="75">
+      <BoundingBox>
+        <Center x="0" y="0" z="0.9"/>
+        <Dimensions height="1.8" length="0.6" width="0.5"/>
+      </BoundingBox>
+      <Properties/>
+    </Pedestrian>
+
+    <!-- ===================== -->
+    <!-- NCAP Child Pedestrian -->
+    <!-- ===================== -->
+    <Pedestrian
+        name="NCAP_Child"
+        pedestrianCategory="pedestrian"
+        model="walker.pedestrian.0010"
+        mass="35">
+      <BoundingBox>
+        <Center x="0" y="0" z="0.577"/>
+        <Dimensions height="1.154" length="0.711" width="0.298"/>
+      </BoundingBox>
+      <Properties/>
+    </Pedestrian>
+  </Catalog>
+</OpenSCENARIO>

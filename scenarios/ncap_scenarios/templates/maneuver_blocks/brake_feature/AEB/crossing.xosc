@@ -1,0 +1,106 @@
+<ManeuverGroup name="${actor}_crossing" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="${actor}_crossing_maneuver">
+    <Event name="${actor}_crossing_event" priority="overwrite">
+      <Action name="${actor}_crossing_speed">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="${vru_speed_mps}"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <Action name="${actor}_crossing_trajectory">
+        <PrivateAction>
+          <RoutingAction>
+            <FollowTrajectoryAction>
+              <Trajectory name="${actor}_crossing_path" closed="false">
+                <Shape>
+                  <Polyline>
+                    <Vertex time="0">
+                      <Position>
+                        <LanePosition roadId="3" laneId="${tv_lane_id}" s="${vru_init_s}"
+                                      offset="${vru_initial_offset}"/>
+                      </Position>
+                    </Vertex>
+                    <Vertex time="${vru_crossing_duration}">
+                      <Position>
+                        <LanePosition roadId="3" laneId="${tv_lane_id}" s="${vru_init_s}"
+                                      offset="${vru_final_offset}"/>
+                      </Position>
+                    </Vertex>
+                  </Polyline>
+                </Shape>
+              </Trajectory>
+              <TimeReference>
+                <Timing domainAbsoluteRelative="absolute" offset="0" scale="1"/>
+              </TimeReference>
+              <TrajectoryFollowingMode followingMode="position"/>
+            </FollowTrajectoryAction>
+          </RoutingAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_crossing_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="${vru_crossing_start_time}" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    <Event name="${actor}_stop_after_crossing" priority="overwrite">
+      <Action name="${actor}_stop">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="0"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_crossing_end" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="${vru_crossing_end_time}" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    <Event name="${actor}_monitor_until_end" priority="overwrite">
+      <Action name="${actor}_hold_scene">
+        <PrivateAction>
+          <LongitudinalAction>
+            <SpeedAction>
+              <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+              <SpeedActionTarget>
+                <AbsoluteTargetSpeed value="0"/>
+              </SpeedActionTarget>
+            </SpeedAction>
+          </LongitudinalAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_monitor_end" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="20" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

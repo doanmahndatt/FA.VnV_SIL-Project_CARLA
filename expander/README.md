@@ -2,26 +2,52 @@
 
 `expander.py` expands logical scenario YAML plus parameter YAML into concrete core scenario YAML files.
 
-Input:
+## Scenario Types And CLI Selector
+
+Scenario data is separated under `scenarios/<scenario_type>/`. The CLI selector
+optionally starts with that scenario type:
 
 ```text
-scenarios/general_scenarios/logical/<feature_domain>/<functional>/<scenario_id>.yaml
-scenarios/general_scenarios/parameters/<feature_domain>/<functional>/<parameter_id>.yaml
+[<scenario_type>/]<feature_domain>/<functional>/<scenario_id>
+[<scenario_type>/]<feature_domain>/<functional>
 ```
 
-Output:
+Supported scenario types currently used by this pipeline:
 
-```text
-scenarios/general_scenarios/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
+| Scenario type | Purpose | Selector example |
+|---|---|---|
+| `general_scenarios` | General ADAS functional test cases | `longitudinal/acc/acc_csc_001` |
+| `ncap_scenarios` | Euro NCAP protocol-based cases | `ncap_scenarios/brake/aeb/aeb_cpna_001` |
+
+When `<scenario_type>/` is omitted, the script resolves to
+`general_scenarios` for backward compatibility.
+
+```powershell
+# General, implicit and explicit forms are equivalent
+python expander\expander.py longitudinal/acc/acc_csc_001 --clean
+python expander\expander.py general_scenarios/longitudinal/acc/acc_csc_001 --clean
+
+# NCAP must specify its scenario type
+python expander\expander.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
+python expander\expander.py ncap_scenarios/brake/aeb --clean
+python expander\expander.py ncap_scenarios --all --clean
 ```
 
-Example:
+Files always remain inside the selected scenario type:
 
 ```text
-scenarios/general_scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
-scenarios/general_scenarios/parameters/longitudinal_feature/ACC/acc_par_001.yaml
+scenarios/<scenario_type>/logical/<feature_domain>/<functional>/...
+scenarios/<scenario_type>/parameters/<feature_domain>/<functional>/...
+=> scenarios/<scenario_type>/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
+```
 
-=> scenarios/general_scenarios/core/longitudinal_feature/ACC/acc_csc_001/acc_csc_001_001.yaml
+General scenarios use `<id>.yaml` paired with a converted parameter id, for
+example `acc_csc_001.yaml` with `acc_par_001.yaml`. NCAP scenarios use:
+
+```text
+logical/<domain>/<function>/<id>_nsc.yaml
+parameters/<domain>/<function>/<id>_par.yaml
+=> core/<domain>/<function>/<id>/<id>_<case>.yaml
 ```
 
 ## 1. Required Metadata
@@ -56,7 +82,7 @@ acc_csc_001 -> acc_par_001
 Open a terminal at:
 
 ```powershell
-cd C:\Self_Improvement\FA_VnV\Test_assets_v1.3\expander
+cd C:\Self_Improvement\FA_VnV\Test_assets_v1.4\expander
 ```
 
 Then run commands with:
@@ -73,16 +99,18 @@ python expander\expander.py <selector>
 
 ## 3. Selector Format
 
-Use this selector format:
+Use this selector format. The leading scenario type is required for any set
+other than `general_scenarios`:
 
 ```text
-<feature_domain>/<functional>/<scenario_id>
+[<scenario_type>/]<feature_domain>/<functional>/<scenario_id>
 ```
 
-Example:
+Examples:
 
 ```text
 longitudinal/acc/acc_csc_001
+ncap_scenarios/brake/aeb/aeb_cpna_001
 ```
 
 The selector is case-insensitive for domain and functional names:
@@ -92,7 +120,7 @@ python expander.py longitudinal/acc/acc_csc_001
 python expander.py Longitudinal/ACC/acc_csc_001
 ```
 
-Both resolve to:
+The two general commands resolve to:
 
 ```text
 scenarios/general_scenarios/logical/longitudinal_feature/ACC/acc_csc_001.yaml
@@ -213,6 +241,12 @@ python expander.py --all --clean
 
 Use this carefully because it may regenerate many folders.
 
+To expand all files in another scenario type, pass that type before `--all`:
+
+```powershell
+python expander.py ncap_scenarios --all --clean
+```
+
 ## 10. Common Errors
 
 `File not found: ... logical ...`
@@ -252,3 +286,9 @@ python expander.py longitudinal/acc/acc_csc_001 --clean
 
 4. Inspect the generated core YAML folder.
 5. If the output is correct, run a range or full functional folder.
+
+For NCAP, apply the same workflow with the scenario-type prefix:
+
+```powershell
+python expander.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
+```

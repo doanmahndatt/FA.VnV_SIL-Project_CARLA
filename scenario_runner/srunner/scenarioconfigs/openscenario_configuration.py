@@ -205,6 +205,8 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
                                                                  enable_mesh_visibility=True))
             else:
                 self.logger.warning(" Wrong map in use. Forcing reload of CARLA world")
+                # CARLA exposes set_timeout() but no get_timeout() in the Python API.
+                self.client.set_timeout(60.0)
                 self.client.load_world(self.town)
                 while self.client.get_world().get_map().name.split('/')[-1] != self.town:
                     continue

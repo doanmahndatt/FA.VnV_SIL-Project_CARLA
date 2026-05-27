@@ -1,0 +1,99 @@
+<ManeuverGroup name="${actor}_lane_departure_right" maximumExecutionCount="1">
+  <Actors selectTriggeringEntities="false">
+    <EntityRef entityRef="${actor}"/>
+  </Actors>
+  <Maneuver name="${actor}_lane_departure_right_maneuver">
+    <Event name="${actor}_lane_departure_right_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_right_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneOffsetAction continuous="true">
+              <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+              <LaneOffsetTarget>
+                <AbsoluteTargetLaneOffset value="0.75"/>
+              </LaneOffsetTarget>
+            </LaneOffsetAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_lane_departure_right_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="5" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    <Event name="${actor}_lane_departure_right_2_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_right_2_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneOffsetAction continuous="true">
+              <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+              <LaneOffsetTarget>
+                <AbsoluteTargetLaneOffset value="0.75"/>
+              </LaneOffsetTarget>
+            </LaneOffsetAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_lane_departure_right_2_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="12" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    <Event name="${actor}_lane_departure_right_3_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_right_3_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneOffsetAction continuous="true">
+              <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+              <LaneOffsetTarget>
+                <AbsoluteTargetLaneOffset value="0.75"/>
+              </LaneOffsetTarget>
+            </LaneOffsetAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_lane_departure_right_3_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="19" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+    <Event name="${actor}_lane_departure_center_event" priority="overwrite">
+      <Action name="${actor}_lane_departure_center_action">
+        <PrivateAction>
+          <LateralAction>
+            <LaneOffsetAction continuous="true">
+              <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+              <LaneOffsetTarget>
+                <AbsoluteTargetLaneOffset value="0.0"/>
+              </LaneOffsetTarget>
+            </LaneOffsetAction>
+          </LateralAction>
+        </PrivateAction>
+      </Action>
+      <StartTrigger>
+        <ConditionGroup>
+          <Condition name="${actor}_lane_departure_center_start" delay="0" conditionEdge="rising">
+            <ByValueCondition>
+              <SimulationTimeCondition value="26" rule="greaterThan"/>
+            </ByValueCondition>
+          </Condition>
+        </ConditionGroup>
+      </StartTrigger>
+    </Event>
+  </Maneuver>
+</ManeuverGroup>

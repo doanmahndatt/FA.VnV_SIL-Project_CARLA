@@ -1,0 +1,267 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="AEB_storyboard for NCAP Scenarios (CARLA 0.9.16 - UE4)" author="DatDM7.FPT"/>
+  <ParameterDeclarations>
+    <ParameterDeclaration name="Scenario_ID" parameterType="string" value="NCAP_AEB_CPNA"/>
+    <ParameterDeclaration name="Overlap" parameterType="double" value="25"/>
+    <ParameterDeclaration name="ev_length" parameterType="double" value="4.69"/>
+    <ParameterDeclaration name="ev_width" parameterType="double" value="1.85"/>
+    <ParameterDeclaration name="ev_initS" parameterType="double" value="0"/>
+    <ParameterDeclaration name="ev_BBcenter_x" parameterType="double" value="1.4"/>
+    <ParameterDeclaration name="ev_speed_kph" parameterType="double" value="30"/>
+    <ParameterDeclaration name="_ev_speed" parameterType="double" value="8.333333"/>
+    <ParameterDeclaration name="ev_initTTC" parameterType="double" value="6"/>
+    <ParameterDeclaration name="_ev_frontBumper" parameterType="double" value="3.745000"/>
+    <ParameterDeclaration name="_ev_impactPointOffset" parameterType="double" value="0.462500"/>
+    <ParameterDeclaration name="VRU_width" parameterType="double" value="0.5"/>
+    <ParameterDeclaration name="VRU_collisionPointOffset" parameterType="double" value="-0.060000"/>
+    <ParameterDeclaration name="VRU_finalSpeed_kph" parameterType="double" value="5"/>
+    <ParameterDeclaration name="_VRU_finalSpeed" parameterType="double" value="1.388889"/>
+    <ParameterDeclaration name="VRU_initLatDist" parameterType="double" value="4"/>
+    <ParameterDeclaration name="_VRU_initS" parameterType="double" value="50.000000"/>
+    <ParameterDeclaration name="VRU_accelerationDist" parameterType="double" value="1"/>
+    <ParameterDeclaration name="VRU_trajectoryOrientation" parameterType="integer" value="1"/>
+  </ParameterDeclarations>
+  <CatalogLocations>
+    <VehicleCatalog>
+      <Directory path="../../../../../catalogs/Vehicles"/>
+    </VehicleCatalog>
+    <PedestrianCatalog>
+      <Directory path="../../../../../catalogs/Pedestrians"/>
+    </PedestrianCatalog>
+    <EnvironmentCatalog>
+      <Directory path="../../../../../catalogs/Environments"/>
+    </EnvironmentCatalog>
+  </CatalogLocations>
+  <RoadNetwork>
+    <LogicFile filepath="Town03"/>
+  </RoadNetwork>
+  <Entities>
+    <ScenarioObject name="ev">
+      <CatalogReference entryName="Tesla_model3" catalogName="Vehicles"/>
+    </ScenarioObject>
+    <ScenarioObject name="VRU">
+      <CatalogReference entryName="NCAP_Adult" catalogName="Pedestrians"/>
+    </ScenarioObject>
+  </Entities>
+  <Storyboard>
+    <Init>
+      <Actions>
+        <GlobalAction>
+          <EnvironmentAction>
+            <CatalogReference entryName="Env_Day_Fog" catalogName="Environments"/>
+          </EnvironmentAction>
+        </GlobalAction>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="-2" s="$ev_initS" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$_ev_speed"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <ControllerAction>
+              <AssignControllerAction>
+                <Controller name="AEB_fmu_controller">
+                  <Properties>
+                    <Property name="module" value="config/controllers_fmu/brake_feature/AEB/AEB_fmu_controller.py"/>
+                    <Property name="config" value="config/controllers_fmu/brake_feature/AEB/signals.yaml"/>
+                    <Property name="fmu" value="config/controllers_fmu/brake_feature/AEB/AEB_controller.fmu"/>
+                    <Property name="desired_speed" value="8.333333"/>
+                    <Property name="target_speed" value="8.333333"/>
+                    <Property name="initial_speed" value="8.333333"/>
+                    <Property name="target_role_prefix" value="VRU"/>
+                    <Property name="warning_ttc" value="3.5"/>
+                    <Property name="brake_ttc" value="1.5"/>
+                    <Property name="emergency_ttc" value="1.0"/>
+                    <Property name="min_distance" value="2.0"/>
+                    <Property name="hard_brake_distance" value="4.0"/>
+                  </Properties>
+                </Controller>
+              </AssignControllerAction>
+              <OverrideControllerValueAction>
+                <Throttle active="false" value="0"/>
+                <Brake active="false" value="0"/>
+                <Clutch active="false" value="0"/>
+                <ParkingBrake active="false" value="0"/>
+                <SteeringWheel active="false" value="0"/>
+                <Gear active="false" number="0"/>
+              </OverrideControllerValueAction>
+            </ControllerAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="VRU">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="-2" s="50.000000" offset="4.000000"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="VRU">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="0"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+    <Story name="main_story">
+      <Act name="act_1">
+        <ManeuverGroup name="VRU_crossing" maximumExecutionCount="1">
+          <Actors selectTriggeringEntities="false">
+            <EntityRef entityRef="VRU"/>
+          </Actors>
+          <Maneuver name="VRU_crossing_maneuver">
+            <Event name="VRU_crossing_event" priority="overwrite">
+              <Action name="VRU_crossing_speed">
+                <PrivateAction>
+                  <LongitudinalAction>
+                    <SpeedAction>
+                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                      <SpeedActionTarget>
+                        <AbsoluteTargetSpeed value="1.388889"/>
+                      </SpeedActionTarget>
+                    </SpeedAction>
+                  </LongitudinalAction>
+                </PrivateAction>
+              </Action>
+              <Action name="VRU_crossing_trajectory">
+                <PrivateAction>
+                  <RoutingAction>
+                    <FollowTrajectoryAction>
+                      <Trajectory name="VRU_crossing_path" closed="false">
+                        <Shape>
+                          <Polyline>
+                            <Vertex time="0">
+                              <Position>
+                                <LanePosition roadId="3" laneId="-2" s="50.000000" offset="4.000000"/>
+                              </Position>
+                            </Vertex>
+                            <Vertex time="5.760000">
+                              <Position>
+                                <LanePosition roadId="3" laneId="-2" s="50.000000" offset="-4.000000"/>
+                              </Position>
+                            </Vertex>
+                          </Polyline>
+                        </Shape>
+                      </Trajectory>
+                      <TimeReference>
+                        <Timing domainAbsoluteRelative="absolute" offset="0" scale="1"/>
+                      </TimeReference>
+                      <TrajectoryFollowingMode followingMode="position"/>
+                    </FollowTrajectoryAction>
+                  </RoutingAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="VRU_crossing_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="3.046800" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="VRU_stop_after_crossing" priority="overwrite">
+              <Action name="VRU_stop">
+                <PrivateAction>
+                  <LongitudinalAction>
+                    <SpeedAction>
+                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                      <SpeedActionTarget>
+                        <AbsoluteTargetSpeed value="0"/>
+                      </SpeedActionTarget>
+                    </SpeedAction>
+                  </LongitudinalAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="VRU_crossing_end" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="8.806800" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="VRU_monitor_until_end" priority="overwrite">
+              <Action name="VRU_hold_scene">
+                <PrivateAction>
+                  <LongitudinalAction>
+                    <SpeedAction>
+                      <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                      <SpeedActionTarget>
+                        <AbsoluteTargetSpeed value="0"/>
+                      </SpeedActionTarget>
+                    </SpeedAction>
+                  </LongitudinalAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="VRU_monitor_end" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="20" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+          </Maneuver>
+        </ManeuverGroup>
+        <StartTrigger>
+          <ConditionGroup>
+            <Condition name="start" delay="0" conditionEdge="rising">
+              <ByValueCondition>
+                <SimulationTimeCondition value="0" rule="greaterThan"/>
+              </ByValueCondition>
+            </Condition>
+          </ConditionGroup>
+        </StartTrigger>
+        <StopTrigger>
+          <ConditionGroup>
+            <Condition name="act_end_after_monitoring" delay="0" conditionEdge="rising">
+              <ByValueCondition>
+                <SimulationTimeCondition value="20" rule="greaterThan"/>
+              </ByValueCondition>
+            </Condition>
+          </ConditionGroup>
+        </StopTrigger>
+      </Act>
+    </Story>
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end" delay="0" conditionEdge="rising">
+          <ByValueCondition>
+            <SimulationTimeCondition value="20" rule="greaterThan"/>
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>

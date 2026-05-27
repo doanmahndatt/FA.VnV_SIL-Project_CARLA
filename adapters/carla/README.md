@@ -3,16 +3,63 @@
 The CARLA adapter converts expanded core scenario YAML files into CARLA-compatible
 OpenSCENARIO `.xosc` files.
 
-Input:
+## Scenario Types And CLI Selector
+
+The adapter reads core YAML and writes XOSC inside the same
+`scenarios/<scenario_type>/` root. Its selector optionally starts with the
+scenario type:
 
 ```text
-scenarios/general_scenarios/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
+[<scenario_type>/]<feature_domain>/<functional>/<scenario_id>
+[<scenario_type>/]<feature_domain>/<functional>
 ```
 
-Output:
+Selectors without the prefix continue to address `general_scenarios`.
+Specify `ncap_scenarios` to generate Euro NCAP cases:
+
+```powershell
+python adapters\carla\longitudinal_feature\generated.py longitudinal/acc/acc_csc_001 --clean
+python adapters\carla\longitudinal_feature\generated.py general_scenarios/longitudinal/acc/acc_csc_001 --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios/brake/aeb --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios --all --clean
+```
+
+For an NCAP core whose logic contains:
+
+```yaml
+parametersDeclaration:
+  - type: CPNA
+```
+
+the generator renders and inserts:
 
 ```text
-scenarios/general_scenarios/generated/carla/<feature_domain>/<functional>/<scenario_id>/<case_id>.xosc
+scenarios/ncap_scenarios/templates/ParameterDeclarations/<domain>/<function>/CPNA_parameters.xosc
+```
+
+before inserting the maneuver block. CPNA derived values are materialized
+during generation because the bundled ScenarioRunner accepts `$parameter`
+references but does not evaluate arithmetic expressions in declarations.
+
+For CPNA, fixed protocol values such as `ev_initS`, `ev_initTTC`,
+`VRU_finalSpeed_kph` and `VRU_initLatDist` are sourced only from
+`CPNA_parameters.xosc`. Case inputs such as `overlap` and `ev_speed_kph` are
+read from the core YAML. Derived values including `_VRU_initS` are recalculated
+from those sources on every generation; do not edit generated XOSC files.
+For CPNA, the VRU trajectory always starts from the configured nearside
+(`VRU_trajectoryOrientation`); changing `overlap` changes only the impact
+point. With the current positive-nearside configuration, `25%` maps to
+`+0.4625 m` and `75%` maps to `-0.4625 m` for an EV width of `1.85 m`.
+
+The GUI batch runner regenerates each selected XOSC from its current core YAML
+and template immediately before starting the CARLA case.
+
+Input and output for any selected type:
+
+```text
+scenarios/<scenario_type>/core/<feature_domain>/<functional>/<scenario_id>/<case_id>.yaml
+=> scenarios/<scenario_type>/generated/carla/<feature_domain>/<functional>/<scenario_id>/<case_id>.xosc
 ```
 
 Example:
@@ -37,7 +84,6 @@ adapters/carla/
 |   `-- generated.py                  # Lateral-only wrapper
 |-- brake_feature/
 |   `-- generated.py                  # Brake-only wrapper
-|-- lateral_feature/
 `-- parking_feature/
 ```
 
@@ -86,6 +132,9 @@ Brake        -> brake_feature
 ```
 
 ## 3. Required Templates
+
+The paths below illustrate `general_scenarios`. For another scenario type,
+replace that root with the selected one, for example `ncap_scenarios`.
 
 For a core YAML with:
 
@@ -168,10 +217,11 @@ emergency_brake.xosc -> emergency_brake_event
 
 ## 5. Selector Format
 
-Use this selector format:
+Use this selector format. The scenario-type prefix is optional only for
+`general_scenarios`:
 
 ```text
-<feature_domain>/<functional>/<scenario_id>
+[<scenario_type>/]<feature_domain>/<functional>/<scenario_id>
 ```
 
 Examples:
@@ -179,6 +229,7 @@ Examples:
 ```text
 longitudinal/acc/acc_csc_001
 brake/aeb/aeb_csc_001
+ncap_scenarios/brake/aeb/aeb_cpna_001
 ```
 
 The selector is case-insensitive for domain and functional names:
@@ -187,6 +238,7 @@ The selector is case-insensitive for domain and functional names:
 python adapters\carla\longitudinal_feature\generated.py Longitudinal/ACC/acc_csc_001
 python adapters\carla\lateral_feature\generated.py Lateral/LKA/lka_csc_001
 python adapters\carla\brake_feature\generated.py Brake/AEB/aeb_csc_001
+python adapters\carla\brake_feature\generated.py ncap_scenarios/Brake/AEB/aeb_cpna_001
 ```
 
 ## 6. Generate One Scenario Folder
@@ -203,6 +255,12 @@ Brake:
 
 ```powershell
 python adapters\carla\brake_feature\generated.py brake/aeb/aeb_csc_001 --clean
+```
+
+NCAP brake:
+
+```powershell
+python adapters\carla\brake_feature\generated.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
 ```
 
 Compatibility command:
@@ -259,6 +317,12 @@ The compatibility wrapper scans all domains:
 python adapters\carla\generated_wrapper.py --all --clean
 ```
 
+To generate all cases for another scenario type, prefix `--all` with the type:
+
+```powershell
+python adapters\carla\brake_feature\generated.py ncap_scenarios --all --clean
+```
+
 ## 11. End-To-End Examples
 
 ACC:
@@ -273,6 +337,13 @@ AEB:
 ```powershell
 python expander\expander.py brake/aeb/aeb_csc_001 --clean
 python adapters\carla\brake_feature\generated.py brake/aeb/aeb_csc_001 --clean
+```
+
+NCAP CPNA:
+
+```powershell
+python expander\expander.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
+python adapters\carla\brake_feature\generated.py ncap_scenarios/brake/aeb/aeb_cpna_001 --clean
 ```
 
 Expected flow:

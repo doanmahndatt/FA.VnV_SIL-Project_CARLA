@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OpenSCENARIO>
+  <FileHeader author="DatDM7-FA.VnV" date="2025-02-20T09:09:29"
+      description="Environment Catalog for NCAP Scenarios (CARLA 0.9.16 - UE4)"
+      revMajor="1" revMinor="0"/>
+  <Catalog name="Environments">
+    <Environment name="Env_Day_Clear">
+      <TimeOfDay animation="false" dateTime="2026-01-01T12:00:00"/>
+      <Weather cloudState="free">
+        <Sun intensity="1.0" azimuth="3.14159" elevation="1.13446"/>
+        <Precipitation precipitationType="dry" intensity="0.0"/>
+        <Fog visualRange="1000"/>
+      </Weather>
+      <RoadCondition frictionScaleFactor="1.0"/>
+    </Environment>
+    <Environment name="Env_Day_Rain">
+      <TimeOfDay animation="false" dateTime="2026-01-01T12:00:00"/>
+      <Weather cloudState="overcast">
+        <Sun intensity="1.0" azimuth="3.14159" elevation="1.13446"/>
+        <Precipitation precipitationType="rain" intensity="0.6"/>
+        <Fog visualRange="800"/>
+      </Weather>
+      <RoadCondition frictionScaleFactor="0.7"/>
+    </Environment>
+    <Environment name="Env_Day_Fog">
+      <TimeOfDay animation="false" dateTime="2026-01-01T12:00:00"/>
+      <Weather cloudState="cloudy">
+        <Sun intensity="1.0" azimuth="3.14159" elevation="1.13446"/>
+        <Precipitation precipitationType="dry" intensity="0.0"/>
+        <Fog visualRange="50"/>
+      </Weather>
+      <RoadCondition frictionScaleFactor="0.9"/>
+    </Environment>
+    <Environment name="Env_Night_Clear">
+      <TimeOfDay animation="false" dateTime="2026-01-01T00:00:00"/>
+      <Weather cloudState="free">
+        <Sun intensity="0.05" azimuth="3.14159" elevation="-0.17453"/>
+        <Precipitation precipitationType="dry" intensity="0.0"/>
+        <Fog visualRange="1000"/>
+      </Weather>
+      <RoadCondition frictionScaleFactor="1.0"/>
+    </Environment>
+    <Environment name="Env_Night_Rain">
+      <TimeOfDay animation="false" dateTime="2026-01-01T00:00:00"/>
+      <Weather cloudState="overcast">
+        <Sun intensity="0.05" azimuth="3.14159" elevation="-0.17453"/>
+        <Precipitation precipitationType="rain" intensity="0.6"/>
+        <Fog visualRange="300"/>
+      </Weather>
+      <RoadCondition frictionScaleFactor="0.7"/>
+    </Environment>
+    <Environment name="Env_Night_Fog">
+      <TimeOfDay animation="false" dateTime="2026-01-01T00:00:00"/>
+      <Weather cloudState="cloudy">
+        <Sun intensity="0.05" azimuth="3.14159" elevation="-0.17453"/>
+        <Precipitation precipitationType="dry" intensity="0.0"/>
+        <Fog visualRange="30"/>
+      </Weather>
+      <RoadCondition frictionScaleFactor="0.9"/>
+    </Environment>
+  </Catalog>
+</OpenSCENARIO>

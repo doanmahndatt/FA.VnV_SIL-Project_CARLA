@@ -327,7 +327,7 @@ class ScenarioRunner(object):
         #if not self.manager.analyze_scenario(self._args.output, filename, junit_filename, json_filename):
         #    print("All scenario tests were passed successfully!")
         #else:
-            print("[INFO] Scenario finished – evaluation handled by KPI")
+            print("[INFO] Scenario finished - evaluation handled by KPI")
             #if not (self._args.output or filename or junit_filename):
                 #print("Please run with --output for further information")
 
@@ -447,7 +447,7 @@ class ScenarioRunner(object):
                                         ego_vehicles=self.ego_vehicles,
                                         config=config,
                                         config_file=self._args.openscenario,
-                                        timeout=120000)
+                                        timeout=self._openscenario_timeout_seconds(config))
             elif self._args.route:
                 scenario = RouteScenario(world=self.world,
                                          config=config,
@@ -525,6 +525,18 @@ class ScenarioRunner(object):
         if self._args.urbanTrafficConfig:
             return self._args.urbanTrafficConfig
         return _resolve_traffic_config(self._args.openscenario)
+
+    def _openscenario_timeout_seconds(self, config):
+        """
+        Keep LKA bounded even when the OpenSCENARIO StopTrigger is not consumed
+        as a terminal condition by ScenarioRunner.
+        """
+        scenario_path = str(self._args.openscenario or "").replace("\\", "/")
+        if "/lateral_feature/LKA/" in scenario_path:
+            return 45
+        if str(getattr(config, "name", "")).startswith("LKA "):
+            return 45
+        return 120000
 
     def _run_scenarios(self):
         """
@@ -638,7 +650,7 @@ def main():
                         help='IP of the host server (default: localhost)')
     parser.add_argument('--port', default='2000',
                         help='TCP port to listen to (default: 2000)')
-    parser.add_argument('--timeout', default="10.0",
+    parser.add_argument('--timeout', default="60.0",
                         help='Set the CARLA client timeout value in seconds')
     parser.add_argument('--trafficManagerPort', default='8000',
                         help='Port to use for the TrafficManager (default: 8000)')

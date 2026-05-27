@@ -1,0 +1,24 @@
+scenario_id: lka_csc_003
+name: EV drifts left on curved road and LKA recenters
+functional: LKA
+feature_domain: Lateral
+
+pre_condition:
+  ev_mode: LKA
+  road_type: curve
+  
+actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: adjacent
+      position: front_ego
+      state: moving
+
+maneuvers:
+  - type: lane_departure_left_event
+    actor: ev
+    direction: left

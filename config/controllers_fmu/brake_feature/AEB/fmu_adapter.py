@@ -31,8 +31,8 @@ DEFAULT_INPUTS = {
     "has_waypoint": 0.0,
     "min_distance": 4.5,
     "warning_ttc": 1.8,
-    "brake_ttc": 1.0,
-    "emergency_ttc": 0.55,
+    "brake_ttc": 1.5,
+    "emergency_ttc": 1.0,
     "kp_speed": 0.35,
     "kp_brake": 0.45,
     "max_throttle": 0.75,
@@ -66,10 +66,10 @@ class AEBParameters:
     target_speed: float = 20.0
     min_distance: float = 4.5
     warning_ttc: float = 1.8
-    brake_ttc: float = 1.0
+    brake_ttc: float = 1.5
     emergency_ttc: float = 0.55
     kp_speed: float = 0.35
-    kp_brake: float = 0.45
+    kp_brake: float = 0.7
     max_throttle: float = 0.75
     max_brake: float = 1.0
     brake_hold_time: float = 0.5
@@ -87,10 +87,10 @@ class AEBParameters:
             target_speed=_float_arg(args, "target_speed", _float_arg(args, "desired_speed", 20.0)),
             min_distance=_float_arg(args, "min_distance", 4.5),
             warning_ttc=_float_arg(args, "warning_ttc", 1.8),
-            brake_ttc=_float_arg(args, "brake_ttc", 1.0),
+            brake_ttc=_float_arg(args, "brake_ttc", 1.5),
             emergency_ttc=_float_arg(args, "emergency_ttc", 0.55),
             kp_speed=_float_arg(args, "kp_speed", 0.35),
-            kp_brake=_float_arg(args, "kp_brake", 0.45),
+            kp_brake=_float_arg(args, "kp_brake", 0.7),
             max_throttle=_float_arg(args, "max_throttle", 0.75),
             max_brake=_float_arg(args, "max_brake", 1.0),
             brake_hold_time=_float_arg(args, "brake_hold_time", 0.5),
@@ -250,7 +250,7 @@ class CarlaAEBSignalAdapter:
 
         if target is not None:
             lead_distance = longitudinal_distance(self.ego, target)
-            lead_speed = get_speed(target)
+            lead_speed = longitudinal_speed(self.ego, target)
             has_lead = True
         else:
             lead_distance = 999.0
@@ -287,7 +287,9 @@ class CarlaAEBSignalAdapter:
             return None
 
         candidates = []
-        for actor in world.get_actors().filter("vehicle.*"):
+        actors = list(world.get_actors().filter("vehicle.*"))
+        actors.extend(world.get_actors().filter("walker.*"))
+        for actor in actors:
             if actor.id == self.ego.id or not actor.is_alive:
                 continue
 
@@ -295,7 +297,8 @@ class CarlaAEBSignalAdapter:
             if not role.startswith(self.target_role_prefix):
                 continue
 
-            if not is_same_lane(world, self.ego, actor):
+            is_walker = actor.type_id.startswith("walker.")
+            if not is_walker and not is_same_lane(world, self.ego, actor):
                 continue
 
             distance = longitudinal_distance(self.ego, actor)
@@ -417,6 +420,12 @@ def control_from_fmu_output(result: dict[str, float]) -> carla.VehicleControl:
 def get_speed(vehicle) -> float:
     velocity = vehicle.get_velocity()
     return math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z)
+
+
+def longitudinal_speed(reference, actor) -> float:
+    velocity = actor.get_velocity()
+    forward = reference.get_transform().get_forward_vector()
+    return velocity.x * forward.x + velocity.y * forward.y + velocity.z * forward.z
 
 
 def longitudinal_distance(ev, tv) -> float:

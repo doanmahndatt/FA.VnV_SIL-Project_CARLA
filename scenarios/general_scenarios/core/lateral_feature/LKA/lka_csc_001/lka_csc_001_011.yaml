@@ -1,0 +1,27 @@
+scenario_id: lka_csc_001_011
+logic:
+  scenario_id: lka_csc_001
+  name: EV drifts left on straight road and LKA recenters
+  functional: LKA
+  feature_domain: Lateral
+  pre_condition:
+    ev_mode: LKA
+    road_type: straight
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: lane_departure_left_event
+    actor: ev
+    direction: left
+parameters:
+  ev_speed: 27.7778
+  light: night
+  weather: rain

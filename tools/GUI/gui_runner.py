@@ -23,6 +23,14 @@ DOMAIN_ORDER = {
     "brake_feature": 3,
 }
 
+SCENARIO_LIBRARY_LABELS = {
+    "general_scenarios": "General Scenarios",
+    "ncap_scenarios": "NCAP Scenarios",
+    "homo_scenarios": "Homologation Scenarios",
+    "boundaries scenarios": "Boundary Scenarios",
+    "boundaries_scenarios": "Boundary Scenarios",
+}
+
 
 class BatchRunnerGUI:
     def __init__(self, repo_root: Path):
@@ -39,6 +47,9 @@ class BatchRunnerGUI:
         self.status = tk.StringVar(value="Ready")
         self.selection_hint = tk.StringVar(value="")
         self.selection_summary = tk.StringVar(value="")
+        self.library_display = tk.StringVar(value="")
+        self.library_location = tk.StringVar(value="")
+        self.library_by_display = {}
 
         self.groups = []
         self.jobs = []
@@ -64,8 +75,8 @@ class BatchRunnerGUI:
         main = ttk.Frame(self.root, padding=6)
         main.pack(fill=tk.BOTH, expand=True)
         main.columnconfigure(0, weight=1)
-        main.rowconfigure(3, weight=1)
-        main.rowconfigure(5, weight=1)
+        main.rowconfigure(4, weight=1)
+        main.rowconfigure(6, weight=1)
 
         header = ttk.Frame(main)
         header.grid(row=0, column=0, sticky="ew")
@@ -78,8 +89,31 @@ class BatchRunnerGUI:
             row=0, column=1, sticky="e"
         )
 
+        library_frame = ttk.LabelFrame(main, text="Scenario Library", padding=(8, 7))
+        library_frame.grid(row=1, column=0, sticky="ew", pady=(6, 6))
+        library_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(library_frame, text="Test source").grid(row=0, column=0, sticky="w", padx=(0, 8))
+        self.library_combo = ttk.Combobox(
+            library_frame,
+            textvariable=self.library_display,
+            state="readonly",
+            width=42,
+        )
+        self.library_combo.grid(row=0, column=1, sticky="w")
+        self.library_combo.bind("<<ComboboxSelected>>", self._on_library_change)
+
+        ttk.Label(
+            library_frame, textvariable=self.library_location, style="Hint.TLabel"
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(6, 0))
+        ttk.Label(
+            library_frame,
+            text="Select a library first, then narrow the run queue below.",
+            style="Hint.TLabel",
+        ).grid(row=0, column=2, sticky="e", padx=(16, 0))
+
         mode_frame = ttk.LabelFrame(main, text="Run Mode", padding=(8, 6))
-        mode_frame.grid(row=1, column=0, sticky="ew", pady=(6, 6))
+        mode_frame.grid(row=2, column=0, sticky="ew", pady=(0, 6))
         mode_frame.columnconfigure(4, weight=1)
 
         for index, (value, label) in enumerate(
@@ -103,7 +137,7 @@ class BatchRunnerGUI:
         )
 
         info_frame = ttk.Frame(main)
-        info_frame.grid(row=2, column=0, sticky="ew", pady=(0, 4))
+        info_frame.grid(row=3, column=0, sticky="ew", pady=(0, 4))
         info_frame.columnconfigure(0, weight=1)
 
         ttk.Label(info_frame, textvariable=self.selection_hint, style="Hint.TLabel").grid(
@@ -114,7 +148,7 @@ class BatchRunnerGUI:
         )
 
         content = ttk.PanedWindow(main, orient=tk.HORIZONTAL)
-        content.grid(row=3, column=0, sticky="nsew")
+        content.grid(row=4, column=0, sticky="nsew")
 
         self.domain_tree = self._make_tree_panel(
             content,
@@ -157,7 +191,7 @@ class BatchRunnerGUI:
         )
 
         controls = ttk.Frame(main)
-        controls.grid(row=4, column=0, sticky="ew", pady=(6, 6))
+        controls.grid(row=5, column=0, sticky="ew", pady=(6, 6))
         controls.columnconfigure(2, weight=1)
 
         self.start_btn = ttk.Button(
@@ -172,7 +206,7 @@ class BatchRunnerGUI:
         self.progress.grid(row=0, column=2, sticky="ew", padx=12)
 
         log_frame = ttk.LabelFrame(main, text="Log", padding=6)
-        log_frame.grid(row=5, column=0, sticky="nsew")
+        log_frame.grid(row=6, column=0, sticky="nsew")
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
 
@@ -248,6 +282,7 @@ class BatchRunnerGUI:
                 pass
 
     def refresh_data(self):
+        self._refresh_library_options()
         self.groups = self.runner.discover_groups()
         self.jobs = self.runner.discover_jobs()
         self.jobs_by_case = {job.job_key: job for job in self.jobs}
@@ -265,6 +300,57 @@ class BatchRunnerGUI:
         self._reset_progress()
         self._render_all()
         self._log_scan_summary()
+
+    def _refresh_library_options(self):
+        libraries = self.runner.discover_libraries()
+        self.library_by_display = {
+            self._library_display_text(library): library for library in libraries
+        }
+        self.library_combo["values"] = list(self.library_by_display)
+
+        current = next(
+            (
+                library
+                for library in libraries
+                if library.name == self.runner.scenario_library
+            ),
+            None,
+        )
+        if current is None and libraries:
+            current = libraries[0]
+            self.runner.select_scenario_library(current.name)
+
+        if current is None:
+            self.library_display.set("")
+            self.library_location.set("No scenario libraries found under scenarios/.")
+            return
+
+        self.library_display.set(self._library_display_text(current))
+        availability = (
+            "Ready to test" if current.case_count else "No generated XOSC files available"
+        )
+        self.library_location.set(f"{current.root}  |  {availability}")
+
+    def _on_library_change(self, _event=None):
+        selected = self.library_by_display.get(self.library_display.get())
+        if selected is None or selected.name == self.runner.scenario_library:
+            return
+        if self.worker and self.worker.is_alive():
+            messagebox.showwarning(
+                "Batch running", "Stop the running batch before changing scenario library."
+            )
+            self._refresh_library_options()
+            return
+
+        self.runner.select_scenario_library(selected.name)
+        self.checked_groups.clear()
+        self.selected_domain = None
+        self.selected_function = None
+        self.selected_folder = None
+        self.selected_case = None
+        self.log_text.delete("1.0", tk.END)
+        self.refresh_data()
+        self._log(f"Scenario library selected: {self._library_label(selected.name)}")
 
     def _reset_progress(self):
         self.progress.config(maximum=100, value=0)
@@ -651,7 +737,7 @@ class BatchRunnerGUI:
     def _update_hint(self):
         mode = self.mode.get()
         if mode == "all_folders":
-            self.selection_hint.set("Select one domain and one function. All folders inside that function will run.")
+            self.selection_hint.set("Select one domain and function. All folders in this library scope will run.")
         elif mode == "multi_folder":
             self.selection_hint.set("Select a domain, select a function, then toggle scenario folders to build the run queue.")
         elif mode == "single_folder":
@@ -664,12 +750,15 @@ class BatchRunnerGUI:
         visible_groups = len(self._visible_groups())
         visible_cases = len(self._visible_jobs())
         self.selection_summary.set(
-            f"Selected: {selected_count} | Visible folders: {visible_groups} | Visible cases: {visible_cases}"
+            f"Queue: {selected_count} | Folders: {visible_groups} | Cases: {visible_cases}"
         )
 
     def _log_scan_summary(self):
         domains = self._domain_keys()
-        self._log(f"Scan summary: {len(domains)} domains, {len(self.groups)} folders, {len(self.jobs)} cases.")
+        self._log(
+            f"Library: {self._library_label(self.runner.scenario_library)} | "
+            f"{len(domains)} domains, {len(self.groups)} folders, {len(self.jobs)} cases."
+        )
 
         for domain in domains:
             functions = self._function_keys(domain)
@@ -694,6 +783,18 @@ class BatchRunnerGUI:
     @staticmethod
     def _domain_label(domain):
         return DOMAIN_LABELS.get(domain, domain)
+
+    @staticmethod
+    def _library_label(name):
+        return SCENARIO_LIBRARY_LABELS.get(
+            name, name.replace("_", " ").replace("-", " ").title()
+        )
+
+    def _library_display_text(self, library):
+        return (
+            f"{self._library_label(library.name)}"
+            f"  ({library.folder_count} folders / {library.case_count} cases)"
+        )
 
     @staticmethod
     def _group_domain(group):

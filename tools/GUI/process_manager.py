@@ -56,6 +56,8 @@ class ProcessManager:
             "--openscenario",
             str(xosc_path),
             "--reloadWorld",
+            "--timeout",
+            str(self.load_timeout),
         ]
         if self.sync_enabled:
             args.extend(["--sync", "--frameRate", str(self.frame_rate)])

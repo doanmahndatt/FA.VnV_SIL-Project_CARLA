@@ -19,7 +19,9 @@ from tools.project_paths import get_project_paths
 # =========================================================
 
 PROJECT_PATHS = get_project_paths(Path(__file__))
-BASE = PROJECT_PATHS.scenarios_root
+SCENARIOS_DIR = PROJECT_PATHS.repo_root / "scenarios"
+DEFAULT_SCENARIO_SET = "general_scenarios"
+BASE = SCENARIOS_DIR / DEFAULT_SCENARIO_SET
 
 FEATURE_DOMAIN_DIRS = {
     "Longitudinal": "longitudinal_feature",
@@ -74,6 +76,15 @@ def split_selector(selector):
     return [part for part in selector.replace("\\", "/").strip("/").split("/") if part]
 
 
+def resolve_scenario_set(parts):
+    if parts and parts[0].lower().endswith("_scenarios"):
+        scenario_root = SCENARIOS_DIR / parts[0].lower()
+        if not scenario_root.exists():
+            raise FileNotFoundError(f"Scenario set not found: {scenario_root}")
+        return scenario_root, parts[1:]
+    return BASE, parts
+
+
 def canonical_feature_domain_dir(value):
     value = str(value).strip()
     if not value:
@@ -87,7 +98,7 @@ def validate_selector_domain(selector, allowed_feature_domain_dir):
     if allowed_feature_domain_dir is None:
         return
 
-    parts = split_selector(selector)
+    _, parts = resolve_scenario_set(split_selector(selector))
     if len(parts) < 2:
         return
 
@@ -130,19 +141,19 @@ def metadata_from_core(core):
 
 
 def core_dir_from_selector(selector):
-    parts = split_selector(selector)
-    core_root = BASE / "core"
+    scenario_root, parts = resolve_scenario_set(split_selector(selector))
+    core_root = scenario_root / "core"
 
     if len(parts) == 1:
         matches = sorted(path for path in core_root.rglob(parts[0]) if path.is_dir())
         if len(matches) == 1:
-            return matches[0]
+            return scenario_root, matches[0]
         if not matches:
             raise FileNotFoundError(f"Core scenario folder not found: {selector}")
         raise RuntimeError(f"Ambiguous scenario selector '{selector}': {matches}")
 
     if len(parts) == 3:
-        return (
+        return scenario_root, (
             core_root
             / normalize_selector_part(parts[0])
             / normalize_functional_part(parts[1])
@@ -150,25 +161,30 @@ def core_dir_from_selector(selector):
         )
 
     raise ValueError(
-        "Selector must be '<scenario_id>' or '<feature_domain>/<functional>/<scenario_id>'"
+        "Selector must be '[<scenario_set>/]<scenario_id>' or "
+        "'[<scenario_set>/]<feature_domain>/<functional>/<scenario_id>'"
     )
 
 
 def core_parent_from_selector(selector):
-    parts = split_selector(selector)
+    scenario_root, parts = resolve_scenario_set(split_selector(selector))
     if len(parts) != 2:
-        raise ValueError("Folder selector must be '<feature_domain>/<functional>'")
-    return BASE / "core" / normalize_selector_part(parts[0]) / normalize_functional_part(parts[1])
+        raise ValueError(
+            "Folder selector must be '[<scenario_set>/]<feature_domain>/<functional>'"
+        )
+    return scenario_root, (
+        scenario_root / "core" / normalize_selector_part(parts[0]) / normalize_functional_part(parts[1])
+    )
 
 
-def output_dir_for_core(core):
+def output_dir_for_core(core, scenario_root=BASE):
     case_id = core.get("scenario_id")
     if not case_id:
         raise RuntimeError("Core YAML must define 'scenario_id'")
 
     feature_domain, functional = metadata_from_core(core)
     return (
-        BASE
+        scenario_root
         / "generated"
         / "carla"
         / to_feature_domain_dir(feature_domain)
@@ -195,10 +211,11 @@ CONTROLLER_DEFAULTS = {
     "kp_speed": "0.22",
     "offset_command_steer": "0.075",
     "lane_departure_disturbance_duration": "1.4",
-    "scenario_duration": "34",
+    "scenario_duration": "45",
     "trigger_lane_departure_time_1": "5",
     "trigger_lane_departure_time_2": "12",
     "trigger_lane_departure_time_3": "19",
+    "ev_spawn_offset": "0.0",
 }
 
 
@@ -358,10 +375,10 @@ def map_environment(params):
 # =========================================================
 
 
-def maneuver_block_dir(core):
+def maneuver_block_dir(core, scenario_root=BASE):
     feature_domain, functional = metadata_from_core(core)
     return (
-        BASE
+        scenario_root
         / "templates"
         / "maneuver_blocks"
         / to_feature_domain_dir(feature_domain)
@@ -377,8 +394,8 @@ def normalize_event_type(event_name):
     return event_name
 
 
-def discover_maneuver_blocks(core):
-    block_dir = maneuver_block_dir(core)
+def discover_maneuver_blocks(core, scenario_root=BASE):
+    block_dir = maneuver_block_dir(core, scenario_root)
     if not block_dir.exists():
         raise RuntimeError(f"Maneuver block directory not found: {block_dir}")
 
@@ -462,8 +479,8 @@ def insert_maneuver_group(act, maneuver_group):
 # =========================================================
 
 
-def render_maneuver_group(block_file, params, actor, core):
-    path = maneuver_block_dir(core) / block_file
+def render_maneuver_group(block_file, params, actor, core, scenario_root=BASE):
+    path = maneuver_block_dir(core, scenario_root) / block_file
 
     if not os.path.exists(path):
         raise RuntimeError(f"Template file not found: {path}")
@@ -497,7 +514,7 @@ def render_maneuver_group(block_file, params, actor, core):
 # =========================================================
 
 
-def resolve_storyboard_path(core):
+def resolve_storyboard_path(core, scenario_root=BASE):
     """
     Resolve storyboard template from core YAML only.
 
@@ -521,7 +538,7 @@ def resolve_storyboard_path(core):
     feature_domain = core.get("feature_domain") or logic.get("feature_domain")
 
     if not functional and not feature_domain:
-        return BASE / "templates" / "storyboard" / "base_storyboard.xosc"
+        return scenario_root / "templates" / "storyboard" / "base_storyboard.xosc"
 
     if not functional or not feature_domain:
         raise RuntimeError(
@@ -539,14 +556,50 @@ def resolve_storyboard_path(core):
             f"Unknown feature_domain '{feature_domain}'. " f"Supported values: {valid_domains}"
         )
 
-    storyboard_dir = BASE / "templates" / "storyboard" / feature_dir / functional
+    storyboard_dir = scenario_root / "templates" / "storyboard" / feature_dir / functional
 
     if storyboard_dir.exists():
-        storyboard_kind = "multi-TVs" if uses_multi_tv_storyboard(core) else "single-TV"
-        storyboard_path = storyboard_dir / f"{functional}_{storyboard_kind}_storyboard.xosc"
+        # LKA uses road_type/geometry-based storyboard split.
+        if functional == "LKA":
+            pre_condition = (logic.get("pre_condition", {}) or {}) if isinstance(logic, dict) else {}
+            road_type = str(pre_condition.get("road_type", "")).strip().lower()
+            curve_side = str(pre_condition.get("curve_side", "")).strip().lower()
+
+            if road_type == "straight":
+                storyboard_name = "LKA_straightRoad_storyboard.xosc"
+            elif road_type == "curve":
+                storyboard_name = "LKA_curveRoad_storyboard.xosc"
+            elif road_type == "mixed":
+                transition = str(pre_condition.get("transition", "")).strip().lower()
+                if transition == "curve_to_straight":
+                    storyboard_name = "LKA_mixedCurveToStraight_storyboard.xosc"
+                elif transition == "straight_to_curve":
+                    storyboard_name = "LKA_mixedStraightToCurve_storyboard.xosc"
+                elif curve_side == "right":
+                    storyboard_name = "LKA_mixedRightCurve_storyboard.xosc"
+                elif curve_side == "left":
+                    storyboard_name = "LKA_mixedLeftCurve_storyboard.xosc"
+                else:
+                    storyboard_name = "LKA_mixedRoad_storyboard.xosc"
+            else:
+                storyboard_name = None
+
+            if not storyboard_name:
+                raise RuntimeError(
+                    "LKA storyboard resolution requires pre_condition.road_type "
+                    "with one of: straight, curve, mixed"
+                )
+            storyboard_path = storyboard_dir / storyboard_name
+        else:
+            storyboard_kind = "multi-TVs" if uses_multi_tv_storyboard(core) else "single-TV"
+            storyboard_path = storyboard_dir / f"{functional}_{storyboard_kind}_storyboard.xosc"
     else:
+        feature_storyboard_dir = scenario_root / "templates" / "storyboard" / feature_dir
+        single_tv_path = feature_storyboard_dir / f"{functional}_single-TV_storyboard.xosc"
         storyboard_path = (
-            BASE / "templates" / "storyboard" / feature_dir / f"{functional}_storyboard.xosc"
+            single_tv_path
+            if single_tv_path.exists()
+            else feature_storyboard_dir / f"{functional}_storyboard.xosc"
         )
 
     if not os.path.exists(storyboard_path):
@@ -564,18 +617,193 @@ def resolve_storyboard_path(core):
 # =========================================================
 
 
-def generate_xosc(core):
+def parameter_declaration_type(core):
+    logic = core.get("logic", {}) or {}
+    declarations = logic.get("parametersDeclaration")
+    if not declarations:
+        return None
+    if isinstance(declarations, dict):
+        declarations = [declarations]
+    if not isinstance(declarations, list) or not declarations:
+        raise RuntimeError("parametersDeclaration must be a mapping or non-empty list")
+    declaration_type = declarations[0].get("type") if isinstance(declarations[0], dict) else None
+    if not declaration_type:
+        raise RuntimeError("parametersDeclaration entry must define 'type'")
+    return str(declaration_type).strip()
+
+
+def parameter_declaration_template_path(core, scenario_root=BASE):
+    declaration_type = parameter_declaration_type(core)
+    if declaration_type is None:
+        return None
+    feature_domain, functional = metadata_from_core(core)
+    return (
+        scenario_root
+        / "templates"
+        / "ParameterDeclarations"
+        / to_feature_domain_dir(feature_domain)
+        / to_functional_dir(functional)
+        / f"{declaration_type}_parameters.xosc"
+    )
+
+
+def numeric_fixed_declarations(core, scenario_root=BASE):
+    path = parameter_declaration_template_path(core, scenario_root)
+    if path is None:
+        return {}
+    if not path.exists():
+        raise RuntimeError(f"Parameter declaration template not found: {path}")
+    try:
+        declarations = ET.parse(path).getroot()
+    except ET.ParseError as e:
+        raise RuntimeError(f"XML parse error in parameter declarations {path.name}: {e}")
+
+    fixed = {}
+    for declaration in declarations.findall("ParameterDeclaration"):
+        name = declaration.attrib.get("name")
+        value = declaration.attrib.get("value")
+        try:
+            fixed[name] = float(value)
+        except (TypeError, ValueError):
+            continue
+    return fixed
+
+
+def cpna_derived_parameters(params, fixed):
+    required = (
+        "ev_length",
+        "ev_width",
+        "ev_initS",
+        "ev_BBcenter_x",
+        "ev_initTTC",
+        "VRU_finalSpeed_kph",
+        "VRU_initLatDist",
+        "VRU_trajectoryOrientation",
+    )
+    missing = [name for name in required if name not in fixed]
+    if missing:
+        raise RuntimeError(
+            "CPNA fixed declarations must contain numeric values for: " + ", ".join(missing)
+        )
+
+    reserved_inputs = sorted(name for name in fixed if name in params)
+    if reserved_inputs:
+        raise RuntimeError(
+            "CPNA fixed parameter(s) must be edited in CPNA_parameters.xosc, not core YAML: "
+            + ", ".join(reserved_inputs)
+        )
+
+    ev_speed_kph = float(params["ev_speed_kph"])
+    ev_speed_mps = ev_speed_kph / 3.6
+    vru_speed_mps = fixed["VRU_finalSpeed_kph"] / 3.6
+    if ev_speed_mps <= 0.0 or vru_speed_mps <= 0.0:
+        raise RuntimeError("CPNA EV and VRU speeds must be positive for impact timing")
+    overlap = float(params["overlap"])
+    if not 0.0 <= overlap <= 100.0:
+        raise RuntimeError(f"CPNA overlap must be between 0 and 100, got {overlap}")
+
+    # CPNA is always a pedestrian crossing from the nearside. Overlap changes
+    # the impact point, never the approach direction. The configured
+    # orientation identifies the nearside sign in this CARLA placement.
+    near_side_sign = 1.0 if fixed["VRU_trajectoryOrientation"] >= 0.0 else -1.0
+    ev_impact_offset = near_side_sign * (
+        fixed["ev_width"] / 2.0 - fixed["ev_width"] * (overlap / 100.0)
+    )
+    vru_collision_offset = near_side_sign * (0.6 / 2.0 - 0.36)
+    vru_impact_offset = ev_impact_offset - vru_collision_offset
+    vru_initial_offset = near_side_sign * fixed["VRU_initLatDist"]
+    vru_final_offset = -vru_initial_offset
+    if not min(vru_initial_offset, vru_final_offset) <= vru_impact_offset <= max(
+        vru_initial_offset, vru_final_offset
+    ):
+        raise RuntimeError("CPNA impact point is outside the configured VRU crossing corridor")
+    vru_time_to_impact = abs(vru_impact_offset - vru_initial_offset) / vru_speed_mps
+    ev_front_bumper = fixed["ev_BBcenter_x"] + fixed["ev_length"] / 2.0
+    # CARLA places the vehicle actor at its reference origin, while the NCAP
+    # impact occurs at the EV front bumper. Advance the VRU timing so the
+    # front bumper reaches the configured lateral impact point, not the actor
+    # origin.
+    ev_impact_time = fixed["ev_initTTC"] - ev_front_bumper / ev_speed_mps
+    crossing_start = max(0.0, ev_impact_time - vru_time_to_impact)
+
+    return {
+        "ev_speed": f"{ev_speed_mps:.6f}",
+        "ev_speed_mps": f"{ev_speed_mps:.6f}",
+        "vru_speed_mps": f"{vru_speed_mps:.6f}",
+        "vru_init_s": f"{fixed['ev_initS'] + fixed['ev_initTTC'] * ev_speed_mps:.6f}",
+        "vru_initial_offset": f"{vru_initial_offset:.6f}",
+        "vru_final_offset": f"{vru_final_offset:.6f}",
+        "vru_crossing_duration": f"{(2.0 * fixed['VRU_initLatDist']) / vru_speed_mps:.6f}",
+        "vru_crossing_start_time": f"{crossing_start:.6f}",
+        "vru_crossing_end_time": (
+            f"{crossing_start + (2.0 * fixed['VRU_initLatDist']) / vru_speed_mps:.6f}"
+        ),
+        "ev_front_bumper": f"{ev_front_bumper:.6f}",
+        "ev_impact_offset": f"{ev_impact_offset:.6f}",
+        "vru_collision_offset": f"{vru_collision_offset:.6f}",
+        "environment_catalog_entry": (
+            f"Env_{str(params.get('light', 'day')).title()}_"
+            f"{str(params.get('weather', 'clear')).title()}"
+        ),
+    }
+
+
+def render_parameters(core, params, scenario_root=BASE):
+    rendered = dict(CONTROLLER_DEFAULTS)
+    rendered.update(params)
+    if parameter_declaration_type(core) == "CPNA":
+        rendered.update(cpna_derived_parameters(params, numeric_fixed_declarations(core, scenario_root)))
+    return rendered
+
+
+def render_parameter_declarations(core, render_params, scenario_root=BASE):
+    path = parameter_declaration_template_path(core, scenario_root)
+    if path is None:
+        return None
+    if not path.exists():
+        raise RuntimeError(f"Parameter declaration template not found: {path}")
+    text = load_text(path)
+    for key, value in render_params.items():
+        text = text.replace(f"${{{key}}}", escape(str(value)))
+    try:
+        declarations = ET.fromstring(text)
+    except ET.ParseError as e:
+        raise RuntimeError(f"XML parse error in parameter declarations {path.name}: {e}")
+    if declarations.tag != "ParameterDeclarations":
+        raise RuntimeError(
+            f"Parameter declaration template {path.name} root is "
+            f"<{declarations.tag}>, expected <ParameterDeclarations>"
+        )
+    return declarations
+
+
+def insert_parameter_declarations(root, declarations):
+    if declarations is None:
+        return
+    current = root.find("ParameterDeclarations")
+    if current is None:
+        raise RuntimeError("Storyboard template must contain <ParameterDeclarations>")
+    index = list(root).index(current)
+    root.remove(current)
+    root.insert(index, declarations)
+
+
+def generate_xosc(core, scenario_root=BASE):
     params = core.get("parameters", {})
     logic = core.get("logic", {})
+    render_params = render_parameters(core, params, scenario_root)
 
-    storyboard_path = resolve_storyboard_path(core)
+    storyboard_path = resolve_storyboard_path(core, scenario_root)
 
     if not os.path.exists(storyboard_path):
         raise RuntimeError(f"Storyboard template not found: {storyboard_path}")
 
     tree = ET.parse(storyboard_path)
     root = tree.getroot()
-    maneuver_map = discover_maneuver_blocks(core)
+    maneuver_map = discover_maneuver_blocks(core, scenario_root)
+    insert_parameter_declarations(
+        root, render_parameter_declarations(core, render_params, scenario_root)
+    )
 
     act = root.find(".//Act")
     if act is None:
@@ -601,7 +829,11 @@ def generate_xosc(core):
 
         try:
             maneuver_group = render_maneuver_group(
-                block_file=block_file, params=params, actor=actor, core=core
+                block_file=block_file,
+                params=params,
+                actor=actor,
+                core=core,
+                scenario_root=scenario_root,
             )
             insert_maneuver_group(act, maneuver_group)
         except RuntimeError as e:
@@ -613,9 +845,6 @@ def generate_xosc(core):
     xml_str = xml_str.replace("${controller_module}", escape(controller_module))
     xml_str = xml_str.replace("${controller_config}", escape(resolve_controller_config(core)))
     xml_str = xml_str.replace("${controller_fmu}", escape(resolve_controller_fmu(core)))
-
-    render_params = dict(CONTROLLER_DEFAULTS)
-    render_params.update(params)
 
     for k, v in render_params.items():
         xml_str = xml_str.replace(f"${{{k}}}", escape(str(v)))
@@ -649,7 +878,7 @@ def clean_dir(path):
                 print(f"[WARN] Failed to remove {fp}: {e}")
 
 
-def generate_core_dir(in_dir, clean=False, allowed_feature_domain_dir=None):
+def generate_core_dir(in_dir, clean=False, allowed_feature_domain_dir=None, scenario_root=BASE):
     if not os.path.isdir(in_dir):
         raise FileNotFoundError(f"Core scenario folder not found: {in_dir}")
 
@@ -673,14 +902,14 @@ def generate_core_dir(in_dir, clean=False, allowed_feature_domain_dir=None):
 
             validate_core_domain(core, yaml_path, allowed_feature_domain_dir)
 
-            out_dir = output_dir_for_core(core)
+            out_dir = output_dir_for_core(core, scenario_root)
             if output_dir is None:
                 output_dir = out_dir
                 os.makedirs(output_dir, exist_ok=True)
                 if clean:
                     clean_dir(output_dir)
 
-            tree = generate_xosc(core)
+            tree = generate_xosc(core, scenario_root)
             out_path = out_dir / fname.replace(".yaml", ".xosc")
 
             write_xosc_file(tree, out_path)
@@ -697,7 +926,7 @@ def generate_core_dir(in_dir, clean=False, allowed_feature_domain_dir=None):
 
 def generate_folder(selector, clean=False, allowed_feature_domain_dir=None):
     validate_selector_domain(selector, allowed_feature_domain_dir)
-    core_parent = core_parent_from_selector(selector)
+    scenario_root, core_parent = core_parent_from_selector(selector)
     if not core_parent.exists():
         raise FileNotFoundError(f"Core folder not found: {core_parent}")
 
@@ -706,11 +935,12 @@ def generate_folder(selector, clean=False, allowed_feature_domain_dir=None):
             in_dir,
             clean=clean,
             allowed_feature_domain_dir=allowed_feature_domain_dir,
+            scenario_root=scenario_root,
         )
 
 
-def generate_all(clean=False, allowed_feature_domain_dir=None):
-    core_root = BASE / "core"
+def generate_all(clean=False, allowed_feature_domain_dir=None, scenario_root=BASE):
+    core_root = scenario_root / "core"
     if allowed_feature_domain_dir is not None:
         core_root = core_root / allowed_feature_domain_dir
 
@@ -725,6 +955,7 @@ def generate_all(clean=False, allowed_feature_domain_dir=None):
             in_dir,
             clean=clean,
             allowed_feature_domain_dir=allowed_feature_domain_dir,
+            scenario_root=scenario_root,
         )
 
 
@@ -733,10 +964,12 @@ def generate_range(selector_prefix, start, end, clean=False, allowed_feature_dom
     for i in range(start, end + 1):
         selector = f"{selector_prefix}_{i:03d}"
         try:
+            scenario_root, core_dir = core_dir_from_selector(selector)
             generate_core_dir(
-                core_dir_from_selector(selector),
+                core_dir,
                 clean=clean,
                 allowed_feature_domain_dir=allowed_feature_domain_dir,
+                scenario_root=scenario_root,
             )
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")
@@ -775,7 +1008,19 @@ def main(allowed_feature_domain_dir=None):
     args = parser.parse_args()
 
     if args.all:
-        generate_all(clean=args.clean, allowed_feature_domain_dir=allowed_feature_domain_dir)
+        if len(args.selectors) > 1:
+            parser.error("--all accepts at most one scenario set, e.g. ncap_scenarios --all")
+        if args.selectors:
+            scenario_root, remaining = resolve_scenario_set(split_selector(args.selectors[0]))
+            if remaining:
+                parser.error("--all selector must be a scenario set, e.g. ncap_scenarios")
+        else:
+            scenario_root = BASE
+        generate_all(
+            clean=args.clean,
+            allowed_feature_domain_dir=allowed_feature_domain_dir,
+            scenario_root=scenario_root,
+        )
         return
 
     if args.start is not None and args.end is not None:
@@ -798,7 +1043,7 @@ def main(allowed_feature_domain_dir=None):
         return
 
     for selector in args.selectors:
-        parts = split_selector(selector)
+        _, parts = resolve_scenario_set(split_selector(selector))
         try:
             validate_selector_domain(selector, allowed_feature_domain_dir)
             if len(parts) == 2:
@@ -808,10 +1053,12 @@ def main(allowed_feature_domain_dir=None):
                     allowed_feature_domain_dir=allowed_feature_domain_dir,
                 )
             else:
+                scenario_root, core_dir = core_dir_from_selector(selector)
                 generate_core_dir(
-                    core_dir_from_selector(selector),
+                    core_dir,
                     clean=args.clean,
                     allowed_feature_domain_dir=allowed_feature_domain_dir,
+                    scenario_root=scenario_root,
                 )
         except FileNotFoundError as e:
             print(f"[SKIP] {e}")

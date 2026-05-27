@@ -20,7 +20,6 @@ def find_carla_executable(carla_root: Path) -> Path:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Start CARLA from the workspace root layout")
-    parser.add_argument("--quality-level", default="Low")
     parser.add_argument("--windowed", action="store_true", default=True)
     parser.add_argument("--resx", type=int, default=1280)
     parser.add_argument("--resy", type=int, default=720)
@@ -38,7 +37,6 @@ def main() -> int:
     executable = find_carla_executable(paths.carla_root)
     command = [
         str(executable),
-        f"-quality-level={args.quality_level}",
         f"-ResX={args.resx}",
         f"-ResY={args.resy}",
         *args.carla_args,

@@ -1,0 +1,264 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="LKA Straight Road Storyboard" author="datdm7"/>
+  <ParameterDeclarations/>
+  <CatalogLocations/>
+  <RoadNetwork>
+    <LogicFile filepath="Town03"/>
+  </RoadNetwork>
+  <Entities>
+    <ScenarioObject name="ev">
+      <Vehicle name="vehicle.tesla.model3" vehicleCategory="car">
+        <Properties>
+          <Property name="model" value="vehicle.tesla.model3"/>
+          <Property name="attach_camera" value="true"/>
+          <Property name="role_name" value="ev"/>
+        </Properties>
+        <Performance maxSpeed="50" maxAcceleration="3" maxDeceleration="8"/>
+        <BoundingBox>
+          <Center x="1.5" y="0" z="0.9"/>
+          <Dimensions width="2.0" length="4.5" height="1.5"/>
+        </BoundingBox>
+        <Axles>
+          <FrontAxle maxSteering="0.5" wheelDiameter="0.6" trackWidth="1.6" positionX="3.1" positionZ="0.3"/>
+          <RearAxle maxSteering="0.0" wheelDiameter="0.6" trackWidth="1.6" positionX="0.0" positionZ="0.3"/>
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+    <ScenarioObject name="tv">
+      <Vehicle name="vehicle.audi.tt" vehicleCategory="car">
+        <Properties>
+          <Property name="model" value="vehicle.audi.tt"/>
+          <Property name="role_name" value="tv"/>
+        </Properties>
+        <Performance maxSpeed="50" maxAcceleration="3" maxDeceleration="8"/>
+        <BoundingBox>
+          <Center x="1.5" y="0" z="0.9"/>
+          <Dimensions width="2.0" length="4.5" height="1.5"/>
+        </BoundingBox>
+        <Axles>
+          <FrontAxle maxSteering="0.5" wheelDiameter="0.6" trackWidth="1.6" positionX="3.1" positionZ="0.3"/>
+          <RearAxle maxSteering="0.0" wheelDiameter="0.6" trackWidth="1.6" positionX="0.0" positionZ="0.3"/>
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+  </Entities>
+  <Storyboard>
+    <Init>
+      <Actions>
+        <GlobalAction>
+          <EnvironmentAction>
+            <Environment name="env">
+              <TimeOfDay animation="false" dateTime="2026-01-01T00:00:00"/>
+              <Weather cloudState="overcast">
+                <Sun intensity="0.05" azimuth="0" elevation="-10"/>
+                <Fog visualRange="30000"/>
+                <Precipitation precipitationType="rain" intensity="0.7"/>
+              </Weather>
+              <RoadCondition frictionScaleFactor="0.7"/>
+            </Environment>
+          </EnvironmentAction>
+        </GlobalAction>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="-2" s="0" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="41.6667"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="ev">
+          <PrivateAction>
+            <ControllerAction>
+              <AssignControllerAction>
+                <Controller name="LKA_fmu_controller">
+                  <Properties>
+                    <Property name="module" value="config/controllers_fmu/lateral_feature/LKA/LKA_fmu_controller.py"/>
+                    <Property name="config" value="config/controllers_fmu/lateral_feature/LKA/signals.yaml"/>
+                    <Property name="fmu" value="config/controllers_fmu/lateral_feature/LKA/LKA_controller.fmu"/>
+                    <Property name="desired_speed" value="41.6667"/>
+                    <Property name="target_speed" value="41.6667"/>
+                    <Property name="activation_offset" value="0.2"/>
+                    <Property name="deadband_offset" value="0.04"/>
+                    <Property name="kp_offset" value="0.11"/>
+                    <Property name="kp_heading" value="0.38"/>
+                    <Property name="kp_speed" value="0.22"/>
+                    <Property name="max_steer" value="0.2"/>
+                    <Property name="max_throttle" value="0.42"/>
+                    <Property name="max_brake" value="0.18"/>
+                    <Property name="offset_command_steer" value="0.075"/>
+                    <Property name="lane_departure_disturbance_duration" value="1.4"/>
+                    <Property name="fixed_delta_seconds" value="0.05"/>
+                  </Properties>
+                </Controller>
+              </AssignControllerAction>
+              <OverrideControllerValueAction>
+                <Throttle active="false" value="0"/>
+                <Brake active="false" value="0"/>
+                <Clutch active="false" value="0"/>
+                <ParkingBrake active="false" value="0"/>
+                <SteeringWheel active="false" value="0"/>
+                <Gear active="false" number="0"/>
+              </OverrideControllerValueAction>
+            </ControllerAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="tv">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <LanePosition roadId="3" laneId="-1" s="45" offset="0"/>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="tv">
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="41.6667"/>
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+    <Story name="main_story">
+      <Act name="act_1">
+        <ManeuverGroup name="ev_lane_departure_right" maximumExecutionCount="1">
+          <Actors selectTriggeringEntities="false">
+            <EntityRef entityRef="ev"/>
+          </Actors>
+          <Maneuver name="ev_lane_departure_right_maneuver">
+            <Event name="ev_lane_departure_right_event" priority="overwrite">
+              <Action name="ev_lane_departure_right_action">
+                <PrivateAction>
+                  <LateralAction>
+                    <LaneOffsetAction continuous="true">
+                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+                      <LaneOffsetTarget>
+                        <AbsoluteTargetLaneOffset value="0.75"/>
+                      </LaneOffsetTarget>
+                    </LaneOffsetAction>
+                  </LateralAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="ev_lane_departure_right_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="5" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="ev_lane_departure_right_2_event" priority="overwrite">
+              <Action name="ev_lane_departure_right_2_action">
+                <PrivateAction>
+                  <LateralAction>
+                    <LaneOffsetAction continuous="true">
+                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+                      <LaneOffsetTarget>
+                        <AbsoluteTargetLaneOffset value="0.75"/>
+                      </LaneOffsetTarget>
+                    </LaneOffsetAction>
+                  </LateralAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="ev_lane_departure_right_2_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="12" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="ev_lane_departure_right_3_event" priority="overwrite">
+              <Action name="ev_lane_departure_right_3_action">
+                <PrivateAction>
+                  <LateralAction>
+                    <LaneOffsetAction continuous="true">
+                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+                      <LaneOffsetTarget>
+                        <AbsoluteTargetLaneOffset value="0.75"/>
+                      </LaneOffsetTarget>
+                    </LaneOffsetAction>
+                  </LateralAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="ev_lane_departure_right_3_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="19" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="ev_lane_departure_center_event" priority="overwrite">
+              <Action name="ev_lane_departure_center_action">
+                <PrivateAction>
+                  <LateralAction>
+                    <LaneOffsetAction continuous="true">
+                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+                      <LaneOffsetTarget>
+                        <AbsoluteTargetLaneOffset value="0.0"/>
+                      </LaneOffsetTarget>
+                    </LaneOffsetAction>
+                  </LateralAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="ev_lane_departure_center_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="26" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+          </Maneuver>
+        </ManeuverGroup>
+        <StartTrigger>
+          <ConditionGroup>
+            <Condition name="start" delay="0" conditionEdge="rising">
+              <ByValueCondition>
+                <SimulationTimeCondition value="0" rule="greaterThan"/>
+              </ByValueCondition>
+            </Condition>
+          </ConditionGroup>
+        </StartTrigger>
+      </Act>
+    </Story>
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end" delay="0" conditionEdge="rising">
+          <ByValueCondition>
+            <SimulationTimeCondition value="45" rule="greaterThan"/>
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>

@@ -155,7 +155,7 @@ class ScenarioManager(object):
             self._watchdog.stop()
             self._watchdog = None
 
-        print("[INFO] Skip cleanup → batch will handle actors")
+        print("[INFO] Skip cleanup - batch will handle actors")
 
         self.end_system_time = time.time()
         end_game_time = GameTime.get_time()
@@ -205,6 +205,11 @@ class ScenarioManager(object):
                     ev = actor
                 elif role == "tv":
                     tv = actor
+            if tv is None:
+                for actor in world.get_actors().filter("walker.*"):
+                    if actor.attributes.get("role_name") == "VRU":
+                        tv = actor
+                        break
 
             # ========================
             # ✅ DEBUG ACTORS
@@ -212,7 +217,7 @@ class ScenarioManager(object):
             if debug_due and ev is None:
                 print("[DEBUG] EV NOT FOUND")
             if debug_due and tv is None:
-                print("[DEBUG] TV NOT FOUND")
+                print("[DEBUG] TARGET NOT FOUND")
 
             # ========================
             # ✅ STEP 1: WAKE-UP PHASE (QUAN TRỌNG NHẤT)
@@ -251,8 +256,13 @@ class ScenarioManager(object):
             if debug_due and tv is not None and tv.is_alive:
                 vel = tv.get_velocity()
                 ctrl = tv.get_control()
-
-                print(f"[TV] speed={vel.length():.2f} throttle={ctrl.throttle:.2f} brake={ctrl.brake:.2f}")
+                if tv.type_id.startswith("walker."):
+                    print(f"[TARGET VRU] speed={vel.length():.2f}")
+                else:
+                    print(
+                        f"[TARGET TV] speed={vel.length():.2f} "
+                        f"throttle={ctrl.throttle:.2f} brake={ctrl.brake:.2f}"
+                    )
 
             if debug_due:
                 print(f"[TREE] {self.scenario_tree.status}")

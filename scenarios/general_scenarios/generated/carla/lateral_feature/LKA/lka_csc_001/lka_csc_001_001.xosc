@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="LKA Lateral Storyboard" author="DatDM7.FPT"/>
+  <FileHeader revMajor="1" revMinor="0" date="2026-01-01T00:00:00" description="LKA Straight Road Storyboard" author="datdm7"/>
   <ParameterDeclarations/>
   <CatalogLocations/>
   <RoadNetwork>
@@ -74,7 +74,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="15"/>
+                  <AbsoluteTargetSpeed value="13.8889"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -89,8 +89,8 @@
                     <Property name="module" value="config/controllers_fmu/lateral_feature/LKA/LKA_fmu_controller.py"/>
                     <Property name="config" value="config/controllers_fmu/lateral_feature/LKA/signals.yaml"/>
                     <Property name="fmu" value="config/controllers_fmu/lateral_feature/LKA/LKA_controller.fmu"/>
-                    <Property name="desired_speed" value="15"/>
-                    <Property name="target_speed" value="15"/>
+                    <Property name="desired_speed" value="13.8889"/>
+                    <Property name="target_speed" value="13.8889"/>
                     <Property name="activation_offset" value="0.2"/>
                     <Property name="deadband_offset" value="0.04"/>
                     <Property name="kp_offset" value="0.11"/>
@@ -120,7 +120,7 @@
           <PrivateAction>
             <TeleportAction>
               <Position>
-                <LanePosition roadId="3" laneId="-2" s="45" offset="0"/>
+                <LanePosition roadId="3" laneId="-1" s="45" offset="0"/>
               </Position>
             </TeleportAction>
           </PrivateAction>
@@ -131,7 +131,7 @@
               <SpeedAction>
                 <SpeedActionDynamics dynamicsShape="step" value="0" dynamicsDimension="time"/>
                 <SpeedActionTarget>
-                  <AbsoluteTargetSpeed value="15"/>
+                  <AbsoluteTargetSpeed value="13.8889"/>
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>
@@ -141,36 +141,13 @@
     </Init>
     <Story name="main_story">
       <Act name="act_1">
-        <ManeuverGroup name="ev_lane_departure" maximumExecutionCount="1">
+        <ManeuverGroup name="ev_lane_departure_left" maximumExecutionCount="1">
           <Actors selectTriggeringEntities="false">
             <EntityRef entityRef="ev"/>
           </Actors>
-          <Maneuver name="ev_lane_departure_maneuver">
-            <Event name="ev_lane_departure_1_event" priority="overwrite">
-              <Action name="ev_lane_departure_1_action">
-                <PrivateAction>
-                  <LateralAction>
-                    <LaneOffsetAction continuous="true">
-                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
-                      <LaneOffsetTarget>
-                        <AbsoluteTargetLaneOffset value="0.75"/>
-                      </LaneOffsetTarget>
-                    </LaneOffsetAction>
-                  </LateralAction>
-                </PrivateAction>
-              </Action>
-              <StartTrigger>
-                <ConditionGroup>
-                  <Condition name="ev_lane_departure_1_start" delay="0" conditionEdge="rising">
-                    <ByValueCondition>
-                      <SimulationTimeCondition value="5" rule="greaterThan"/>
-                    </ByValueCondition>
-                  </Condition>
-                </ConditionGroup>
-              </StartTrigger>
-            </Event>
-            <Event name="ev_lane_departure_2_event" priority="overwrite">
-              <Action name="ev_lane_departure_2_action">
+          <Maneuver name="ev_lane_departure_left_maneuver">
+            <Event name="ev_lane_departure_left_event" priority="overwrite">
+              <Action name="ev_lane_departure_left_action">
                 <PrivateAction>
                   <LateralAction>
                     <LaneOffsetAction continuous="true">
@@ -184,22 +161,22 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="ev_lane_departure_2_start" delay="0" conditionEdge="rising">
+                  <Condition name="ev_lane_departure_left_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
-                      <SimulationTimeCondition value="12" rule="greaterThan"/>
+                      <SimulationTimeCondition value="5" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
               </StartTrigger>
             </Event>
-            <Event name="ev_lane_departure_3_event" priority="overwrite">
-              <Action name="ev_lane_departure_3_action">
+            <Event name="ev_lane_departure_left_2_event" priority="overwrite">
+              <Action name="ev_lane_departure_left_2_action">
                 <PrivateAction>
                   <LateralAction>
                     <LaneOffsetAction continuous="true">
                       <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
                       <LaneOffsetTarget>
-                        <AbsoluteTargetLaneOffset value="0.75"/>
+                        <AbsoluteTargetLaneOffset value="-0.75"/>
                       </LaneOffsetTarget>
                     </LaneOffsetAction>
                   </LateralAction>
@@ -207,9 +184,55 @@
               </Action>
               <StartTrigger>
                 <ConditionGroup>
-                  <Condition name="ev_lane_departure_3_start" delay="0" conditionEdge="rising">
+                  <Condition name="ev_lane_departure_left_2_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="26" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="ev_lane_departure_left_3_event" priority="overwrite">
+              <Action name="ev_lane_departure_left_3_action">
+                <PrivateAction>
+                  <LateralAction>
+                    <LaneOffsetAction continuous="true">
+                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+                      <LaneOffsetTarget>
+                        <AbsoluteTargetLaneOffset value="-0.75"/>
+                      </LaneOffsetTarget>
+                    </LaneOffsetAction>
+                  </LateralAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="ev_lane_departure_left_3_start" delay="0" conditionEdge="rising">
                     <ByValueCondition>
                       <SimulationTimeCondition value="19" rule="greaterThan"/>
+                    </ByValueCondition>
+                  </Condition>
+                </ConditionGroup>
+              </StartTrigger>
+            </Event>
+            <Event name="ev_lane_departure_center_event" priority="overwrite">
+              <Action name="ev_lane_departure_center_action">
+                <PrivateAction>
+                  <LateralAction>
+                    <LaneOffsetAction continuous="true">
+                      <LaneOffsetActionDynamics dynamicsShape="linear" maxLateralAcc="0.42"/>
+                      <LaneOffsetTarget>
+                        <AbsoluteTargetLaneOffset value="0.0"/>
+                      </LaneOffsetTarget>
+                    </LaneOffsetAction>
+                  </LateralAction>
+                </PrivateAction>
+              </Action>
+              <StartTrigger>
+                <ConditionGroup>
+                  <Condition name="ev_lane_departure_center_start" delay="0" conditionEdge="rising">
+                    <ByValueCondition>
+                      <SimulationTimeCondition value="12" rule="greaterThan"/>
                     </ByValueCondition>
                   </Condition>
                 </ConditionGroup>
@@ -232,7 +255,7 @@
       <ConditionGroup>
         <Condition name="end" delay="0" conditionEdge="rising">
           <ByValueCondition>
-            <SimulationTimeCondition value="34" rule="greaterThan"/>
+            <SimulationTimeCondition value="45" rule="greaterThan"/>
           </ByValueCondition>
         </Condition>
       </ConditionGroup>

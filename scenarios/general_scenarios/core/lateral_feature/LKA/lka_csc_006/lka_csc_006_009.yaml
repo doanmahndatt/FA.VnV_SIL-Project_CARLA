@@ -1,0 +1,28 @@
+scenario_id: lka_csc_006_009
+logic:
+  scenario_id: lka_csc_006
+  name: EV verifies LKA on straight-to-curve mixed road geometry
+  functional: LKA
+  feature_domain: Lateral
+  pre_condition:
+    ev_mode: LKA
+    road_type: mixed
+    transition: straight_to_curve
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: adjacent
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: lane_departure_right_event
+    actor: ev
+    direction: right
+parameters:
+  ev_speed: 20.8333
+  light: day
+  weather: fog

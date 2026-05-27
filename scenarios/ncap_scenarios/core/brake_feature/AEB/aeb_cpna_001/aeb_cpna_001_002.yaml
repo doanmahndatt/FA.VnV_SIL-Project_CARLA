@@ -1,0 +1,30 @@
+scenario_id: aeb_cpna_001_002
+logic:
+  scenario_id: aeb_cpna_001
+  description: NCAP_AEB_CPNA
+  functional: AEB
+  feature_domain: Brake
+  pre_condition:
+    ev_mode: AEB
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - vru:
+      type: VRU
+      lane: ego
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: crossing_event
+    actor: VRU
+  parametersDeclaration:
+  - type: CPNA
+parameters:
+  ev_lane_id: -2
+  tv_lane_id: -2
+  ev_speed_kph: 30
+  overlap: 25
+  light: day
+  weather: rain

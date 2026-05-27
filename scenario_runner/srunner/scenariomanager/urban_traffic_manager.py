@@ -436,7 +436,8 @@ class UrbanTrafficManager(object):
         if bool(profile.get("vehicle_lights", True)):
             self._tm_call("update_vehicle_lights", vehicle, True)
 
-        self._tm_call("auto_lane_change", vehicle, bool(profile.get("auto_lane_change", True)))
+        auto_lane_change = bool(profile.get("auto_lane_change", True))
+        self._tm_call("auto_lane_change", vehicle, auto_lane_change)
         self._tm_call(
             "vehicle_percentage_speed_difference",
             vehicle, self._range_value(profile, "per_vehicle_speed_difference_range", 0.0)
@@ -450,14 +451,14 @@ class UrbanTrafficManager(object):
             "ignore_walkers_percentage",
             vehicle, self._range_value(profile, "ignore_walkers_percentage_range", 0.0)
         )
-        self._tm_call(
-            "random_left_lanechange_percentage",
-            vehicle, self._range_value(profile, "random_left_lanechange_percentage_range", 0.0)
-        )
-        self._tm_call(
-            "random_right_lanechange_percentage",
-            vehicle, self._range_value(profile, "random_right_lanechange_percentage_range", 0.0)
-        )
+        # Some CARLA/TM builds throw rpc_error for random_*_lanechange_percentage.
+        # Skip these calls when lane-change is disabled or configured at 0%.
+        left_change = self._range_value(profile, "random_left_lanechange_percentage_range", 0.0)
+        right_change = self._range_value(profile, "random_right_lanechange_percentage_range", 0.0)
+        if auto_lane_change and left_change > 0.0:
+            self._tm_call("random_left_lanechange_percentage", vehicle, left_change)
+        if auto_lane_change and right_change > 0.0:
+            self._tm_call("random_right_lanechange_percentage", vehicle, right_change)
         if "desired_speed_kph_range" in profile:
             self._tm_call(
                 "set_desired_speed",
@@ -688,12 +689,18 @@ class UrbanTrafficManager(object):
         return float(profile.get("normal_driver_ignore_lights_percentage", 0.0))
 
     def _warm_up_traffic_manager(self, ticks):
-        ticks = max(1, int(ticks))
+        ticks = int(ticks)
+        if ticks <= 0:
+            return
         for _ in range(ticks):
-            if self.world.get_settings().synchronous_mode:
-                self.world.tick()
-            else:
-                self.world.wait_for_tick()
+            try:
+                if self.world.get_settings().synchronous_mode:
+                    self.world.tick()
+                else:
+                    self.world.wait_for_tick()
+            except Exception as exc:  # pylint: disable=broad-except
+                print("[URBAN_TRAFFIC] WARN warmup tick failed: {}".format(exc))
+                break
 
     def _moving_vehicle_count(self):
         moving = 0

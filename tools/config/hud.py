@@ -101,6 +101,7 @@ class RuntimeSnapshot:
     nearby_vehicles: list[str]
     control: carla.VehicleControl | None
     brake_active: bool
+    turn_signals_active: bool
     gear_text: str
     hand_brake_active: bool
     ego_lane: LanePosition
@@ -138,7 +139,8 @@ def get_vehicle_role(vehicle):
 
 
 def get_actor_display_name(actor, truncate=22):
-    name = " ".join(actor.type_id.replace("vehicle.", "").replace("_", ".").split(".")[1:])
+    name = actor.type_id.replace("vehicle.", "").replace("walker.pedestrian.", "pedestrian.")
+    name = " ".join(name.replace("_", ".").split(".")[1:])
     return (name[: truncate - 3] + "...") if len(name) > truncate else name
 
 
@@ -154,6 +156,16 @@ def get_acceleration(vehicle):
         return 0.0
     acceleration = vehicle.get_acceleration()
     return math.sqrt(acceleration.x**2 + acceleration.y**2 + acceleration.z**2)
+
+
+def longitudinal_speed(reference, actor):
+    if not reference or not actor:
+        return 0.0
+    velocity = actor.get_velocity()
+    forward = reference.get_transform().get_forward_vector()
+    return 3.6 * (
+        velocity.x * forward.x + velocity.y * forward.y + velocity.z * forward.z
+    )
 
 
 def format_gear(control):
@@ -267,17 +279,21 @@ def find_target_vehicle(world, world_map, ev, target_role_prefix="tv"):
 
     candidates = []
     ev_lane_position = get_lane_position(world_map, ev)
+    prefixes = tuple(item.strip() for item in target_role_prefix.split(",") if item.strip())
 
-    for vehicle in world.get_actors().filter("vehicle.*"):
-        if vehicle.id == ev.id:
+    actors = list(world.get_actors().filter("vehicle.*"))
+    actors.extend(world.get_actors().filter("walker.*"))
+    for vehicle in actors:
+        if vehicle.id == ev.id or not vehicle.is_alive:
             continue
 
         role = get_vehicle_role(vehicle)
-        if not role.startswith(target_role_prefix):
+        if not any(role.startswith(prefix) for prefix in prefixes):
             continue
 
         vehicle_lane_position = get_lane_position(world_map, vehicle)
         distance = signed_longitudinal_distance(ev, vehicle)
+        is_walker = vehicle.type_id.startswith("walker.")
         same_lane = (
             ev_lane_position.road_id is not None
             and ev_lane_position.lane_id is not None
@@ -286,7 +302,9 @@ def find_target_vehicle(world, world_map, ev, target_role_prefix="tv"):
         )
         ahead = distance > 0
 
-        if same_lane and ahead:
+        if is_walker and ahead:
+            priority = 0
+        elif same_lane and ahead:
             priority = 0
         elif ahead:
             priority = 1
@@ -317,6 +335,17 @@ def apply_ev_brake_lights(vehicle, brake_active):
         vehicle.set_light_state(carla.VehicleLightState(light_state))
     except RuntimeError:
         return
+
+
+def turn_signals_active(vehicle):
+    if not vehicle:
+        return False
+    try:
+        lights = vehicle.get_light_state()
+        indicators = carla.VehicleLightState.LeftBlinker | carla.VehicleLightState.RightBlinker
+        return bool(lights & indicators)
+    except RuntimeError:
+        return False
 
 
 def load_feature_signals(feature):
@@ -440,7 +469,7 @@ class RuntimeMonitor:
         self.previous_snapshot_elapsed = None
         self.server_fps = 0.0
 
-    def sample(self, world, ego_role, target_prefix, client_fps):
+    def sample(self, world, ego_role, target_prefix, client_fps, feature=None):
         if self.world_id != world.id:
             self.world_id = world.id
             self.start_time = None
@@ -461,6 +490,9 @@ class RuntimeMonitor:
                 self.server_fps = 1.0 / delta
         self.previous_snapshot_elapsed = snapshot_time
 
+        if feature == "AEB" and target_prefix == "tv":
+            target_prefix = "tv,VRU"
+
         ev = find_vehicle(world, ego_role)
         tv = find_target_vehicle(world, world_map, ev, target_prefix) if ev else None
         vehicles = list(world.get_actors().filter("vehicle.*"))
@@ -468,7 +500,8 @@ class RuntimeMonitor:
         ego_speed = get_speed(ev)
         target_speed = get_speed(tv)
         distance = signed_longitudinal_distance(ev, tv) if ev and tv else None
-        relative_speed = (ego_speed - target_speed) / 3.6 if tv else 0.0
+        target_longitudinal_speed = longitudinal_speed(ev, tv)
+        relative_speed = (ego_speed - target_longitudinal_speed) / 3.6 if tv else 0.0
         ttc = None
         if distance is not None and distance > 0 and relative_speed > 0.1:
             ttc = distance / relative_speed
@@ -494,6 +527,7 @@ class RuntimeMonitor:
             nearby_vehicles=nearby_vehicles,
             control=control,
             brake_active=brake_active,
+            turn_signals_active=turn_signals_active(ev),
             gear_text=format_gear(control),
             hand_brake_active=bool(control and control.hand_brake),
             ego_lane=get_lane_position(world_map, ev),
@@ -570,6 +604,7 @@ class HudPanel:
         y = self._classic_bar(y, "Brake:", brake, 0.0, 1.0)
         y = self._classic_pair(y, "Hand brake:", "[X]" if snapshot.hand_brake_active else "[]")
         y = self._classic_pair(y, "Brake lights:", "ON" if snapshot.brake_active else "OFF")
+        y = self._classic_pair(y, "Turn signals:", "ON" if snapshot.turn_signals_active else "OFF")
         y += 17
 
         y = self._classic_line(y, "ADAS:")
@@ -580,12 +615,9 @@ class HudPanel:
         y = self._classic_pair(y, "Rel speed:", f"{snapshot.relative_speed_mps:>7.2f} m/s")
 
         if self.feature == "AEB":
-            notice = (
-                "[!] FAEB intervention - brake!!!"
-                if self._is_aeb_intervention(snapshot)
-                else "AEB monitoring"
-            )
-            color = STATUS_COLORS["risk"] if self._is_aeb_intervention(snapshot) else TEXT
+            intervention = self._is_aeb_intervention(snapshot)
+            notice = "[!] AEB TRIGGERED - BRAKING" if intervention else "AEB notice: OFF"
+            color = STATUS_COLORS["risk"] if intervention else SUBTLE
             y = self._classic_line(y, notice, color=color, font=self.classic_font_bold)
 
         y += 8
@@ -685,6 +717,7 @@ class HudPanel:
             ("Map", snapshot.map_name),
             ("Gear", snapshot.gear_text),
             ("EPB", "ON" if snapshot.hand_brake_active else "OFF"),
+            ("Turn signals", "ON" if snapshot.turn_signals_active else "OFF"),
         ]
         return self._section("System", rows, y)
 
@@ -757,7 +790,7 @@ class HudPanel:
             snapshot, warning_ttc, brake_ttc, emergency_ttc, hard_brake_distance
         )
         intervention = self._is_aeb_intervention(snapshot)
-        notice = "[!] FAEB intervention - brake!!!" if intervention else "Ready"
+        notice = "ON - AEB BRAKING" if intervention else "OFF"
 
         y = self._section(
             "Function Details",
@@ -912,15 +945,8 @@ class HudPanel:
         return snapshot.brake_active
 
     def _is_aeb_intervention(self, snapshot):
-        params = self.signals.get("parameters", {})
-        warning_ttc = float(params.get("warning_ttc", 1.8))
-        brake_ttc = float(params.get("brake_ttc", 1.0))
-        emergency_ttc = float(params.get("emergency_ttc", 0.55))
-        hard_brake_distance = float(params.get("hard_brake_distance", 3.2))
-        state, _ = self._aeb_state(
-            snapshot, warning_ttc, brake_ttc, emergency_ttc, hard_brake_distance
-        )
-        return state in {"AEB ACTIVE", "EMERGENCY"}
+        # The visual alert and brake lamp must have identical lifetime.
+        return snapshot.brake_active
 
     def _brake_light_badge(self, x, y, brake_active):
         color = STATUS_COLORS["risk"] if brake_active else STATUS_COLORS["muted"]
@@ -977,10 +1003,23 @@ def main():
                     feature_index = (feature_index + 1) % len(feature_order)
                     hud.set_feature(feature_order[feature_index])
 
-            world = client.get_world()
-            ego = find_vehicle(world, args.ego_role)
-            camera_view.ensure_attached(world, ego)
-            snapshot = monitor.sample(world, args.ego_role, args.target_prefix, clock.get_fps())
+            try:
+                world = client.get_world()
+                ego = find_vehicle(world, args.ego_role)
+                camera_view.ensure_attached(world, ego)
+                snapshot = monitor.sample(
+                    world, args.ego_role, args.target_prefix, clock.get_fps(), hud.feature
+                )
+            except RuntimeError:
+                camera_view.destroy()
+                display.fill(BG)
+                font = pygame.font.SysFont("segoeui", 22)
+                text = font.render("Waiting for CARLA", True, SUBTLE)
+                display.blit(text, text.get_rect(center=display.get_rect().center))
+                pygame.display.flip()
+                clock.tick(FPS)
+                time.sleep(0.2)
+                continue
 
             display.fill(BG)
             camera_view.render(display, 0, 0)

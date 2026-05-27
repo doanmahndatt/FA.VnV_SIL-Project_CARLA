@@ -1,0 +1,29 @@
+scenario_id: lka_csc_008_008
+logic:
+  scenario_id: lka_csc_008
+  name: EV starts at slight curve then enters straight and drifts right, LKA recenters
+  functional: LKA
+  feature_domain: Lateral
+  pre_condition:
+    ev_mode: LKA
+    road_type: mixed
+    transition: curve_to_straight
+  actors:
+  - ev:
+      type: ego
+      lane: ego
+      state: moving
+  - tv:
+      type: car
+      lane: adjacent
+      position: front_ego
+      state: moving
+  maneuvers:
+  - type: lane_departure_right_event
+    actor: ev
+    direction: right
+parameters:
+  ev_speed: 20.8333
+  ev_spawn_offset: -0.7
+  light: day
+  weather: rain

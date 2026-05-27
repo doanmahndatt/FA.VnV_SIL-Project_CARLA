@@ -1,0 +1,23 @@
+<ParameterDeclarations>
+  <ParameterDeclaration name="Scenario_ID" parameterType="string" value="NCAP_AEB_CPNA"/>
+  <ParameterDeclaration name="Overlap" parameterType="double" value="${overlap}"/>
+
+  <ParameterDeclaration name="ev_length" parameterType="double" value="4.69"/>
+  <ParameterDeclaration name="ev_width" parameterType="double" value="1.85"/>
+  <ParameterDeclaration name="ev_initS" parameterType="double" value="0"/>
+  <ParameterDeclaration name="ev_BBcenter_x" parameterType="double" value="1.4"/>
+  <ParameterDeclaration name="ev_speed_kph" parameterType="double" value="${ev_speed_kph}"/>
+  <ParameterDeclaration name="_ev_speed" parameterType="double" value="${ev_speed_mps}"/>
+  <ParameterDeclaration name="ev_initTTC" parameterType="double" value="6"/>
+  <ParameterDeclaration name="_ev_frontBumper" parameterType="double" value="${ev_front_bumper}"/>
+  <ParameterDeclaration name="_ev_impactPointOffset" parameterType="double" value="${ev_impact_offset}"/>
+
+  <ParameterDeclaration name="VRU_width" parameterType="double" value="0.5"/>
+  <ParameterDeclaration name="VRU_collisionPointOffset" parameterType="double" value="${vru_collision_offset}"/>
+  <ParameterDeclaration name="VRU_finalSpeed_kph" parameterType="double" value="5"/>
+  <ParameterDeclaration name="_VRU_finalSpeed" parameterType="double" value="${vru_speed_mps}"/>
+  <ParameterDeclaration name="VRU_initLatDist" parameterType="double" value="4"/>
+  <ParameterDeclaration name="_VRU_initS" parameterType="double" value="${vru_init_s}"/>
+  <ParameterDeclaration name="VRU_accelerationDist" parameterType="double" value="1"/>
+  <ParameterDeclaration name="VRU_trajectoryOrientation" parameterType="integer" value="1"/>
+</ParameterDeclarations>

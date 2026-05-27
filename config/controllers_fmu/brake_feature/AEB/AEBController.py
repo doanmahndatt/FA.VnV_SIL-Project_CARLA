@@ -17,10 +17,10 @@ class AEBController(Fmi2Slave):
         # Tunable AEB parameters.
         self.min_distance = 4.5
         self.warning_ttc = 1.8
-        self.brake_ttc = 1.0
+        self.brake_ttc = 1.5
         self.emergency_ttc = 0.55
         self.kp_speed = 0.35
-        self.kp_brake = 0.45
+        self.kp_brake = 0.7
         self.max_throttle = 0.75
         self.max_brake = 1.0
         self.brake_hold_time = 0.5
@@ -104,9 +104,7 @@ class AEBController(Fmi2Slave):
                 brake_request = self.max_brake
                 state = 3.0
             elif self.ttc <= self.brake_ttc or self.distance_error < 0.0:
-                ttc_error = max(0.0, self.brake_ttc - self.ttc)
-                distance_error = max(0.0, -self.distance_error)
-                brake_request = 0.65 + self.kp_brake * ttc_error + 0.05 * distance_error
+                brake_request = self.max_brake
                 state = 2.0
             elif self.ttc <= self.warning_ttc:
                 brake_request = 0.0
@@ -125,6 +123,12 @@ class AEBController(Fmi2Slave):
             brake_request = max(brake_request, 0.35)
             state = max(state, 2.0)
 
+        if self._intervened and not self._parked:
+            # An AEB intervention is terminal for this test: do not resume
+            # propulsion when the VRU leaves the TTC projection.
+            brake_request = max(brake_request, self.max_brake)
+            state = max(state, 3.0)
+
         if self._should_park_after_intervention(current_time):
             self._parked = True
 
@@ -136,7 +140,7 @@ class AEBController(Fmi2Slave):
             self.gear = 0.0
 
         self.brake = max(0.0, min(self.max_brake, brake_request))
-        if state == 0.0:
+        if state <= 1.0:
             speed_error = max(0.0, self.target_speed - self.ego_speed)
             self.throttle = max(0.0, min(self.max_throttle, self.kp_speed * speed_error))
         else:

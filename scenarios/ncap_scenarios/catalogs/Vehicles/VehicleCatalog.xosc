@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OpenSCENARIO>
+  <FileHeader
+      author="DatDM7-FA.VnV"
+      date="2024-06-20T09:09:29"
+      description="Vehicle Catalog for NCAP Scenarios (CARLA 0.9.16 - UE4)"
+      revMajor="1"
+      revMinor="0"/>
+
+  <Catalog name="Vehicles">
+    <!-- ================================================= -->
+    <!-- NCAP BALLOON CAR -->
+    <!-- ================================================= -->
+    <Vehicle name="NCAP_Balloon_Car" vehicleCategory="car">
+      <Properties>
+        <Property name="VehicleType" value="NCAP"/>
+        <Property name="Usage" value="Target"/>
+        <Property name="Source" value="NCAP"/>
+        <Property name="Class" value="PassengerCar"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="0.073" y="0" z="0.675"/>
+        <Dimensions height="1.35" length="1.35" width="1.6"/>
+      </BoundingBox>
+      <Performance maxSpeed="70" maxAcceleration="5" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.573" trackWidth="1.454" positionX="0.1" positionZ="0.287"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.573" trackWidth="1.454" positionX="0"   positionZ="0.287"/>
+      </Axles>
+    </Vehicle>
+
+    <!-- ================================================= -->
+    <!-- NCAP BICYCLE -->
+    <!-- ================================================= -->
+    <Vehicle name="NCAP_Bicycle" vehicleCategory="bicycle">
+      <Properties>
+        <Property name="VehicleType" value="NCAP"/>
+        <Property name="Usage" value="VRU"/>
+        <Property name="Source" value="NCAP"/>
+        <Property name="Class" value="Bicycle"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="0.605" y="0" z="0.6"/>
+        <Dimensions height="1.2" length="1.89" width="0.5"/>
+      </BoundingBox>
+      <Performance maxSpeed="14" maxAcceleration="2" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.68" trackWidth="0" positionX="1.21" positionZ="0.34"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.68" trackWidth="0" positionX="0"   positionZ="0.34"/>
+      </Axles>
+    </Vehicle>
+
+    <!-- ================================================= -->
+    <!-- NCAP GLOBAL VEHICLE TARGET -->
+    <!-- ================================================= -->
+    <Vehicle name="NCAP_GlobalVehicleTarget" vehicleCategory="car">
+      <Properties>
+        <Property name="VehicleType" value="NCAP"/>
+        <Property name="Usage" value="Target"/>
+        <Property name="Source" value="NCAP"/>
+        <Property name="Class" value="PassengerCar"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="1.328" y="0" z="0.714"/>
+        <Dimensions height="1.427" length="4.023" width="1.712"/>
+      </BoundingBox>
+      <Performance maxSpeed="70" maxAcceleration="5" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.656" trackWidth="1.434" positionX="2.475" positionZ="0.328"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.656" trackWidth="1.434" positionX="0"   positionZ="0.328"/>
+      </Axles>
+    </Vehicle>
+
+    <!-- ================================================= -->
+    <!-- NCAP MOTORCYCLE -->
+    <!-- ================================================= -->
+    <Vehicle name="NCAP_Motorcycle" vehicleCategory="motorbike">
+      <Properties>
+        <Property name="VehicleType" value="NCAP"/>
+        <Property name="Usage" value="VRU"/>
+        <Property name="Source" value="NCAP"/>
+        <Property name="Class" value="Motorcycle"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="0.673" y="0" z="0.53"/>
+        <Dimensions height="1.06" length="2.08" width="0.79"/>
+      </BoundingBox>
+      <Performance maxSpeed="70" maxAcceleration="8" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.606" trackWidth="0" positionX="1.41" positionZ="0.303"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.62"  trackWidth="0" positionX="0"   positionZ="0.31"/>
+      </Axles>
+    </Vehicle>
+
+    <!-- ================================================= -->
+    <!-- NCAP OBSTRUCTION VEHICLES -->
+    <!-- ================================================= -->
+    <Vehicle name="NCAP_ObstructionVehicle_Large" vehicleCategory="car">
+      <Properties>
+        <Property name="VehicleType" value="NCAP"/>
+        <Property name="Usage" value="Obstacle"/>
+        <Property name="Source" value="NCAP"/>
+        <Property name="Class" value="PassengerCar"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="1.399" y="0" z="0.766"/>
+        <Dimensions height="1.533" length="4.418" width="1.82"/>
+      </BoundingBox>
+      <Performance maxSpeed="70" maxAcceleration="5" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.74" trackWidth="1.54" positionX="2.703" positionZ="0.37"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.74" trackWidth="1.532" positionX="0"   positionZ="0.37"/>
+      </Axles>
+    </Vehicle>
+
+    <Vehicle name="NCAP_ObstructionVehicle_Small" vehicleCategory="car">
+      <Properties>
+        <Property name="VehicleType" value="NCAP"/>
+        <Property name="Usage" value="Obstacle"/>
+        <Property name="Source" value="NCAP"/>
+        <Property name="Class" value="PassengerCar"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="1.368" y="0" z="0.74"/>
+        <Dimensions height="1.48" length="4.316" width="1.79"/>
+      </BoundingBox>
+      <Performance maxSpeed="70" maxAcceleration="5" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.662" trackWidth="1.48" positionX="2.638" positionZ="0.331"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.662" trackWidth="1.46" positionX="0"   positionZ="0.331"/>
+      </Axles>
+    </Vehicle>
+
+    <!-- ================================================= -->
+    <!-- EGO VEHICLE -->
+    <!-- ================================================= -->
+    <Vehicle name="Tesla_model3" vehicleCategory="car">
+      <Properties>
+        <Property name="Blueprint" value="vehicle.tesla.model3"/>
+        <Property name="VehicleType" value="Ego"/>
+        <Property name="Usage" value="Ego"/>
+        <Property name="Source" value="CARLA"/>
+        <Property name="Class" value="PassengerCar"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="1.4" y="0" z="0.75"/>
+        <Dimensions height="1.44" length="4.69" width="1.85"/>
+      </BoundingBox>
+      <Performance maxSpeed="70" maxAcceleration="5" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.6" trackWidth="1.6" positionX="2.9" positionZ="0.3"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.6" trackWidth="1.6" positionX="0"   positionZ="0.3"/>
+      </Axles>
+    </Vehicle>
+
+    <!-- ================================================= -->
+    <!-- GENERIC CARLA VEHICLES -->
+    <!-- ================================================= -->
+    <Vehicle name="Audi_A2" vehicleCategory="car">
+      <Properties>
+        <Property name="Blueprint" value="vehicle.audi.a2"/>
+        <Property name="VehicleType" value="Generic"/>
+        <Property name="Usage" value="Traffic"/>
+        <Property name="Source" value="CARLA"/>
+        <Property name="Class" value="PassengerCar"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="1.25" y="0" z="0.7"/>
+        <Dimensions height="1.55" length="3.82" width="1.67"/>
+      </BoundingBox>
+      <Performance maxSpeed="65" maxAcceleration="5" maxDeceleration="10"/>
+      <Axles>
+        <FrontAxle maxSteering="0.5" wheelDiameter="0.58" trackWidth="1.5" positionX="2.4" positionZ="0.28"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.58" trackWidth="1.5" positionX="0"   positionZ="0.28"/>
+      </Axles>
+    </Vehicle>
+
+    <Vehicle name="Mercedes_Sprinter" vehicleCategory="van">
+      <Properties>
+        <Property name="Blueprint" value="vehicle.mercedes.sprinter"/>
+        <Property name="VehicleType" value="Generic"/>
+        <Property name="Usage" value="Traffic"/>
+        <Property name="Source" value="CARLA"/>
+        <Property name="Class" value="Van"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="2.8" y="0" z="1.3"/>
+        <Dimensions height="2.6" length="6.4" width="2.0"/>
+      </BoundingBox>
+      <Performance maxSpeed="55" maxAcceleration="4" maxDeceleration="8"/>
+      <Axles>
+        <FrontAxle maxSteering="0.45" wheelDiameter="0.75" trackWidth="1.75" positionX="4.9" positionZ="0.4"/>
+        <RearAxle  maxSteering="0"    wheelDiameter="0.75" trackWidth="1.75" positionX="0"   positionZ="0.4"/>
+      </Axles>
+    </Vehicle>
+
+    <Vehicle name="CARLA_Truck" vehicleCategory="truck">
+      <Properties>
+        <Property name="Blueprint" value="vehicle.carlamotors.truck"/>
+        <Property name="VehicleType" value="Generic"/>
+        <Property name="Usage" value="Traffic"/>
+        <Property name="Source" value="CARLA"/>
+        <Property name="Class" value="Truck"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="3.2" y="0" z="1.6"/>
+        <Dimensions height="3.5" length="8.0" width="2.5"/>
+      </BoundingBox>
+      <Performance maxSpeed="50" maxAcceleration="3" maxDeceleration="8"/>
+      <Axles>
+        <FrontAxle maxSteering="0.42" wheelDiameter="1.0" trackWidth="2.0" positionX="6.2" positionZ="0.5"/>
+        <RearAxle  maxSteering="0"    wheelDiameter="1.0" trackWidth="2.0" positionX="0"   positionZ="0.5"/>
+      </Axles>
+    </Vehicle>
+
+    <Vehicle name="CARLA_Bus" vehicleCategory="bus">
+      <Properties>
+        <Property name="Blueprint" value="vehicle.carlamotors.bus"/>
+        <Property name="VehicleType" value="Generic"/>
+        <Property name="Usage" value="Traffic"/>
+        <Property name="Source" value="CARLA"/>
+        <Property name="Class" value="Bus"/>
+      </Properties>
+      <BoundingBox>
+        <Center x="5.2" y="0" z="1.6"/>
+        <Dimensions height="3.2" length="12.0" width="2.6"/>
+      </BoundingBox>
+      <Performance maxSpeed="40" maxAcceleration="2" maxDeceleration="7"/>
+      <Axles>
+        <FrontAxle maxSteering="0.4" wheelDiameter="0.9" trackWidth="2.3" positionX="8.5" positionZ="0.45"/>
+        <RearAxle  maxSteering="0"   wheelDiameter="0.9" trackWidth="2.3" positionX="0"   positionZ="0.45"/>
+      </Axles>
+    </Vehicle>
+  </Catalog>
+</OpenSCENARIO>

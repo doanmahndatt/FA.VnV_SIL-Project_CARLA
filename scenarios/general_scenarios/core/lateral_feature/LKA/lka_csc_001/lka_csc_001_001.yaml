@@ -1,11 +1,12 @@
 scenario_id: lka_csc_001_001
 logic:
   scenario_id: lka_csc_001
-  name: EV drifts from lane center and LKA corrects steering
+  name: EV drifts left on straight road and LKA recenters
   functional: LKA
   feature_domain: Lateral
   pre_condition:
     ev_mode: LKA
+    road_type: straight
   actors:
   - ev:
       type: ego
@@ -17,30 +18,10 @@ logic:
       position: front_ego
       state: moving
   maneuvers:
-  - type: lane_departure_event
+  - type: lane_departure_left_event
     actor: ev
-    direction: right
+    direction: left
 parameters:
-  ev_lane_id: -2
-  tv_lane_id: -2
-  ev_speed: 15
-  tv_speed: 15
-  trigger_lane_departure_time_1: 5
-  trigger_lane_departure_time_2: 12
-  trigger_lane_departure_time_3: 19
-  lane_departure_offset: 0.75
-  lane_departure_max_lateral_acc: 0.42
-  scenario_duration: 34
-  activation_offset: 0.2
-  deadband_offset: 0.04
-  kp_offset: 0.11
-  kp_heading: 0.38
-  kp_speed: 0.22
-  max_steer: 0.2
-  max_throttle: 0.42
-  max_brake: 0.18
-  offset_command_steer: 0.075
-  lane_departure_disturbance_duration: 1.4
-  fixed_delta_seconds: 0.05
+  ev_speed: 13.8889
   light: day
   weather: clear
